@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
+using MusicProject.Models.Concrete 
 
 namespace MusicProject.data
 {
