@@ -29,8 +29,6 @@ namespace MusicProject.Models.Concrete
 
         public bool IsActive { get; set; } = true;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
         public virtual ICollection<LikedSong> LikedSong { get; set; } = new List<LikedSong>();
 
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

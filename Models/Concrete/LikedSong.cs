@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.Models.Concrete
 {
-    public class LikedSong
+    public class LikedSong : BaseEntities
     {
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 namespace MusicProject.Models.Concrete
 {
-    internal class RecordLabel
+    internal class RecordLabel : BaseEntities
     {
     }
 }

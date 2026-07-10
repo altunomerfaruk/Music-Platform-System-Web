@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.Models.Concrete
 {
-    internal class using global using MusicProject.Core.Abstract;
+    internal class ArtistSubscription : BaseEntities
     {
     }
 }
