@@ -1,0 +1,171 @@
+﻿@model MusicProject.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Giriş Yap";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - MusicProject</title>
+
+    <style>
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background-color: #f4f6f8;
+            }
+
+            .login-container {
+                width: 400px;
+                margin: 100px auto;
+                padding: 30px;
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .login-container h2 {
+                text-align: center;
+                margin-bottom: 25px;
+            }
+
+            .form-group {
+                margin-bottom: 18px;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 7px;
+                font-weight: bold;
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 11px;
+                box-sizing: border-box;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+            }
+
+            .login-button {
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 6px;
+                background-color: #0066ff;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            }
+
+            .login-button:hover {
+                background-color: #0052cc;
+            }
+
+            .register-area {
+                margin-top: 20px;
+                text-align: center;
+            }
+
+            .register-link {
+                color: #0066ff;
+                text-decoration: none;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .register-link:hover {
+                text-decoration: underline;
+            }
+
+            .validation-error {
+                color: red;
+                font-size: 14px;
+            }
+
+            .success-message {
+                padding: 10px;
+                margin-bottom: 15px;
+                color: #155724;
+                background-color: #d4edda;
+                border-radius: 5px;
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <h2>Giriş Yap</h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="success-message">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <form action="/Auth/Login" method="post">
+            @* // DEĞİŞİKLİK: asp-controller ve asp-action yerine doğrudan /Auth/Login yazıldı. *@
+            @* // Böylece Tag Helper sorunu olsa bile form çalışır. *@
+
+            @Html.AntiForgeryToken()
+            @* // DEĞİŞİKLİK: Controller'daki ValidateAntiForgeryToken ile uyumlu olması için eklendi. *@
+
+            <div asp-validation-summary="ModelOnly"
+                 class="validation-error">
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+
+                <input asp-for="Email"
+                       class="form-control"
+                       type="email"
+                       placeholder="E-posta adresinizi girin" />
+
+                <span asp-validation-for="Email"
+                      class="validation-error">
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+
+                <input asp-for="Password"
+                       class="form-control"
+                       type="password"
+                       placeholder="Şifrenizi girin" />
+
+                <span asp-validation-for="Password"
+                      class="validation-error">
+                </span>
+            </div>
+
+            <button type="submit" class="login-button">
+                Giriş Yap
+            </button>
+
+        </form>
+
+        <div class="register-area">
+            Hesabın yok mu?
+
+            <a href="/Auth/Register" class="register-link">
+                Kayıt Ol
+            </a>
+
+            @* // DEĞİŞİKLİK: asp-controller ve asp-action yerine doğrudan href="/Auth/Register" kullanıldı. *@
+            @* // Böylece bağlantı kesin olarak Register sayfasına gider. *@
+        </div>
+
+    </div>
+
+</body>
+</html>

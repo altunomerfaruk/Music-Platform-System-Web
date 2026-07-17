@@ -35,5 +35,7 @@ namespace MusicProject.Models.Concrete
         public virtual ICollection<SongGenre> SongGenres { get; set; } = new List<SongGenre>();
 
         public virtual ICollection<LikedSong> LikedSongs { get; set; } = new List<LikedSong>();
+
+
     }
 }
