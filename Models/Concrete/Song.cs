@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.Models.Core;
-using System;
-using System.Collections.Generic;
+﻿using MusicProject.Models.Core;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,17 +8,12 @@ namespace MusicProject.Models.Concrete
     {
         [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
+        // DEĞİŞİKLİK: Title alanının null kalmaması için string.Empty eklendi.
 
         public int? AlbumId { get; set; }
 
-
         public int? LabelId { get; set; }
-
-        //[Required]
-        //[Range(1, int.MaxValue, ErrorMessage = "Şarkı süresi 0'dan büyük olmalıdır.")]
-        //public int Duration { get; set; }
-
 
         [ForeignKey("AlbumId")]
         public virtual Album? Album { get; set; }
@@ -31,11 +23,15 @@ namespace MusicProject.Models.Concrete
 
         public virtual SongStat? SongStat { get; set; }
 
-        public virtual ICollection<SongArtist> SongArtists { get; set; } = new List<SongArtist>();
-        public virtual ICollection<SongGenre> SongGenres { get; set; } = new List<SongGenre>();
+        public virtual ICollection<SongArtist> SongArtists { get; set; }
+            = new List<SongArtist>();
+        // Şarkı ile sanatçı arasındaki ilişkiyi bu ara tablo yönetiyor.
+        // Bu nedenle Song içine ayrıca ArtistId eklemiyoruz.
 
-        public virtual ICollection<LikedSong> LikedSongs { get; set; } = new List<LikedSong>();
+        public virtual ICollection<SongGenre> SongGenres { get; set; }
+            = new List<SongGenre>();
 
-
+        public virtual ICollection<LikedSong> LikedSongs { get; set; }
+            = new List<LikedSong>();
     }
 }

@@ -11,11 +11,15 @@ namespace MusicProject.Services.Concrete
         private readonly IArtistRepository _artistRepository;
         private readonly ISongRepository _songRepository;
 
-        public ArtistManager(IArtistRepository artistRepository, ISongRepository songRepository)
+        public ArtistManager(
+            IArtistRepository artistRepository,
+            ISongRepository songRepository
+        )
         {
             _artistRepository = artistRepository;
             _songRepository = songRepository;
         }
+
         // --- TEMEL CRUD İŞLEMLERİ ---
 
         public IEnumerable<Artist> GetAllArtists()
@@ -23,9 +27,13 @@ namespace MusicProject.Services.Concrete
             return _artistRepository.GetAll();
         }
 
-        public Artist GetArtistById(int id)
+        public Artist? GetArtistById(int id)
         {
             return _artistRepository.GetByID(id);
+
+            // DEĞİŞİKLİK:
+            // Artist yerine Artist? yapıldı.
+            // Çünkü ID'ye ait sanatçı bulunamazsa repository null dönebilir.
         }
 
         public void AddArtist(Artist artist)
@@ -43,12 +51,15 @@ namespace MusicProject.Services.Concrete
             _artistRepository.Delete(id);
         }
 
-        // --- İSTATİSTİK İÇİN ÖZEL METOT ---
-
         public int GetTotalSongCount(int artistId)
         {
-            // Şarkıları getir ve içinde bu sanatçının (artistId) bulunduğu şarkıları say
-            return _songRepository.GetAll().Count(x => x.SongArtists.Any(sa => sa.ArtistId == artistId));
+            return _songRepository
+                .GetAll()
+                .Count(song =>
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.ArtistId == artistId
+                    )
+                );
         }
     }
 }

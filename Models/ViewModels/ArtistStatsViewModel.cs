@@ -2,10 +2,10 @@
 {
     public class ArtistStatsViewModel
     {
-        public int ArtistId { get; set; }
+        public int ArtistId { get; set; } 
 
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
-        public int TotalSongCount { get; set; }
+        public int TotalSongCount { get; set; } 
     }
 }

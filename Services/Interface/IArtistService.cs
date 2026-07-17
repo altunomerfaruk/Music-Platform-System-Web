@@ -8,7 +8,7 @@ namespace MusicProject.Services.Interface
     {
         // Temel CRUD işlemleri
         IEnumerable<Artist> GetAllArtists();
-        Artist GetArtistById(int id);
+        Artist? GetArtistById(int id);
         void AddArtist(Artist artist);
         void UpdateArtist(Artist artist);
         void DeleteArtist(int id);

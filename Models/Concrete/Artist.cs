@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.Models.Core;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MusicProject.Models.Concrete
 {
@@ -13,18 +10,29 @@ namespace MusicProject.Models.Concrete
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [MaxLength(100)]
         public string? Country { get; set; }
 
         public int? DebutYear { get; set; }
 
-        public virtual ICollection<Album> Albums { get; set; } = new List<Album>();
+        public int? UserId { get; set; }
+        // DEĞİŞİKLİK:
+        // int UserId yerine int? UserId yapıldı.
+        // Mevcut sanatçıların kullanıcı bağlantısı boş kalabilir.
 
-        public virtual ICollection<SongArtist> SongArtists { get; set; } = new List<SongArtist>();
+        [ForeignKey(nameof(UserId))]
+        public virtual User? User { get; set; }
+        // DEĞİŞİKLİK:
+        // Artist henüz bir kullanıcı hesabına bağlanmamışsa null olabilir.
+
+        public virtual ICollection<Album> Albums { get; set; }
+            = new List<Album>();
+
+        public virtual ICollection<SongArtist> SongArtists { get; set; }
+            = new List<SongArtist>();
 
         public virtual ArtistStat? ArtistStat { get; set; }
-
     }
 }

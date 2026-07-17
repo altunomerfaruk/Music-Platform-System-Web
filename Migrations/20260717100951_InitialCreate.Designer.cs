@@ -12,7 +12,7 @@ using MusicProject.data;
 namespace MusicProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260710114240_InitialCreate")]
+    [Migration("20260717100951_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,7 +74,14 @@ namespace MusicProject.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Artists");
                 });
@@ -154,14 +161,9 @@ namespace MusicProject.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Payment");
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("MusicProject.Models.Concrete.RecordLabel", b =>
@@ -258,19 +260,22 @@ namespace MusicProject.Migrations
 
             modelBuilder.Entity("MusicProject.Models.Concrete.SongStat", b =>
                 {
-                    b.Property<int>("SongId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<int>("PopularityScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SongId")
                         .HasColumnType("int");
 
                     b.Property<int>("TotalLikes")
@@ -279,9 +284,12 @@ namespace MusicProject.Migrations
                     b.Property<int>("TotalStreams")
                         .HasColumnType("int");
 
-                    b.HasKey("SongId");
+                    b.HasKey("Id");
 
-                    b.ToTable("SongStat");
+                    b.HasIndex("SongId")
+                        .IsUnique();
+
+                    b.ToTable("SongStats");
                 });
 
             modelBuilder.Entity("MusicProject.Models.Concrete.User", b =>
@@ -303,9 +311,6 @@ namespace MusicProject.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -316,6 +321,11 @@ namespace MusicProject.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -344,6 +354,16 @@ namespace MusicProject.Migrations
                         .HasForeignKey("RecordLabelId");
                 });
 
+            modelBuilder.Entity("MusicProject.Models.Concrete.Artist", b =>
+                {
+                    b.HasOne("MusicProject.Models.Concrete.User", "User")
+                        .WithOne("ArtistProfile")
+                        .HasForeignKey("MusicProject.Models.Concrete.Artist", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MusicProject.Models.Concrete.ArtistStat", b =>
                 {
                     b.HasOne("MusicProject.Models.Concrete.Artist", "Artist")
@@ -364,7 +384,7 @@ namespace MusicProject.Migrations
                         .IsRequired();
 
                     b.HasOne("MusicProject.Models.Concrete.User", "User")
-                        .WithMany("LikedSong")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -372,13 +392,6 @@ namespace MusicProject.Migrations
                     b.Navigation("Song");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MusicProject.Models.Concrete.Payment", b =>
-                {
-                    b.HasOne("MusicProject.Models.Concrete.User", null)
-                        .WithMany("Payments")
-                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("MusicProject.Models.Concrete.Song", b =>
@@ -479,9 +492,7 @@ namespace MusicProject.Migrations
 
             modelBuilder.Entity("MusicProject.Models.Concrete.User", b =>
                 {
-                    b.Navigation("LikedSong");
-
-                    b.Navigation("Payments");
+                    b.Navigation("ArtistProfile");
                 });
 #pragma warning restore 612, 618
         }

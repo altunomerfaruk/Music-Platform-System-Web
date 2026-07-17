@@ -2,12 +2,10 @@
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
-
 namespace MusicProject.Services.Concrete
 {
     public class SongManager : ISongService
     {
-        // Repository'yi readonly olarak enjekte ediyoruz
         private readonly ISongRepository _songRepository;
 
         public SongManager(ISongRepository songRepository)
@@ -20,21 +18,32 @@ namespace MusicProject.Services.Concrete
             return _songRepository.GetAll();
         }
 
-        public Song GetSongById(int id)
+        public Song? GetSongById(int id)
         {
             return _songRepository.GetByID(id);
+
+            // DEĞİŞİKLİK:
+            // Song yerine Song? yapıldı.
+            // Çünkü ID'ye ait şarkı bulunamazsa repository null dönebilir.
         }
 
         public void AddSong(Song song)
         {
-
-            bool isSongExists = _songRepository.GetAll()
-                .Any(x => x.Title.Equals(song.Title, StringComparison.OrdinalIgnoreCase));
+            bool isSongExists = _songRepository
+                .GetAll()
+                .Any(existingSong =>
+                    existingSong.Title.Equals(
+                        song.Title,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                );
 
             if (isSongExists)
             {
-
-                throw new InvalidOperationException($"'{song.Title}' adında bir şarkı zaten sistemde kayıtlı. Lütfen farklı bir isim giriniz.");
+                throw new InvalidOperationException(
+                    $"'{song.Title}' adında bir şarkı zaten sistemde kayıtlı. " +
+                    "Lütfen farklı bir isim giriniz."
+                );
             }
 
             _songRepository.Create(song);

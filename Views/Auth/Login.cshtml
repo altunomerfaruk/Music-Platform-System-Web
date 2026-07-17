@@ -9,163 +9,367 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
 
     <title>@ViewData["Title"] - MusicProject</title>
 
     <style>
-            body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background-color: #f4f6f8;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: white;
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(29, 185, 84, 0.25),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #080808,
+                    #121212,
+                    #1c1c1c
+                );
+        }
+
+        .navbar {
+            width: 100%;
+            height: 80px;
+            padding: 0 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.55);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #1db954;
+            color: black;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .home-link {
+            padding: 11px 22px;
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .home-link:hover {
+            color: black;
+            background-color: white;
+        }
+
+        .page-container {
+            min-height: calc(100vh - 80px);
+            padding: 60px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            background-color: rgba(24, 24, 24, 0.9);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(15px);
+        }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: black;
+            background-color: #1db954;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .title {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 34px;
+        }
+
+        .description {
+            margin-bottom: 30px;
+            color: #aaaaaa;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 9px;
+            color: #eeeeee;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 15px;
+            color: white;
+            background-color: #242424;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            outline: none;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .form-control::placeholder {
+            color: #777777;
+        }
+
+        .form-control:focus {
+            border-color: #1db954;
+            box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.13);
+        }
+
+        .validation-error {
+            display: block;
+            margin-top: 7px;
+            color: #ff6b6b;
+            font-size: 13px;
+        }
+
+        .validation-summary {
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            color: #ff8d8d;
+            background-color: rgba(255, 70, 70, 0.1);
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            border-radius: 10px;
+        }
+
+        .validation-summary:empty {
+            display: none;
+        }
+
+        .success-message {
+            margin-bottom: 20px;
+            padding: 13px 15px;
+            color: #8ef0ae;
+            background-color: rgba(29, 185, 84, 0.12);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            border-radius: 10px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 30px;
+            color: black;
+            background-color: #1db954;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-button:hover {
+            background-color: #25d366;
+            transform: translateY(-2px);
+        }
+
+        .register-area {
+            margin-top: 26px;
+            color: #aaaaaa;
+            text-align: center;
+        }
+
+        .register-link {
+            margin-left: 5px;
+            color: #1db954;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+
+        @@media (max-width: 550px) {
+            .navbar {
+                height: auto;
+                padding-top: 18px;
+                padding-bottom: 18px;
+                flex-direction: column;
+                gap: 18px;
             }
 
-            .login-container {
-                width: 400px;
-                margin: 100px auto;
-                padding: 30px;
-                background-color: white;
-                border-radius: 10px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            .page-container {
+                min-height: calc(100vh - 130px);
+                padding: 35px 15px;
             }
 
-            .login-container h2 {
-                text-align: center;
-                margin-bottom: 25px;
+            .login-card {
+                padding: 30px 22px;
             }
 
-            .form-group {
-                margin-bottom: 18px;
+            .title {
+                font-size: 29px;
             }
-
-            .form-group label {
-                display: block;
-                margin-bottom: 7px;
-                font-weight: bold;
-            }
-
-            .form-control {
-                width: 100%;
-                padding: 11px;
-                box-sizing: border-box;
-                border: 1px solid #cccccc;
-                border-radius: 6px;
-            }
-
-            .login-button {
-                width: 100%;
-                padding: 12px;
-                border: none;
-                border-radius: 6px;
-                background-color: #0066ff;
-                color: white;
-                font-size: 16px;
-                cursor: pointer;
-            }
-
-            .login-button:hover {
-                background-color: #0052cc;
-            }
-
-            .register-area {
-                margin-top: 20px;
-                text-align: center;
-            }
-
-            .register-link {
-                color: #0066ff;
-                text-decoration: none;
-                font-weight: bold;
-                cursor: pointer;
-            }
-
-            .register-link:hover {
-                text-decoration: underline;
-            }
-
-            .validation-error {
-                color: red;
-                font-size: 14px;
-            }
-
-            .success-message {
-                padding: 10px;
-                margin-bottom: 15px;
-                color: #155724;
-                background-color: #d4edda;
-                border-radius: 5px;
-            }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="login-container">
+    <nav class="navbar">
 
-        <h2>Giriş Yap</h2>
+        <a href="/" class="logo">
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="success-message">
-                @TempData["SuccessMessage"]
-            </div>
-        }
-
-        <form action="/Auth/Login" method="post">
-            @* // DEĞİŞİKLİK: asp-controller ve asp-action yerine doğrudan /Auth/Login yazıldı. *@
-            @* // Böylece Tag Helper sorunu olsa bile form çalışır. *@
-
-            @Html.AntiForgeryToken()
-            @* // DEĞİŞİKLİK: Controller'daki ValidateAntiForgeryToken ile uyumlu olması için eklendi. *@
-
-            <div asp-validation-summary="ModelOnly"
-                 class="validation-error">
+            <div class="logo-icon">
+                ♪
             </div>
 
-            <div class="form-group">
-                <label asp-for="Email"></label>
+            <span class="logo-text">
+                MusicProject
+            </span>
 
-                <input asp-for="Email"
-                       class="form-control"
-                       type="email"
-                       placeholder="E-posta adresinizi girin" />
+        </a>
 
-                <span asp-validation-for="Email"
-                      class="validation-error">
-                </span>
+        <a href="/" class="home-link">
+            Ana Sayfa
+        </a>
+
+    </nav>
+
+    <main class="page-container">
+
+        <div class="login-card">
+
+            <div class="card-icon">
+                ♪
             </div>
 
-            <div class="form-group">
-                <label asp-for="Password"></label>
+            <h1 class="title">
+                Tekrar hoş geldin
+            </h1>
 
-                <input asp-for="Password"
-                       class="form-control"
-                       type="password"
-                       placeholder="Şifrenizi girin" />
+            <p class="description">
+                Müzik dünyana devam etmek için hesabına giriş yap.
+            </p>
 
-                <span asp-validation-for="Password"
-                      class="validation-error">
-                </span>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="success-message">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form action="/Auth/Login" method="post">
+
+                @Html.AntiForgeryToken()
+
+                @* // DEĞİŞİKLİK: Genel giriş hatalarının tasarımlı kutuda görünmesi sağlandı. *@
+                <div asp-validation-summary="ModelOnly"
+                     class="validation-summary">
+                </div>
+
+                <div class="form-group">
+
+                    <label asp-for="Email"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Email"
+                           class="form-control"
+                           type="email"
+                           placeholder="E-posta adresinizi girin" />
+
+                    <span asp-validation-for="Email"
+                          class="validation-error">
+                    </span>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label asp-for="Password"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Password"
+                           class="form-control"
+                           type="password"
+                           placeholder="Şifrenizi girin" />
+
+                    <span asp-validation-for="Password"
+                          class="validation-error">
+                    </span>
+
+                </div>
+
+                <button type="submit"
+                        class="login-button">
+                    Giriş Yap
+                </button>
+
+            </form>
+
+            <div class="register-area">
+
+                Hesabın yok mu?
+
+                <a href="/Auth/Register"
+                   class="register-link">
+                    Kayıt Ol
+                </a>
+
             </div>
 
-            <button type="submit" class="login-button">
-                Giriş Yap
-            </button>
-
-        </form>
-
-        <div class="register-area">
-            Hesabın yok mu?
-
-            <a href="/Auth/Register" class="register-link">
-                Kayıt Ol
-            </a>
-
-            @* // DEĞİŞİKLİK: asp-controller ve asp-action yerine doğrudan href="/Auth/Register" kullanıldı. *@
-            @* // Böylece bağlantı kesin olarak Register sayfasına gider. *@
         </div>
 
-    </div>
+    </main>
 
 </body>
 </html>

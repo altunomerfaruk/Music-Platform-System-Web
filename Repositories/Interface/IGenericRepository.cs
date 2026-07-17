@@ -3,18 +3,20 @@ using System.Linq.Expressions;
 
 namespace MusicProject.Repositories.Interface
 {
-    public interface IGenericRepository<T> where T : BaseEntities
+    public interface IGenericRepository<T>
+        where T : BaseEntities
     {
+        IEnumerable<T> GetAll();
 
+        T? GetByID(
+            int id,
+            params Expression<Func<T, object>>[] includes
+        );
 
+        void Delete(int id);
 
-        public IEnumerable<T> GetAll();
-        T GetByID(int id, params Expression<Func<T, object>>[] includes);
-        public void Delete(int id);
-        public void Create(T entity);
-        public void Update(T entity);
+        void Create(T entity);
 
-
-
+        void Update(T entity);
     }
 }

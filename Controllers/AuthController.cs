@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums; // DEĞİŞİKLİK: UserRole enum'unu kullanmak için eklendi.
 using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
@@ -50,10 +51,12 @@ namespace MusicProject.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Username),
+
                 new Claim(ClaimTypes.Email, user.Email),
+
                 new Claim(
                     ClaimTypes.Role,
-                    user.IsAdmin ? "Admin" : "User"
+                    user.Role.ToString()
                 )
             };
 
@@ -80,7 +83,6 @@ namespace MusicProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // DEĞİŞİKLİK: Register butonuna basılınca çalışacak POST metodu eklendi.
         public IActionResult Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -91,11 +93,12 @@ namespace MusicProject.Controllers
             var user = new User
             {
                 Username = model.FullName,
-                // DEĞİŞİKLİK: FullName bilgisi User modelindeki Username alanına aktarılıyor.
 
                 Email = model.Email,
+
                 Password = model.Password,
-                IsAdmin = false
+
+                Role = UserRole.User
             };
 
             var registrationSuccessful = _userService.Register(user);

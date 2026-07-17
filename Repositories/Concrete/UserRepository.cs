@@ -20,15 +20,20 @@ namespace MusicProject.Repositories.Concrete
             _context.SaveChanges();
         }
 
-        public User GetByEmail(string email)
+        public User? GetByEmail(string email)
         {
-            // Veritabanında bu e-postaya sahip ilk kişiyi getir, yoksa null döndür
-            return _context.users.FirstOrDefault(x => x.Email == email);
+            return _context.users
+                .FirstOrDefault(user => user.Email == email);
+
+  
         }
 
-        public User GetByUsername(string username)
+        public User? GetByUsername(string username)
         {
-            return _context.users.FirstOrDefault(x => x.Username == username);
+            return _context.users
+                .FirstOrDefault(user => user.Username == username);
+
+
         }
     }
 }

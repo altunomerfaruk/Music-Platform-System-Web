@@ -9,7 +9,7 @@ namespace MusicProject.Services.Interface
     {
         // Temel CRUD işlemleri
         IEnumerable<Song> GetAllSongs();
-        Song GetSongById(int id);
+        Song? GetSongById(int id);
         void AddSong(Song song);
         void UpdateSong(Song song);
         void DeleteSong(int id);

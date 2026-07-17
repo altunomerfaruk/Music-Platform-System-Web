@@ -12,21 +12,6 @@ namespace MusicProject.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Artists",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    DebutYear = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Artists", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Genres",
                 columns: table => new
                 {
@@ -39,6 +24,20 @@ namespace MusicProject.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Genres", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,11 +63,11 @@ namespace MusicProject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
-                    IsPremium = table.Column<bool>(type: "bit", nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Role = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsPremium = table.Column<bool>(type: "bit", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -78,20 +77,23 @@ namespace MusicProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "artistStats",
+                name: "Artists",
                 columns: table => new
                 {
-                    ArtistId = table.Column<int>(type: "int", nullable: false),
-                    MonthlyListeners = table.Column<int>(type: "int", nullable: false),
-                    TotalStreams = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    DebutYear = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_artistStats", x => x.ArtistId);
+                    table.PrimaryKey("PK_Artists", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_artistStats_Artists_ArtistId",
-                        column: x => x.ArtistId,
-                        principalTable: "Artists",
+                        name: "FK_Artists_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -123,23 +125,22 @@ namespace MusicProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
+                name: "artistStats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ArtistId = table.Column<int>(type: "int", nullable: false),
+                    MonthlyListeners = table.Column<int>(type: "int", nullable: false),
+                    TotalStreams = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payment", x => x.Id);
+                    table.PrimaryKey("PK_artistStats", x => x.ArtistId);
                     table.ForeignKey(
-                        name: "FK_Payment_users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "users",
-                        principalColumn: "Id");
+                        name: "FK_artistStats_Artists_ArtistId",
+                        column: x => x.ArtistId,
+                        principalTable: "Artists",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -244,22 +245,23 @@ namespace MusicProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SongStat",
+                name: "SongStats",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     SongId = table.Column<int>(type: "int", nullable: false),
                     TotalStreams = table.Column<int>(type: "int", nullable: false),
                     TotalLikes = table.Column<int>(type: "int", nullable: false),
                     PopularityScore = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SongStat", x => x.SongId);
+                    table.PrimaryKey("PK_SongStats", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SongStat_Songs_SongId",
+                        name: "FK_SongStats_Songs_SongId",
                         column: x => x.SongId,
                         principalTable: "Songs",
                         principalColumn: "Id",
@@ -277,14 +279,16 @@ namespace MusicProject.Migrations
                 column: "RecordLabelId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Artists_UserId",
+                table: "Artists",
+                column: "UserId",
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LikedSongs_SongId",
                 table: "LikedSongs",
                 column: "SongId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payment_UserId",
-                table: "Payment",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SongArtists_ArtistId",
@@ -305,6 +309,12 @@ namespace MusicProject.Migrations
                 name: "IX_Songs_LabelId",
                 table: "Songs",
                 column: "LabelId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SongStats_SongId",
+                table: "SongStats",
+                column: "SongId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_Email",
@@ -329,7 +339,7 @@ namespace MusicProject.Migrations
                 name: "LikedSongs");
 
             migrationBuilder.DropTable(
-                name: "Payment");
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "SongArtists");
@@ -338,10 +348,7 @@ namespace MusicProject.Migrations
                 name: "SongGenres");
 
             migrationBuilder.DropTable(
-                name: "SongStat");
-
-            migrationBuilder.DropTable(
-                name: "users");
+                name: "SongStats");
 
             migrationBuilder.DropTable(
                 name: "Genres");
@@ -357,6 +364,9 @@ namespace MusicProject.Migrations
 
             migrationBuilder.DropTable(
                 name: "RecordLabels");
+
+            migrationBuilder.DropTable(
+                name: "users");
         }
     }
 }

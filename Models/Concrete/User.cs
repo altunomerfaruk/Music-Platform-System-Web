@@ -1,36 +1,34 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.Models.Core;
-using System;
-using System.Collections.Generic;
+﻿using MusicProject.Models.Core;
+// DEĞİŞİKLİK: BaseEntities sınıfını kullanabilmek için eklendi.
+
+using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.Models.Concrete
 {
-    [Index(nameof(Email), IsUnique = true)]
-    [Index(nameof(Username), IsUnique = true)]
     public class User : BaseEntities
     {
         [Required]
-        [StringLength(50)]
-        public string Username { get; set; } = null!;
-
-        [Required]
-        [StringLength(50)]
-        public string Password { get; set; } = null!;
+        [MaxLength(50)]
+        public string Username { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
-        [StringLength(100)]
-        public string Email { get; set; } = null!;
+        [MaxLength(100)]
+        public string Email { get; set; } = string.Empty;
 
-        public bool IsAdmin { get; set; } = false;
+        [Required]
+        [MaxLength(50)]
+        public string Password { get; set; } = string.Empty;
 
-        public bool? IsPremium { get; set; } = false;
+
+        public UserRole Role { get; set; } = UserRole.User;
+
 
         public bool IsActive { get; set; } = true;
 
-        public virtual ICollection<LikedSong> LikedSong { get; set; } = new List<LikedSong>();
+        public bool? IsPremium { get; set; }
 
-        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public virtual Artist? ArtistProfile { get; set; }
     }
 }
