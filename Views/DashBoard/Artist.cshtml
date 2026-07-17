@@ -1,0 +1,1722 @@
+﻿@{
+    ViewData["Title"] = "Sanatçı Paneli";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - MusicProject</title>
+
+    <style>
+            :root {
+                --background: #080b09;
+                --sidebar: #0d110f;
+                --card: #121713;
+                --card-hover: #171e19;
+                --border: rgba(255, 255, 255, 0.08);
+                --primary: #1ed760;
+                --primary-dark: #18b950;
+                --text: #ffffff;
+                --text-secondary: #9da6a0;
+                --warning: #ffbd3d;
+                --danger: #ff5c5c;
+                --info: #55aaff;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                min-height: 100vh;
+                overflow-x: hidden;
+                color: var(--text);
+                background:
+                    radial-gradient(
+                        circle at 80% 0%,
+                        rgba(30, 215, 96, 0.11),
+                        transparent 27%
+                    ),
+                    var(--background);
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            button,
+            input {
+                font-family: inherit;
+            }
+
+            .artist-layout {
+                min-height: 100vh;
+                display: flex;
+            }
+
+            /* SOL MENÜ */
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1000;
+                width: 265px;
+                height: 100vh;
+                padding: 24px 17px;
+                display: flex;
+                flex-direction: column;
+                background-color: rgba(13, 17, 15, 0.97);
+                border-right: 1px solid var(--border);
+                backdrop-filter: blur(16px);
+                transition: transform 0.25s ease;
+            }
+
+            .brand {
+                padding: 0 12px 26px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .brand-icon {
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #071009;
+                background-color: var(--primary);
+                border-radius: 14px;
+                font-size: 24px;
+                font-weight: 900;
+                box-shadow: 0 8px 25px rgba(30, 215, 96, 0.22);
+            }
+
+            .brand-name {
+                display: block;
+                font-size: 19px;
+                font-weight: 800;
+            }
+
+            .brand-panel {
+                display: block;
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 12px;
+            }
+
+            .navigation {
+                margin-top: 26px;
+                flex: 1;
+            }
+
+            .navigation-title {
+                margin: 0 13px 10px;
+                color: #687169;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 1.4px;
+                text-transform: uppercase;
+            }
+
+            .navigation-list {
+                list-style: none;
+            }
+
+            .navigation-item {
+                margin-bottom: 6px;
+            }
+
+            .navigation-link {
+                min-height: 48px;
+                padding: 0 14px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                color: var(--text-secondary);
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 700;
+                transition: 0.2s ease;
+            }
+
+            .navigation-link:hover {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            .navigation-link.active {
+                color: #061108;
+                background-color: var(--primary);
+                box-shadow: 0 9px 28px rgba(30, 215, 96, 0.16);
+            }
+
+            .navigation-icon {
+                width: 23px;
+                text-align: center;
+                font-size: 18px;
+            }
+
+            .navigation-badge {
+                min-width: 25px;
+                margin-left: auto;
+                padding: 4px 7px;
+                color: white;
+                background-color: rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .navigation-link.active .navigation-badge {
+                background-color: rgba(0, 0, 0, 0.25);
+            }
+
+            .sidebar-footer {
+                padding-top: 17px;
+                border-top: 1px solid var(--border);
+            }
+
+            .artist-profile-small {
+                padding: 11px;
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                background-color: rgba(255, 255, 255, 0.035);
+                border-radius: 13px;
+            }
+
+            .artist-avatar-small {
+                width: 39px;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #08110a;
+                background-color: var(--primary);
+                border-radius: 50%;
+                font-weight: 900;
+            }
+
+            .artist-profile-info {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .artist-name-small {
+                overflow: hidden;
+                font-size: 13px;
+                font-weight: 800;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .artist-role {
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 11px;
+            }
+
+            .logout-button {
+                width: 34px;
+                height: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-secondary);
+                background: transparent;
+                border: none;
+                border-radius: 9px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .logout-button:hover {
+                color: var(--danger);
+                background-color: rgba(255, 92, 92, 0.1);
+            }
+
+            /* ANA İÇERİK */
+
+            .main-content {
+                width: calc(100% - 265px);
+                min-height: 100vh;
+                margin-left: 265px;
+            }
+
+            .topbar {
+                position: sticky;
+                top: 0;
+                z-index: 900;
+                min-height: 78px;
+                padding: 16px 34px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background-color: rgba(8, 11, 9, 0.83);
+                border-bottom: 1px solid var(--border);
+                backdrop-filter: blur(18px);
+            }
+
+            .topbar-left {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .menu-button {
+                width: 42px;
+                height: 42px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 11px;
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .page-heading h1 {
+                font-size: 22px;
+                font-weight: 850;
+            }
+
+            .page-heading p {
+                margin-top: 5px;
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+            .topbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+            }
+
+            .upload-button {
+                padding: 12px 18px;
+                color: #071008;
+                background-color: var(--primary);
+                border: none;
+                border-radius: 12px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .upload-button:hover {
+                background-color: #25e66d;
+                transform: translateY(-2px);
+            }
+
+            .notification-button {
+                position: relative;
+                width: 43px;
+                height: 43px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                cursor: pointer;
+            }
+
+            .notification-dot {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 7px;
+                height: 7px;
+                background-color: var(--primary);
+                border: 2px solid var(--card);
+                border-radius: 50%;
+            }
+
+            .dashboard-content {
+                padding: 32px 34px 50px;
+            }
+
+            /* PROFİL BANNER */
+
+            .profile-banner {
+                position: relative;
+                overflow: hidden;
+                min-height: 235px;
+                padding: 34px;
+                display: flex;
+                align-items: center;
+                gap: 28px;
+                background:
+                    linear-gradient(
+                        125deg,
+                        rgba(30, 215, 96, 0.22),
+                        rgba(18, 23, 19, 0.96) 57%
+                    );
+                border: 1px solid rgba(30, 215, 96, 0.20);
+                border-radius: 22px;
+            }
+
+            .profile-banner::after {
+                content: "♫";
+                position: absolute;
+                right: 35px;
+                bottom: -55px;
+                color: rgba(30, 215, 96, 0.12);
+                font-size: 190px;
+                transform: rotate(-10deg);
+            }
+
+            .artist-avatar-large {
+                position: relative;
+                z-index: 1;
+                width: 145px;
+                height: 145px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #071008;
+                background:
+                    radial-gradient(
+                        circle at 35% 30%,
+                        #52ef8a,
+                        var(--primary) 42%,
+                        #0c6d30
+                    );
+                border: 5px solid rgba(255, 255, 255, 0.12);
+                border-radius: 50%;
+                font-size: 48px;
+                font-weight: 900;
+                box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            }
+
+            .profile-content {
+                position: relative;
+                z-index: 1;
+                flex: 1;
+            }
+
+            .verified-label {
+                margin-bottom: 10px;
+                color: var(--primary);
+                font-size: 12px;
+                font-weight: 850;
+                letter-spacing: 1.2px;
+                text-transform: uppercase;
+            }
+
+            .artist-main-name {
+                margin-bottom: 10px;
+                font-size: clamp(30px, 4vw, 48px);
+                line-height: 1.1;
+            }
+
+            .artist-description {
+                max-width: 700px;
+                color: var(--text-secondary);
+                font-size: 14px;
+                line-height: 1.7;
+            }
+
+            .profile-meta {
+                margin-top: 18px;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 18px;
+            }
+
+            .profile-meta-item {
+                color: #dce2dd;
+                font-size: 13px;
+            }
+
+            .profile-meta-item strong {
+                color: white;
+            }
+
+            .edit-profile-button {
+                position: relative;
+                z-index: 1;
+                padding: 12px 17px;
+                color: white;
+                background-color: rgba(255, 255, 255, 0.06);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .edit-profile-button:hover {
+                color: #071008;
+                background-color: white;
+            }
+
+            /* İSTATİSTİKLER */
+
+            .stat-grid {
+                margin-top: 25px;
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 18px;
+            }
+
+            .stat-card {
+                min-height: 145px;
+                padding: 21px;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 18px;
+                transition: 0.22s ease;
+            }
+
+            .stat-card:hover {
+                background-color: var(--card-hover);
+                border-color: rgba(30, 215, 96, 0.22);
+                transform: translateY(-3px);
+            }
+
+            .stat-card-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 13px;
+                font-size: 20px;
+            }
+
+            .green-icon {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.11);
+            }
+
+            .blue-icon {
+                color: var(--info);
+                background-color: rgba(85, 170, 255, 0.11);
+            }
+
+            .orange-icon {
+                color: var(--warning);
+                background-color: rgba(255, 189, 61, 0.11);
+            }
+
+            .red-icon {
+                color: var(--danger);
+                background-color: rgba(255, 92, 92, 0.11);
+            }
+
+            .stat-change {
+                padding: 5px 8px;
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.09);
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: 800;
+            }
+
+            .stat-number {
+                margin-top: 20px;
+                font-size: 28px;
+                font-weight: 900;
+            }
+
+            .stat-label {
+                margin-top: 6px;
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+            /* PANELLER */
+
+            .dashboard-grid {
+                margin-top: 25px;
+                display: grid;
+                grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.75fr);
+                gap: 20px;
+            }
+
+            .panel {
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 19px;
+            }
+
+            .panel-header {
+                min-height: 69px;
+                padding: 18px 21px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .panel-title {
+                font-size: 16px;
+                font-weight: 850;
+            }
+
+            .panel-subtitle {
+                margin-top: 4px;
+                color: var(--text-secondary);
+                font-size: 12px;
+            }
+
+            .panel-link {
+                color: var(--primary);
+                font-size: 12px;
+                font-weight: 750;
+            }
+
+            .chart-area {
+                height: 285px;
+                padding: 27px 22px 18px;
+                display: flex;
+                align-items: flex-end;
+                gap: 13px;
+            }
+
+            .chart-column {
+                height: 100%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+
+            .chart-bar-wrapper {
+                height: 220px;
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .chart-bar {
+                width: 100%;
+                min-height: 12px;
+                background:
+                    linear-gradient(
+                        180deg,
+                        var(--primary),
+                        rgba(30, 215, 96, 0.22)
+                    );
+                border-radius: 8px 8px 3px 3px;
+                transition: 0.2s;
+            }
+
+            .chart-bar:hover {
+                filter: brightness(1.16);
+                transform: scaleX(1.04);
+            }
+
+            .chart-label {
+                color: var(--text-secondary);
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .quick-actions {
+                padding: 17px;
+                display: grid;
+                gap: 11px;
+            }
+
+            .quick-action {
+                min-height: 64px;
+                padding: 13px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                background-color: rgba(255, 255, 255, 0.025);
+                border: 1px solid transparent;
+                border-radius: 13px;
+                transition: 0.2s;
+            }
+
+            .quick-action:hover {
+                background-color: rgba(255, 255, 255, 0.055);
+                border-color: var(--border);
+                transform: translateX(3px);
+            }
+
+            .quick-action-icon {
+                width: 39px;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.09);
+                border-radius: 11px;
+            }
+
+            .quick-action-content {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .quick-action-title {
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+            .quick-action-description {
+                margin-top: 4px;
+                overflow: hidden;
+                color: var(--text-secondary);
+                font-size: 11px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .quick-action-arrow {
+                color: #5c655f;
+            }
+
+            /* ŞARKI TABLOSU */
+
+            .songs-panel {
+                margin-top: 25px;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 15px 18px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .data-table th {
+                color: #687169;
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .data-table td {
+                color: #d8ded9;
+                font-size: 12px;
+            }
+
+            .data-table tbody tr {
+                transition: 0.2s;
+            }
+
+            .data-table tbody tr:hover {
+                background-color: rgba(255, 255, 255, 0.025);
+            }
+
+            .data-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            .song-cell {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+            }
+
+            .song-cover {
+                width: 42px;
+                height: 42px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--primary);
+                background:
+                    linear-gradient(
+                        135deg,
+                        #1d3324,
+                        #0c110e
+                    );
+                border-radius: 11px;
+                font-size: 17px;
+            }
+
+            .cell-title {
+                color: white;
+                font-size: 12px;
+                font-weight: 750;
+            }
+
+            .cell-subtitle {
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 10px;
+            }
+
+            .status-badge {
+                display: inline-flex;
+                padding: 5px 9px;
+                border-radius: 20px;
+                font-size: 10px;
+                font-weight: 800;
+            }
+
+            .status-active {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.10);
+            }
+
+            .table-actions {
+                display: flex;
+                gap: 7px;
+            }
+
+            .table-action {
+                padding: 7px 10px;
+                color: #dce1dd;
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-size: 10px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .table-action:hover {
+                color: #071008;
+                background-color: var(--primary);
+            }
+
+            .delete-action:hover {
+                color: white;
+                background-color: var(--danger);
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 950;
+                display: none;
+                background-color: rgba(0, 0, 0, 0.65);
+            }
+
+            @@media (max-width: 1200px) {
+                .stat-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .dashboard-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @@media (max-width: 900px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .sidebar-overlay.open {
+                    display: block;
+                }
+
+                .main-content {
+                    width: 100%;
+                    margin-left: 0;
+                }
+
+                .menu-button {
+                    display: flex;
+                }
+            }
+
+            @@media (max-width: 700px) {
+                .topbar {
+                    padding: 14px 17px;
+                }
+
+                .page-heading p {
+                    display: none;
+                }
+
+                .upload-button {
+                    padding: 11px 13px;
+                    font-size: 12px;
+                }
+
+                .dashboard-content {
+                    padding: 20px 16px 35px;
+                }
+
+                .profile-banner {
+                    padding: 25px;
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+
+                .artist-avatar-large {
+                    width: 110px;
+                    height: 110px;
+                    font-size: 38px;
+                }
+
+                .edit-profile-button {
+                    width: 100%;
+                }
+
+                .stat-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .chart-area {
+                    gap: 7px;
+                }
+
+                .data-table th,
+                .data-table td {
+                    padding: 13px 14px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="artist-layout">
+
+        <aside class="sidebar" id="sidebar">
+
+            <a href="/" class="brand">
+
+                <div class="brand-icon">
+                    ♪
+                </div>
+
+                <div>
+                    <span class="brand-name">
+                        MusicProject
+                    </span>
+
+                    <span class="brand-panel">
+                        Sanatçı paneli
+                    </span>
+                </div>
+
+            </a>
+
+            <nav class="navigation">
+
+                <p class="navigation-title">
+                    Sanatçı
+                </p>
+
+                <ul class="navigation-list">
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link active">
+
+                            <span class="navigation-icon">
+                                ▦
+                            </span>
+
+                            Genel Bakış
+                        </a>
+                    </li>
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ♫
+                            </span>
+
+                            Şarkılarım
+
+                            <span class="navigation-badge">
+                                12
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ＋
+                            </span>
+
+                            Şarkı Yükle
+                        </a>
+                    </li>
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ▤
+                            </span>
+
+                            İstatistikler
+                        </a>
+                    </li>
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ♡
+                            </span>
+
+                            Dinleyiciler
+                        </a>
+                    </li>
+
+                </ul>
+
+                <p class="navigation-title"
+                   style="margin-top: 27px;">
+                    Hesap
+                </p>
+
+                <ul class="navigation-list">
+
+                    <li class="navigation-item">
+                        <a href="#"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ⚙
+                            </span>
+
+                            Profil Ayarları
+                        </a>
+                    </li>
+
+                    <li class="navigation-item">
+                        <a href="/"
+                           class="navigation-link">
+
+                            <span class="navigation-icon">
+                                ↗
+                            </span>
+
+                            Siteyi Görüntüle
+                        </a>
+                    </li>
+
+                </ul>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <div class="artist-profile-small">
+
+                    <div class="artist-avatar-small">
+                        A
+                    </div>
+
+                    <div class="artist-profile-info">
+
+                        <div class="artist-name-small">
+                            Artist Hesabı
+                        </div>
+
+                        <div class="artist-role">
+                            Artist
+                        </div>
+
+                    </div>
+
+                    <a href="/Auth/Logout"
+                       class="logout-button"
+                       title="Çıkış Yap">
+                        ↪
+                    </a>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <div class="sidebar-overlay"
+             id="sidebarOverlay">
+        </div>
+
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <div class="topbar-left">
+
+                    <button type="button"
+                            class="menu-button"
+                            id="menuButton">
+                        ☰
+                    </button>
+
+                    <div class="page-heading">
+                        <h1>Sanatçı Paneli</h1>
+
+                        <p>
+                            Şarkılarını ve performansını buradan yönetebilirsin.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="topbar-actions">
+
+                    <button type="button"
+                            class="upload-button">
+                        + Yeni Şarkı Yükle
+                    </button>
+
+                    <button type="button"
+                            class="notification-button">
+                        ♢
+
+                        <span class="notification-dot"></span>
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="dashboard-content">
+
+                <section class="profile-banner">
+
+                    <div class="artist-avatar-large">
+                        A
+                    </div>
+
+                    <div class="profile-content">
+
+                        <p class="verified-label">
+                            Doğrulanmış sanatçı
+                        </p>
+
+                        <h2 class="artist-main-name">
+                            Artist Name
+                        </h2>
+
+                        <p class="artist-description">
+                            Müziklerini yönet, yeni şarkılar yükle ve
+                            dinleyicilerinin şarkılarınla nasıl etkileşime
+                            girdiğini takip et.
+                        </p>
+
+                        <div class="profile-meta">
+
+                            <span class="profile-meta-item">
+                                <strong>12</strong> şarkı
+                            </span>
+
+                            <span class="profile-meta-item">
+                                <strong>84.250</strong> aylık dinleyici
+                            </span>
+
+                            <span class="profile-meta-item">
+                                İstanbul, Türkiye
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button type="button"
+                            class="edit-profile-button">
+                        Profili Düzenle
+                    </button>
+
+                </section>
+
+                <section class="stat-grid">
+
+                    <article class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <div class="stat-icon green-icon">
+                                ▶
+                            </div>
+
+                            <span class="stat-change">
+                                +%18
+                            </span>
+
+                        </div>
+
+                        <div class="stat-number">
+                            526.480
+                        </div>
+
+                        <div class="stat-label">
+                            Toplam dinlenme
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <div class="stat-icon blue-icon">
+                                👥
+                            </div>
+
+                            <span class="stat-change">
+                                +%9
+                            </span>
+
+                        </div>
+
+                        <div class="stat-number">
+                            84.250
+                        </div>
+
+                        <div class="stat-label">
+                            Aylık dinleyici
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <div class="stat-icon orange-icon">
+                                ♡
+                            </div>
+
+                            <span class="stat-change">
+                                +1.240
+                            </span>
+
+                        </div>
+
+                        <div class="stat-number">
+                            32.680
+                        </div>
+
+                        <div class="stat-label">
+                            Toplam beğeni
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <div class="stat-icon red-icon">
+                                ♫
+                            </div>
+
+                            <span class="stat-change">
+                                +2
+                            </span>
+
+                        </div>
+
+                        <div class="stat-number">
+                            12
+                        </div>
+
+                        <div class="stat-label">
+                            Yayındaki şarkı
+                        </div>
+
+                    </article>
+
+                </section>
+
+                <section class="dashboard-grid">
+
+                    <article class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+                                <h3 class="panel-title">
+                                    Son 7 günlük dinlenme
+                                </h3>
+
+                                <p class="panel-subtitle">
+                                    Şarkılarının günlük toplam performansı
+                                </p>
+                            </div>
+
+                            <a href="#"
+                               class="panel-link">
+                                Tüm istatistikler
+                            </a>
+
+                        </div>
+
+                        <div class="chart-area">
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 45%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Pzt</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 57%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Sal</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 50%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Çar</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 69%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Per</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 78%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Cum</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 91%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Cmt</span>
+                            </div>
+
+                            <div class="chart-column">
+                                <div class="chart-bar-wrapper">
+                                    <div class="chart-bar"
+                                         style="height: 83%;">
+                                    </div>
+                                </div>
+
+                                <span class="chart-label">Paz</span>
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                    <article class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+                                <h3 class="panel-title">
+                                    Hızlı işlemler
+                                </h3>
+
+                                <p class="panel-subtitle">
+                                    Sanatçı hesabını kolayca yönet
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="quick-actions">
+
+                            <a href="#"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    ＋
+                                </div>
+
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">
+                                        Yeni şarkı yükle
+                                    </div>
+
+                                    <div class="quick-action-description">
+                                        Sisteme yeni bir şarkı ekle
+                                    </div>
+                                </div>
+
+                                <span class="quick-action-arrow">
+                                    ›
+                                </span>
+
+                            </a>
+
+                            <a href="#"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    ♫
+                                </div>
+
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">
+                                        Şarkılarımı yönet
+                                    </div>
+
+                                    <div class="quick-action-description">
+                                        Şarkılarını düzenle veya kaldır
+                                    </div>
+                                </div>
+
+                                <span class="quick-action-arrow">
+                                    ›
+                                </span>
+
+                            </a>
+
+                            <a href="#"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    ▤
+                                </div>
+
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">
+                                        İstatistikleri incele
+                                    </div>
+
+                                    <div class="quick-action-description">
+                                        Dinlenme ve beğeni performansını gör
+                                    </div>
+                                </div>
+
+                                <span class="quick-action-arrow">
+                                    ›
+                                </span>
+
+                            </a>
+
+                            <a href="#"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    ⚙
+                                </div>
+
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">
+                                        Sanatçı profilini düzenle
+                                    </div>
+
+                                    <div class="quick-action-description">
+                                        İsim, ülke ve profil bilgilerini değiştir
+                                    </div>
+                                </div>
+
+                                <span class="quick-action-arrow">
+                                    ›
+                                </span>
+
+                            </a>
+
+                        </div>
+
+                    </article>
+
+                </section>
+
+                <section class="panel songs-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3 class="panel-title">
+                                En iyi performans gösteren şarkılarım
+                            </h3>
+
+                            <p class="panel-subtitle">
+                                Toplam dinlenme sayısına göre sıralanmıştır
+                            </p>
+                        </div>
+
+                        <a href="#"
+                           class="panel-link">
+                            Tüm şarkıları gör
+                        </a>
+
+                    </div>
+
+                    <div class="table-wrapper">
+
+                        <table class="data-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Şarkı</th>
+                                    <th>Yayın tarihi</th>
+                                    <th>Dinlenme</th>
+                                    <th>Beğeni</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <tr>
+                                    <td>
+                                        <div class="song-cell">
+
+                                            <div class="song-cover">
+                                                ♪
+                                            </div>
+
+                                            <div>
+                                                <div class="cell-title">
+                                                    Gece Yolculuğu
+                                                </div>
+
+                                                <div class="cell-subtitle">
+                                                    Bağımsız single
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td>12 Temmuz 2026</td>
+
+                                    <td>284.120</td>
+
+                                    <td>18.640</td>
+
+                                    <td>
+                                        <span class="status-badge status-active">
+                                            Yayında
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="table-actions">
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                İstatistik
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                Düzenle
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action delete-action">
+                                                Sil
+                                            </button>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="song-cell">
+
+                                            <div class="song-cover">
+                                                ♪
+                                            </div>
+
+                                            <div>
+                                                <div class="cell-title">
+                                                    Son Durak
+                                                </div>
+
+                                                <div class="cell-subtitle">
+                                                    Şehir Işıkları
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td>28 Haziran 2026</td>
+
+                                    <td>142.860</td>
+
+                                    <td>9.240</td>
+
+                                    <td>
+                                        <span class="status-badge status-active">
+                                            Yayında
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="table-actions">
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                İstatistik
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                Düzenle
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action delete-action">
+                                                Sil
+                                            </button>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="song-cell">
+
+                                            <div class="song-cover">
+                                                ♪
+                                            </div>
+
+                                            <div>
+                                                <div class="cell-title">
+                                                    Sessiz Sokaklar
+                                                </div>
+
+                                                <div class="cell-subtitle">
+                                                    Bağımsız single
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td>03 Haziran 2026</td>
+
+                                    <td>99.500</td>
+
+                                    <td>4.800</td>
+
+                                    <td>
+                                        <span class="status-badge status-active">
+                                            Yayında
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="table-actions">
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                İstatistik
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action">
+                                                Düzenle
+                                            </button>
+
+                                            <button type="button"
+                                                    class="table-action delete-action">
+                                                Sil
+                                            </button>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script>
+            const menuButton = document.getElementById("menuButton");
+            const sidebar = document.getElementById("sidebar");
+            const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+            function openSidebar() {
+                sidebar.classList.add("open");
+                sidebarOverlay.classList.add("open");
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove("open");
+                sidebarOverlay.classList.remove("open");
+            }
+
+            menuButton.addEventListener("click", openSidebar);
+            sidebarOverlay.addEventListener("click", closeSidebar);
+    </script>
+
+</body>
+</html>
