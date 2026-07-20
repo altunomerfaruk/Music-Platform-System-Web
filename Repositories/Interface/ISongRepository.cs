@@ -6,5 +6,7 @@ namespace MusicProject.Repositories.Interface
     {
         IEnumerable<Song> GetSongsSortedByAlphabet();
         List<Song> GetSongsByAlbum(int albumId);
+
+        List<Song> GetPopularSongs();
     }
 }

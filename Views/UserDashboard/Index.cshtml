@@ -1,4 +1,6 @@
-﻿@{
+﻿@model MusicProject.Models.ViewModels.UserDashboardViewModel
+
+@{
     ViewData["Title"] = "Kullanıcı Paneli";
     Layout = null;
 }
@@ -1347,17 +1349,19 @@
                 <div class="user-profile-small">
 
                     <div class="user-avatar-small">
-                        U
+                        @(string.IsNullOrWhiteSpace(Model.Username)
+                            ? "?"
+                            : Model.Username.Substring(0, 1).ToUpper())
                     </div>
 
                     <div class="user-profile-info">
 
                         <div class="user-name-small">
-                            Kullanıcı Hesabı
+                            @Model.Username
                         </div>
 
                         <div class="user-role">
-                            User
+                            @Model.Role
                         </div>
 
                     </div>
@@ -1444,7 +1448,7 @@
                         </p>
 
                         <h2 class="welcome-title">
-                            Tekrar hoş geldin.
+                            Tekrar hoş geldin, @Model.Username.
                         </h2>
 
                         <p class="welcome-description">
@@ -1584,189 +1588,67 @@
 
                     </div>
 
-                    <div class="song-grid">
+                    @if (Model.PopularSongs.Any())
+                    {
+                        <div class="song-grid">
 
-                        <article class="song-card">
+                            @foreach (var song in Model.PopularSongs)
+                            {
+                                <article class="song-card">
 
-                            <div class="song-card-cover">
+                                    <div class="song-card-cover">
 
-                                ♪
+                                        ♪
 
-                                <button type="button"
-                                        class="song-play-button">
-                                    ▶
-                                </button>
+                                        <button type="button"
+                                                class="song-play-button"
+                                                data-song-id="@song.Id"
+                                                title="@song.Title şarkısını oynat">
+                                            ▶
+                                        </button>
 
-                            </div>
+                                    </div>
 
-                            <h4 class="song-name">
-                                Gece Yolculuğu
-                            </h4>
+                                    <h4 class="song-name">
+                                        @song.Title
+                                    </h4>
 
-                            <p class="song-artist">
-                                Elif Kaya
+                                    <p class="song-artist">
+                                        @(song.Album?.Name ?? "Albüm bilgisi yok")
+                                    </p>
+
+                                    <div class="song-card-footer">
+
+                                        <span class="song-duration">
+                                            @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                        </span>
+
+                                        <button type="button"
+                                                class="like-button"
+                                                data-song-id="@song.Id"
+                                                title="Şarkıyı beğen">
+                                            ♡
+                                        </button>
+
+                                    </div>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="panel"
+                             style="padding: 24px;">
+
+                            <p class="section-description"
+                               style="margin: 0;">
+                                Henüz gösterilecek popüler şarkı bulunmuyor.
                             </p>
 
-                            <div class="song-card-footer">
-
-                                <span class="song-duration">
-                                    3:42
-                                </span>
-
-                                <button type="button"
-                                        class="like-button liked">
-                                    ♥
-                                </button>
-
-                            </div>
-
-                        </article>
-
-                        <article class="song-card">
-
-                            <div class="song-card-cover">
-
-                                ♪
-
-                                <button type="button"
-                                        class="song-play-button">
-                                    ▶
-                                </button>
-
-                            </div>
-
-                            <h4 class="song-name">
-                                Son Durak
-                            </h4>
-
-                            <p class="song-artist">
-                                Atlas
-                            </p>
-
-                            <div class="song-card-footer">
-
-                                <span class="song-duration">
-                                    4:05
-                                </span>
-
-                                <button type="button"
-                                        class="like-button">
-                                    ♡
-                                </button>
-
-                            </div>
-
-                        </article>
-
-                        <article class="song-card">
-
-                            <div class="song-card-cover">
-
-                                ♪
-
-                                <button type="button"
-                                        class="song-play-button">
-                                    ▶
-                                </button>
-
-                            </div>
-
-                            <h4 class="song-name">
-                                Sessiz Şehir
-                            </h4>
-
-                            <p class="song-artist">
-                                Mavi
-                            </p>
-
-                            <div class="song-card-footer">
-
-                                <span class="song-duration">
-                                    3:18
-                                </span>
-
-                                <button type="button"
-                                        class="like-button">
-                                    ♡
-                                </button>
-
-                            </div>
-
-                        </article>
-
-                        <article class="song-card">
-
-                            <div class="song-card-cover">
-
-                                ♪
-
-                                <button type="button"
-                                        class="song-play-button">
-                                    ▶
-                                </button>
-
-                            </div>
-
-                            <h4 class="song-name">
-                                Kayıp Zaman
-                            </h4>
-
-                            <p class="song-artist">
-                                Deniz Acar
-                            </p>
-
-                            <div class="song-card-footer">
-
-                                <span class="song-duration">
-                                    3:51
-                                </span>
-
-                                <button type="button"
-                                        class="like-button">
-                                    ♡
-                                </button>
-
-                            </div>
-
-                        </article>
-
-                        <article class="song-card">
-
-                            <div class="song-card-cover">
-
-                                ♪
-
-                                <button type="button"
-                                        class="song-play-button">
-                                    ▶
-                                </button>
-
-                            </div>
-
-                            <h4 class="song-name">
-                                Başka Bir Gün
-                            </h4>
-
-                            <p class="song-artist">
-                                Nova
-                            </p>
-
-                            <div class="song-card-footer">
-
-                                <span class="song-duration">
-                                    2:58
-                                </span>
-
-                                <button type="button"
-                                        class="like-button">
-                                    ♡
-                                </button>
-
-                            </div>
-
-                        </article>
-
-                    </div>
+                        </div>
+                    }
 
                 </section>
 
@@ -1792,135 +1674,51 @@
 
                     </div>
 
-                    <div class="artist-grid">
+                    @if (Model.Artists.Any())
+                    {
+                        <div class="artist-grid">
 
-                        <article class="artist-card">
+                            @foreach (var artist in Model.Artists.Take(6))
+                            {
+                                <article class="artist-card">
 
-                            <div class="artist-image">
-                                E
-                            </div>
+                                    <div class="artist-image">
+                                        @(string.IsNullOrWhiteSpace(artist.Name)
+                                            ? "?"
+                                            : artist.Name.Substring(0, 1).ToUpper())
+                                    </div>
 
-                            <h4 class="artist-name">
-                                Elif Kaya
-                            </h4>
+                                    <h4 class="artist-name">
+                                        @artist.Name
+                                    </h4>
 
-                            <p class="artist-label">
-                                Sanatçı
+                                    <p class="artist-label">
+                                        Sanatçı
+                                    </p>
+
+                                    <button type="button"
+                                            class="follow-button"
+                                            data-artist-id="@artist.Id">
+                                        Takip Et
+                                    </button>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="panel"
+                             style="padding: 24px;">
+
+                            <p class="section-description"
+                               style="margin: 0;">
+                                Henüz gösterilecek sanatçı bulunmuyor.
                             </p>
 
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                        <article class="artist-card">
-
-                            <div class="artist-image">
-                                A
-                            </div>
-
-                            <h4 class="artist-name">
-                                Atlas
-                            </h4>
-
-                            <p class="artist-label">
-                                Sanatçı
-                            </p>
-
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                        <article class="artist-card">
-
-                            <div class="artist-image">
-                                M
-                            </div>
-
-                            <h4 class="artist-name">
-                                Mavi
-                            </h4>
-
-                            <p class="artist-label">
-                                Sanatçı
-                            </p>
-
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                        <article class="artist-card">
-
-                            <div class="artist-image">
-                                D
-                            </div>
-
-                            <h4 class="artist-name">
-                                Deniz Acar
-                            </h4>
-
-                            <p class="artist-label">
-                                Sanatçı
-                            </p>
-
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                        <article class="artist-card">
-
-                            <div class="artist-image">
-                                N
-                            </div>
-
-                            <h4 class="artist-name">
-                                Nova
-                            </h4>
-
-                            <p class="artist-label">
-                                Sanatçı
-                            </p>
-
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                        <article class="artist-card">
-
-                            <div class="artist-image">
-                                S
-                            </div>
-
-                            <h4 class="artist-name">
-                                Sarp
-                            </h4>
-
-                            <p class="artist-label">
-                                Sanatçı
-                            </p>
-
-                            <button type="button"
-                                    class="follow-button">
-                                Takip Et
-                            </button>
-
-                        </article>
-
-                    </div>
+                        </div>
+                    }
 
                 </section>
 
@@ -2224,10 +2022,13 @@
                 sidebarOverlay.classList.remove("open");
             }
 
-            menuButton.addEventListener("click", openSidebar);
-            sidebarOverlay.addEventListener("click", closeSidebar);
+            if (menuButton && sidebar && sidebarOverlay) {
+                menuButton.addEventListener("click", openSidebar);
+                sidebarOverlay.addEventListener("click", closeSidebar);
+            }
 
-            mainPlayButton.addEventListener("click", function() {
+            if (mainPlayButton) {
+                mainPlayButton.addEventListener("click", function() {
                 if (mainPlayButton.textContent.trim() === "▶") {
                     mainPlayButton.textContent = "Ⅱ";
                     mainPlayButton.title = "Duraklat";
@@ -2236,7 +2037,8 @@
                     mainPlayButton.textContent = "▶";
                     mainPlayButton.title = "Oynat";
                 }
-            });
+                });
+            }
 
             const likeButtons = document.querySelectorAll(".like-button");
 

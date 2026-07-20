@@ -25,8 +25,6 @@ namespace MusicProject.Models.Concrete
 
         public virtual ICollection<SongArtist> SongArtists { get; set; }
             = new List<SongArtist>();
-        // Şarkı ile sanatçı arasındaki ilişkiyi bu ara tablo yönetiyor.
-        // Bu nedenle Song içine ayrıca ArtistId eklemiyoruz.
 
         public virtual ICollection<SongGenre> SongGenres { get; set; }
             = new List<SongGenre>();

@@ -22,9 +22,6 @@ namespace MusicProject.Services.Concrete
         {
             return _songRepository.GetByID(id);
 
-            // DEĞİŞİKLİK:
-            // Song yerine Song? yapıldı.
-            // Çünkü ID'ye ait şarkı bulunamazsa repository null dönebilir.
         }
 
         public void AddSong(Song song)
@@ -67,6 +64,10 @@ namespace MusicProject.Services.Concrete
         public IEnumerable<Song> GetSongsSortedByAlphabet()
         {
             return _songRepository.GetSongsSortedByAlphabet();
+        }
+        public List<Song> GetPopularSongs()
+        {
+            return _songRepository.GetPopularSongs();
         }
     }
 }

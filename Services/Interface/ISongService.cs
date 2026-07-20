@@ -13,7 +13,7 @@ namespace MusicProject.Services.Interface
         void AddSong(Song song);
         void UpdateSong(Song song);
         void DeleteSong(int id);
-
+        List<Song> GetPopularSongs();
         List<Song> GetSongsByAlbum(int albumId);
         IEnumerable<Song> GetSongsSortedByAlphabet();
     }
