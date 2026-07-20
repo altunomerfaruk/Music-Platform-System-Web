@@ -14,11 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Views\DashBoard\Admin.cshtml" />
+    <Content Remove="Views\ArtistDashBoard\AdminDashboard.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Views\DashBoard\Admin.cshtml" />
+    <None Include="Views\AdminDashboard\Index.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

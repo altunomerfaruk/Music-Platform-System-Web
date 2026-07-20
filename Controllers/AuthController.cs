@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using MusicProject.Models.Concrete;
-using MusicProject.Models.Enums; // DEĞİŞİKLİK: UserRole enum'unu kullanmak için eklendi.
+using MusicProject.Models.Enums;
 using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
@@ -50,14 +50,14 @@ namespace MusicProject.Controllers
 
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+
                 new Claim(ClaimTypes.Name, user.Username),
 
                 new Claim(ClaimTypes.Email, user.Email),
 
-                new Claim(
-                    ClaimTypes.Role,
-                    user.Role.ToString()
-                )
+                new Claim(ClaimTypes.Role, user.Role.ToString())
+
             };
 
             var identity = new ClaimsIdentity(
@@ -72,7 +72,39 @@ namespace MusicProject.Controllers
                 principal
             );
 
-            return RedirectToAction("Index", "Artist");
+
+            switch (user.Role)
+            {
+                case UserRole.Admin:
+                    return RedirectToAction(
+                        "Index",
+                        "AdminDashboard"
+                    );
+
+                case UserRole.Artist:
+                    return RedirectToAction(
+                        "Index",
+                        "ArtistDashboard"
+                    );
+
+                case UserRole.User:
+                    return RedirectToAction(
+                        "Index",
+                        "UserDashboard"
+                    );
+
+                default:
+                    await HttpContext.SignOutAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme
+                    );
+
+                    ModelState.AddModelError(
+                        "",
+                        "Kullanıcı rolü tanımlı değil."
+                    );
+
+                    return View(model);
+            }
         }
 
         [HttpGet]
@@ -93,12 +125,12 @@ namespace MusicProject.Controllers
             var user = new User
             {
                 Username = model.FullName,
-
                 Email = model.Email,
-
                 Password = model.Password,
 
                 Role = UserRole.User
+                // DEĞİŞİKLİK: Yeni kayıt olan kullanıcıların rolü
+                // varsayılan olarak User yapıldı.
             };
 
             var registrationSuccessful = _userService.Register(user);
