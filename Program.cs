@@ -1,37 +1,58 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using MusicProject.data;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using MusicProject.Repositories.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Concrete;
 using MusicProject.Services.Interface;
 
-// Servis ve Repository klasörlerinin yollarını (namespace) sisteme tanıtıyor
+// Servis ve Repository klasörlerinin yollarını
+// sisteme tanıtıyoruz.
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+var connectionString =
+    builder.Configuration.GetConnectionString(
+        "DefaultConnection"
+    );
 
 // ==========================================
 // 1. VERİTABANI BAĞLANTISI
 // ==========================================
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
+    options.UseSqlServer(connectionString)
+);
 
 // ==========================================
-// 2. DEPENDENCY INJECTION (BAĞIMLILIKLARIN KAYDI)
+// 2. DEPENDENCY INJECTION
 // ==========================================
-// Generic Repository Kaydı (Eğer projende kullanıyorsan açık kalabilir)
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// Repository Kayıtları (Veritabanı depolarını sisteme tanıtıyoruz)
-builder.Services.AddScoped<IArtistRepository, ArtistRepository>(); // Az önce eksik olan ve sistemi çökerten satır!
-builder.Services.AddScoped<ISongRepository, SongRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-// Service (Manager) Kayıtları (İş kurallarını sisteme tanıtıyoruz)
-builder.Services.AddScoped<ISongService, SongManager>();
-builder.Services.AddScoped<IArtistService, ArtistManager>();
-builder.Services.AddScoped<IUserService, UserManager>();
+// Generic Repository kaydı
+builder.Services.AddScoped(
+    typeof(IGenericRepository<>),
+    typeof(GenericRepository<>)
+);
+
+// ==========================================
+// REPOSITORY KAYITLARI
+// ==========================================
+
+builder.Services.AddScoped<
+    IArtistRepository,
+    ArtistRepository
+>();
+
+builder.Services.AddScoped<
+    ISongRepository,
+    SongRepository
+>();
+
+builder.Services.AddScoped<
+    IUserRepository,
+    UserRepository
+>();
+
 builder.Services.AddScoped<
     ILikedSongRepository,
     LikedSongRepository
@@ -40,6 +61,30 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     ISongStatRepository,
     SongStatRepository
+>();
+
+builder.Services.AddScoped<
+    IFollowedArtistRepository,
+    FollowedArtistRepository
+>();
+
+// ==========================================
+// SERVICE KAYITLARI
+// ==========================================
+
+builder.Services.AddScoped<
+    ISongService,
+    SongManager
+>();
+
+builder.Services.AddScoped<
+    IArtistService,
+    ArtistManager
+>();
+
+builder.Services.AddScoped<
+    IUserService,
+    UserManager
 >();
 
 builder.Services.AddScoped<
@@ -52,23 +97,42 @@ builder.Services.AddScoped<
     SongStatService
 >();
 
+// DEĞİŞİKLİK:
+// IFollowedArtistService istendiğinde
+// FollowedArtistService oluşturulacak.
+builder.Services.AddScoped<
+    IFollowedArtistService,
+    FollowedArtistService
+>();
+
 // ==========================================
 // 3. MVC VE GÜVENLİK SERVİSLERİ
 // ==========================================
+
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(
+        CookieAuthenticationDefaults.AuthenticationScheme
+    )
     .AddCookie(options =>
     {
-        // Yetkisiz kullanıcıların yönlendirileceği giriş sayfası
+        // Yetkisiz kullanıcıların yönlendirileceği sayfa
         options.LoginPath = "/Auth/Login";
-        // Tarayıcıda saklanacak şifreli çerezin adı
+
+        // Tarayıcıda tutulacak cookie adı
         options.Cookie.Name = "MusicProjectCookie";
-        // Oturumun açık kalma süresi (7 Gün)
+
+        // Oturumun açık kalma süresi
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
     });
 
-var app = builder.Build(); // Bütün parçalar eksiksiz olduğu için artık burası hatasız geçecek!
+var app = builder.Build();
+
+// ==========================================
+// 4. ÖRNEK VERİLERİ EKLEME
+// ==========================================
+
 using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
@@ -80,26 +144,38 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ==========================================
-// 4. ARA KATMANLAR (MIDDLEWARE) VE ROTA AYARLARI
+// 5. HATA YÖNETİMİ
 // ==========================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
+// ==========================================
+// 6. MIDDLEWARE
+// ==========================================
+
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // wwwroot klasöründeki CSS ve JS dosyalarını yükler
+
+app.UseStaticFiles();
 
 app.UseRouting();
 
-// GÜVENLİK KONTROLLERİ (Sıralama hayati önem taşır!)
-app.UseAuthentication(); // 1. Önce "Sen kimsin?" diye sorar (Kimlik Doğrulama)
-app.UseAuthorization();  // 2. Sonra "Buraya girmeye yetkin var mı?" diye kontrol eder (Yetkilendirme)
+// Önce kullanıcının kimliği kontrol edilir.
+app.UseAuthentication();
 
-// ROTA (Sitenin varsayılan açılış sayfası)
+// Sonra yetkisi kontrol edilir.
+app.UseAuthorization();
+
+// ==========================================
+// 7. ROTA AYARLARI
+// ==========================================
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
-app.Run(); // Uygulamayı başlatır
+app.Run();

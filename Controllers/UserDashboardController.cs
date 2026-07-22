@@ -12,15 +12,18 @@ namespace MusicProject.Controllers
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
         private readonly ILikedSongService _likedSongService;
+        private readonly IFollowedArtistService _followedArtistService;
 
         public UserDashboardController(
             ISongService songService,
             IArtistService artistService,
-            ILikedSongService likedSongService)
+            ILikedSongService likedSongService,
+            IFollowedArtistService followedArtistService)
         {
             _songService = songService;
             _artistService = artistService;
             _likedSongService = likedSongService;
+            _followedArtistService = followedArtistService;
         }
 
         [HttpGet]
@@ -63,6 +66,11 @@ namespace MusicProject.Controllers
                 LikedSongIds =
                     _likedSongService
                         .GetActiveLikedSongIds(userId)
+                        .ToHashSet(),
+
+                FollowedArtistIds =
+                    _followedArtistService
+                        .GetActiveFollowedArtistIds(userId)
                         .ToHashSet()
             };
 
@@ -97,6 +105,39 @@ namespace MusicProject.Controllers
             _likedSongService.ToggleLike(
                 userId,
                 songId
+            );
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleFollow(int artistId)
+        {
+            var userIdValue = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+            if (!int.TryParse(
+                    userIdValue,
+                    out var userId))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Auth"
+                );
+            }
+
+            if (artistId <= 0)
+            {
+                return BadRequest(
+                    "Geçersiz sanatçı bilgisi."
+                );
+            }
+
+            _followedArtistService.ToggleFollow(
+                userId,
+                artistId
             );
 
             return RedirectToAction("Index");

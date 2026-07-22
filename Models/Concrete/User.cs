@@ -30,5 +30,12 @@ namespace MusicProject.Models.Concrete
         public bool? IsPremium { get; set; }
 
         public virtual Artist? ArtistProfile { get; set; }
+        public virtual ICollection<FollowedArtist> FollowedArtists
+        {
+            get;
+            set;
+        } = new List<FollowedArtist>();
+
+
     }
 }

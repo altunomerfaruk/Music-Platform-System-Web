@@ -29,5 +29,11 @@ namespace MusicProject.Models.Concrete
             = new List<SongArtist>();
 
         public virtual ArtistStat? ArtistStat { get; set; }
+
+        public virtual ICollection<FollowedArtist> Followers
+        {
+            get;
+            set;
+        } = new List<FollowedArtist>();
     }
 }

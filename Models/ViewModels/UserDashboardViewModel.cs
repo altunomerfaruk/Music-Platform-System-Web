@@ -22,5 +22,8 @@ namespace MusicProject.Models.ViewModels
         public HashSet<int> LikedSongIds { get; set; }
             = new HashSet<int>();
 
+        public HashSet<int> FollowedArtistIds { get; set; }
+            = new HashSet<int>();
+
     }
 }
