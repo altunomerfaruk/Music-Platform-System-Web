@@ -18,14 +18,9 @@ namespace MusicProject.Models.Concrete
         public int? DebutYear { get; set; }
 
         public int? UserId { get; set; }
-        // DEĞİŞİKLİK:
-        // int UserId yerine int? UserId yapıldı.
-        // Mevcut sanatçıların kullanıcı bağlantısı boş kalabilir.
 
         [ForeignKey(nameof(UserId))]
         public virtual User? User { get; set; }
-        // DEĞİŞİKLİK:
-        // Artist henüz bir kullanıcı hesabına bağlanmamışsa null olabilir.
 
         public virtual ICollection<Album> Albums { get; set; }
             = new List<Album>();

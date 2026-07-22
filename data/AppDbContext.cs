@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
-// DEĞİŞİKLİK: UserRole enum'unu kullanmak için eklendi.
 
 namespace MusicProject.data
 {

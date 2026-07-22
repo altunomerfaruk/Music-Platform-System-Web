@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.data;
 using Microsoft.AspNetCore.Authentication.Cookies;
-
-// Servis ve Repository klasörlerinin yollarını (namespace) sisteme tanıtıyoruz
-using MusicProject.Repositories.Interface;
 using MusicProject.Repositories.Concrete;
-using MusicProject.Services.Interface;
+using MusicProject.Repositories.Interface;
 using MusicProject.Services.Concrete;
+using MusicProject.Services.Interface;
+
+// Servis ve Repository klasörlerinin yollarını (namespace) sisteme tanıtıyor
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -32,6 +32,25 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISongService, SongManager>();
 builder.Services.AddScoped<IArtistService, ArtistManager>();
 builder.Services.AddScoped<IUserService, UserManager>();
+builder.Services.AddScoped<
+    ILikedSongRepository,
+    LikedSongRepository
+>();
+
+builder.Services.AddScoped<
+    ISongStatRepository,
+    SongStatRepository
+>();
+
+builder.Services.AddScoped<
+    ILikedSongService,
+    LikedSongService
+>();
+
+builder.Services.AddScoped<
+    ISongStatService,
+    SongStatService
+>();
 
 // ==========================================
 // 3. MVC VE GÜVENLİK SERVİSLERİ
@@ -50,7 +69,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 var app = builder.Build(); // Bütün parçalar eksiksiz olduğu için artık burası hatasız geçecek!
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
 
+    var context =
+        serviceProvider.GetRequiredService<AppDbContext>();
+
+    SeedData.Initialize(context);
+}
 
 // ==========================================
 // 4. ARA KATMANLAR (MIDDLEWARE) VE ROTA AYARLARI

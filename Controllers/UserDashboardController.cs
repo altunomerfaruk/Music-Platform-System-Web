@@ -11,13 +11,16 @@ namespace MusicProject.Controllers
     {
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
+        private readonly ILikedSongService _likedSongService;
 
         public UserDashboardController(
             ISongService songService,
-            IArtistService artistService)
+            IArtistService artistService,
+            ILikedSongService likedSongService)
         {
             _songService = songService;
             _artistService = artistService;
+            _likedSongService = likedSongService;
         }
 
         [HttpGet]
@@ -27,7 +30,9 @@ namespace MusicProject.Controllers
                 ClaimTypes.NameIdentifier
             );
 
-            if (!int.TryParse(userIdValue, out _))
+            if (!int.TryParse(
+                    userIdValue,
+                    out var userId))
             {
                 return RedirectToAction(
                     "Login",
@@ -49,12 +54,52 @@ namespace MusicProject.Controllers
                     ClaimTypes.Role
                 ) ?? "User",
 
-                PopularSongs = _songService.GetPopularSongs(),
+                PopularSongs =
+                    _songService.GetPopularSongs(),
 
-                Artists = _artistService.GetAllArtists()
+                Artists =
+                    _artistService.GetAllArtists(),
+
+                LikedSongIds =
+                    _likedSongService
+                        .GetActiveLikedSongIds(userId)
+                        .ToHashSet()
             };
 
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleLike(int songId)
+        {
+            var userIdValue = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+            if (!int.TryParse(
+                    userIdValue,
+                    out var userId))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Auth"
+                );
+            }
+
+            if (songId <= 0)
+            {
+                return BadRequest(
+                    "Geçersiz şarkı bilgisi."
+                );
+            }
+
+            _likedSongService.ToggleLike(
+                userId,
+                songId
+            );
+
+            return RedirectToAction("Index");
         }
     }
 }
