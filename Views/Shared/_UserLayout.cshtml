@@ -1,0 +1,33 @@
+@model MusicProject.Models.ViewModels.UserLayoutViewModel
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - MusicProject</title>
+
+    <link rel="stylesheet" href="~/css/user-layout.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+    <div class="user-layout">
+
+        <partial name="_UserSidebar" model="Model" />
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        @RenderBody()
+
+    </div>
+
+    <script src="~/js/user-layout.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

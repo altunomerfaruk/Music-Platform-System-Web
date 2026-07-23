@@ -1,10 +1,11 @@
-﻿using MusicProject.Models.Core;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MusicProject.Models.Concrete
 {
-    public class SongStat : BaseEntities
+    public class SongStat
     {
+        [Key]
         public int SongId { get; set; }
 
         [ForeignKey(nameof(SongId))]

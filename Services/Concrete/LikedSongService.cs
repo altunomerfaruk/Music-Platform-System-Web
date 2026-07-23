@@ -1,4 +1,5 @@
 ﻿using MusicProject.Models.Concrete;
+using MusicProject.DTOs;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
@@ -76,6 +77,48 @@ namespace MusicProject.Services.Concrete
         {
             return _likedSongRepository
                 .GetActiveLikedSongIdsByUser(userId);
+        }
+
+        public IEnumerable<LikedSongDto> GetLikedSongsByUser(
+            int userId)
+        {
+            var likedSongs =
+                _likedSongRepository
+                    .GetActiveLikedSongsByUser(userId);
+
+            return likedSongs
+                .Select(likedSong =>
+                    new LikedSongDto
+                    {
+                        SongId = likedSong.SongId,
+
+                        Title =
+                            likedSong.Song.Title,
+
+                        AlbumName =
+                            likedSong.Song.Album?.Name
+                            ?? "Albüm bilgisi yok",
+
+                        ArtistName =
+                            likedSong.Song
+                                .SongArtists
+                                .Select(songArtist =>
+                                    songArtist.Artist.Name
+                                )
+                                .FirstOrDefault()
+                            ?? "Sanatçı bilgisi yok",
+
+                        TotalStreams =
+                            likedSong.Song
+                                .SongStat?
+                                .TotalStreams
+                            ?? 0,
+
+                        LikedAt =
+                            likedSong.LikedAt
+                    }
+                )
+                .ToList();
         }
     }
 }

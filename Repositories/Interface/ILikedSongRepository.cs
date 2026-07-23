@@ -16,9 +16,12 @@ namespace MusicProject.Repositories.Interface
         int GetActiveLikeCountBySong(
             int songId
         );
-
+        IEnumerable<LikedSong> GetActiveLikedSongsByUser(
+        int userId
+        );
         void Create(LikedSong likedSong);
 
         void Update(LikedSong likedSong);
     }
+
 }

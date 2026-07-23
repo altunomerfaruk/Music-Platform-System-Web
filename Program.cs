@@ -6,8 +6,6 @@ using MusicProject.Repositories.Interface;
 using MusicProject.Services.Concrete;
 using MusicProject.Services.Interface;
 
-// Servis ve Repository klasörlerinin yollarını
-// sisteme tanıtıyoruz.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,9 +95,6 @@ builder.Services.AddScoped<
     SongStatService
 >();
 
-// DEĞİŞİKLİK:
-// IFollowedArtistService istendiğinde
-// FollowedArtistService oluşturulacak.
 builder.Services.AddScoped<
     IFollowedArtistService,
     FollowedArtistService

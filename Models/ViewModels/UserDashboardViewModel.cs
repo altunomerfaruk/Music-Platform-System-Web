@@ -1,29 +1,17 @@
-﻿using MusicProject.Models.Concrete;
+using MusicProject.Models.Concrete;
 
 namespace MusicProject.Models.ViewModels
 {
-    public class UserDashboardViewModel
+    public class UserDashboardViewModel : UserLayoutViewModel
     {
-        public string Username { get; set; }
-            = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
-        public string Email { get; set; }
-            = string.Empty;
+        public IEnumerable<Song> PopularSongs { get; set; } = new List<Song>();
 
-        public string Role { get; set; }
-            = string.Empty;
+        public IEnumerable<Artist> Artists { get; set; } = new List<Artist>();
 
-        public IEnumerable<Song> PopularSongs { get; set; }
-            = new List<Song>();
+        public HashSet<int> LikedSongIds { get; set; } = new HashSet<int>();
 
-        public IEnumerable<Artist> Artists { get; set; }
-            = new List<Artist>();
-
-        public HashSet<int> LikedSongIds { get; set; }
-            = new HashSet<int>();
-
-        public HashSet<int> FollowedArtistIds { get; set; }
-            = new HashSet<int>();
-
+        public HashSet<int> FollowedArtistIds { get; set; } = new HashSet<int>();
     }
 }

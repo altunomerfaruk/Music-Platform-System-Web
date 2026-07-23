@@ -1,0 +1,456 @@
+@model MusicProject.Models.ViewModels.LikedSongsViewModel
+
+@{
+    ViewData["Title"] = "Beğendiğim Şarkılar";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <style>
+
+.content {
+    padding: 34px;
+}
+
+.back-button {
+    padding: 11px 17px;
+    color: white;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    color: #061108;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.hero {
+    min-height: 205px;
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    background: linear-gradient(130deg, rgba(30, 215, 96, 0.25), rgba(18, 23, 19, 0.98) 65%);
+    border: 1px solid rgba(30, 215, 96, 0.20);
+    border-radius: 22px;
+}
+
+.hero-icon {
+    width: 130px;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #071008;
+    background-color: var(--primary);
+    border-radius: 24px;
+    font-size: 58px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+}
+
+.hero-label {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    margin-top: 10px;
+    font-size: clamp(30px, 4vw, 48px);
+}
+
+.hero-description {
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.hero-count {
+    margin-top: 15px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.song-panel {
+    margin-top: 28px;
+    overflow: hidden;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 19px;
+}
+
+.song-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.song-table th,
+.song-table td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+.song-table th {
+    color: #687169;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.song-table td {
+    color: #d8ded9;
+    font-size: 12px;
+}
+
+.song-table tbody tr {
+    transition: 0.2s;
+}
+
+.song-table tbody tr:hover {
+    background-color: var(--card-hover);
+}
+
+.song-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.song-column {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.song-number {
+    width: 25px;
+    color: #687169;
+    text-align: center;
+}
+
+.song-cover {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary);
+    background: linear-gradient(135deg, #1e3525, #0b100d);
+    border-radius: 11px;
+    font-size: 19px;
+}
+
+.song-title {
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.song-artist {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.play-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #071008;
+    background-color: var(--primary);
+    border: none;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.play-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.06);
+}
+
+.unlike-form {
+    margin: 0;
+}
+
+.unlike-button {
+    width: 36px;
+    height: 36px;
+    color: var(--primary);
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    transition: 0.2s;
+}
+
+.unlike-button:hover {
+    color: var(--danger);
+    background-color: rgba(255, 92, 92, 0.10);
+    transform: scale(1.1);
+}
+
+.empty-state {
+    margin-top: 28px;
+    padding: 70px 25px;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 19px;
+    text-align: center;
+}
+
+.empty-icon {
+    color: var(--primary);
+    font-size: 55px;
+}
+
+.empty-title {
+    margin-top: 18px;
+    font-size: 22px;
+}
+
+.empty-description {
+    max-width: 460px;
+    margin: 10px auto 22px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.discover-button {
+    display: inline-block;
+    padding: 12px 20px;
+    color: #061108;
+    background-color: var(--primary);
+    border-radius: 23px;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+        @@media (max-width: 720px) {
+    .content {
+        padding: 20px 16px;
+    }
+
+    .hero {
+        padding: 25px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .hero-icon {
+        width: 95px;
+        height: 95px;
+        font-size: 42px;
+    }
+
+    .song-panel {
+        overflow-x: auto;
+    }
+
+    .song-table {
+        min-width: 760px;
+    }
+}
+
+    </style>
+}
+
+<main class="main-content">
+
+            <header class="topbar">
+
+                <div class="page-heading">
+                    <h1>Beğendiğim Şarkılar</h1>
+
+                    <p>
+                        Kitaplığına kaydettiğin bütün şarkılar
+                    </p>
+                </div>
+
+                <a asp-controller="UserDashboard"
+                   asp-action="Index"
+                   class="back-button">
+                    ← Ana Sayfaya Dön
+                </a>
+
+            </header>
+
+            <div class="content">
+
+                <section class="hero">
+
+                    <div class="hero-icon">
+                        ♥
+                    </div>
+
+                    <div>
+                        <p class="hero-label">
+                            Kitaplığım
+                        </p>
+
+                        <h2 class="hero-title">
+                            Beğendiğim Şarkılar
+                        </h2>
+
+                        <p class="hero-description">
+                            Beğendiğin şarkılar burada güvenli bir şekilde saklanır.
+                        </p>
+
+                        <p class="hero-count">
+                            @Model.Songs.Count() şarkı
+                        </p>
+                    </div>
+
+                </section>
+
+                @if (Model.Songs.Any())
+                {
+                    <section class="song-panel">
+
+                        <table class="song-table">
+
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Şarkı</th>
+                                    <th>Albüm</th>
+                                    <th>Dinlenme</th>
+                                    <th>Beğenilme tarihi</th>
+                                    <th>Dinle</th>
+                                    <th>Beğeni</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @{
+                                    var songNumber = 1;
+                                }
+
+                                @foreach (var song in Model.Songs)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="song-number">
+                                                @songNumber
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="song-column">
+
+                                                <div class="song-cover">
+                                                    ♪
+                                                </div>
+
+                                                <div>
+                                                    <div class="song-title">
+                                                        @song.Title
+                                                    </div>
+
+                                                    <div class="song-artist">
+                                                        @song.ArtistName
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            @song.AlbumName
+                                        </td>
+
+                                        <td>
+                                            @song.TotalStreams
+                                        </td>
+
+                                        <td>
+                                            @song.LikedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        </td>
+
+                                        <td>
+                                            <button type="button"
+                                                    class="play-button"
+                                                    data-song-id="@song.SongId"
+                                                    title="@song.Title şarkısını oynat">
+                                                ▶
+                                            </button>
+                                        </td>
+
+                                        <td>
+                                            <form asp-controller="UserDashboard"
+                                                  asp-action="ToggleLike"
+                                                  method="post"
+                                                  class="unlike-form">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="songId"
+                                                       value="@song.SongId" />
+
+                                                <input type="hidden"
+                                                       name="returnUrl"
+                                                       value="@currentUrl" />
+
+                                                <button type="submit"
+                                                        class="unlike-button"
+                                                        title="Beğeniyi kaldır">
+                                                    ♥
+                                                </button>
+
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    songNumber++;
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </section>
+                }
+                else
+                {
+                    <section class="empty-state">
+
+                        <div class="empty-icon">
+                            ♡
+                        </div>
+
+                        <h3 class="empty-title">
+                            Henüz beğendiğin şarkı yok
+                        </h3>
+
+                        <p class="empty-description">
+                            Ana sayfadaki şarkıların yanında bulunan kalp
+                            butonuna basarak onları kitaplığına ekleyebilirsin.
+                        </p>
+
+                        <a asp-controller="UserDashboard"
+                           asp-action="Index"
+                           class="discover-button">
+                            Şarkıları Keşfet
+                        </a>
+
+                    </section>
+                }
+
+            </div>
+
+        </main>

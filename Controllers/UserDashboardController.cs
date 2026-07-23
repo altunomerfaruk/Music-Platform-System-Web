@@ -4,6 +4,7 @@ using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
 
+
 namespace MusicProject.Controllers
 {
     [Authorize(Roles = "User,Artist")]
@@ -76,10 +77,8 @@ namespace MusicProject.Controllers
 
             return View(model);
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ToggleLike(int songId)
+        [HttpGet]
+        public IActionResult LikedSongs()
         {
             var userIdValue = User.FindFirstValue(
                 ClaimTypes.NameIdentifier
@@ -95,17 +94,46 @@ namespace MusicProject.Controllers
                 );
             }
 
-            if (songId <= 0)
+            var model = new LikedSongsViewModel
             {
-                return BadRequest(
-                    "Geçersiz şarkı bilgisi."
-                );
+                Username =
+                    User.FindFirstValue(
+                        ClaimTypes.Name
+                    ) ?? "Kullanıcı",
+
+                Songs =
+                    _likedSongService
+                        .GetLikedSongsByUser(
+                            userId
+                        )
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleLike(int songId, string? returnUrl)
+        {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return RedirectToAction("Login", "Auth");
             }
 
-            _likedSongService.ToggleLike(
-                userId,
-                songId
-            );
+            if (songId <= 0)
+            {
+                return BadRequest("Geçersiz şarkı bilgisi.");
+            }
+
+            _likedSongService.ToggleLike(userId, songId);
+
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
 
             return RedirectToAction("Index");
         }

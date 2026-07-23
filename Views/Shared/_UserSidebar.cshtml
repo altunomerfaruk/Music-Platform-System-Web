@@ -1,0 +1,147 @@
+@model MusicProject.Models.ViewModels.UserLayoutViewModel
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var isHome = controller == "UserDashboard" && action == "Index";
+    var isLikedSongs = controller == "UserDashboard" && action == "LikedSongs";
+}
+
+<aside class="sidebar" id="sidebar">
+
+    <a asp-controller="UserDashboard" asp-action="Index" class="brand">
+
+        <div class="brand-icon">
+            ♪
+        </div>
+
+        <div>
+            <span class="brand-name">MusicProject</span>
+            <span class="brand-panel">Müzik dünyan</span>
+        </div>
+
+    </a>
+
+    <nav class="navigation">
+
+        <p class="navigation-title">Keşfet</p>
+
+        <ul class="navigation-list">
+
+            <li class="navigation-item">
+                <a asp-controller="UserDashboard"
+                   asp-action="Index"
+                   class="navigation-link @(isHome ? "active" : "")">
+
+                    <span class="navigation-icon">▦</span>
+                    Ana Sayfa
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">♫</span>
+                    Şarkıları Keşfet
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">★</span>
+                    Sanatçılar
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">▤</span>
+                    Türler
+                </a>
+            </li>
+
+        </ul>
+
+        <p class="navigation-title" style="margin-top: 27px;">
+            Kitaplığım
+        </p>
+
+        <ul class="navigation-list">
+
+            <li class="navigation-item">
+                <a asp-controller="UserDashboard"
+                   asp-action="LikedSongs"
+                   class="navigation-link @(isLikedSongs ? "active" : "")">
+
+                    <span class="navigation-icon">♥</span>
+                    Beğendiğim Şarkılar
+
+                    <span class="navigation-badge">
+                        @Model.LikedSongCount
+                    </span>
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">★</span>
+                    Takip Ettiklerim
+
+                    <span class="navigation-badge">
+                        @Model.FollowedArtistCount
+                    </span>
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">◷</span>
+                    Son Dinlediklerim
+                </a>
+            </li>
+
+            <li class="navigation-item">
+                <a href="#" class="navigation-link">
+                    <span class="navigation-icon">⚙</span>
+                    Hesap Ayarları
+                </a>
+            </li>
+
+        </ul>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="user-profile-small">
+
+            <div class="user-avatar-small">
+                @(string.IsNullOrWhiteSpace(Model.Username)
+                    ? "?"
+                    : Model.Username.Substring(0, 1).ToUpper())
+            </div>
+
+            <div class="user-profile-info">
+
+                <div class="user-name-small">
+                    @Model.Username
+                </div>
+
+                <div class="user-role">
+                    @Model.Role
+                </div>
+
+            </div>
+
+            <a asp-controller="Auth"
+               asp-action="Logout"
+               class="logout-button"
+               title="Çıkış Yap">
+                ↪
+            </a>
+
+        </div>
+
+    </div>
+
+</aside>

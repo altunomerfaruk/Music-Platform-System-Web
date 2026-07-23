@@ -9,14 +9,9 @@ using System.Security.Claims;
 
 namespace MusicProject.Controllers
 {
-    public class AuthController : Controller
+    public class AuthController(IUserService userService) : Controller
     {
-        private readonly IUserService _userService;
-
-        public AuthController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        private readonly IUserService _userService = userService;
 
         [HttpGet]
         public IActionResult Login()
@@ -50,13 +45,13 @@ namespace MusicProject.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
 
-                new Claim(ClaimTypes.Name, user.Username),
+                new (ClaimTypes.Name, user.Username),
 
-                new Claim(ClaimTypes.Email, user.Email),
+                new (ClaimTypes.Email, user.Email),
 
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new (ClaimTypes.Role, user.Role.ToString())
 
             };
 
