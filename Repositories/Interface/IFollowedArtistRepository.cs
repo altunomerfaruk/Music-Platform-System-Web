@@ -4,14 +4,13 @@ namespace MusicProject.Repositories.Interface
 {
     public interface IFollowedArtistRepository
     {
-        FollowedArtist? GetByUserAndArtist(
-            int userId,
-            int artistId
-        );
+        FollowedArtist? GetByUserAndArtist(int userId, int artistId);
 
-        IEnumerable<int> GetActiveFollowedArtistIdsByUser(
-            int userId
-        );
+        IEnumerable<int> GetActiveFollowedArtistIdsByUser(int userId);
+
+        IEnumerable<FollowedArtist> GetActiveFollowedArtistsByUser(int userId);
+
+        int GetActiveFollowerCountByArtist(int artistId);
 
         void Create(FollowedArtist followedArtist);
 

@@ -1,0 +1,348 @@
+﻿@model MusicProject.Models.ViewModels.FollowedArtistsViewModel
+
+@{
+    ViewData["Title"] = "Takip Ettiklerim";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <style>
+        .followed-content {
+            padding: 34px;
+        }
+
+        .followed-hero {
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.25), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+        .followed-hero-icon {
+            width: 125px;
+            height: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 50%;
+            font-size: 52px;
+        }
+
+        .followed-hero-label {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .followed-hero-title {
+            margin-top: 10px;
+            font-size: clamp(30px, 4vw, 48px);
+        }
+
+        .followed-hero-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .followed-hero-count {
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .followed-grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .followed-card {
+            padding: 22px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .followed-card:hover {
+            background-color: var(--card-hover);
+            border-color: rgba(30, 215, 96, 0.25);
+            transform: translateY(-4px);
+        }
+
+        .followed-image {
+            width: 105px;
+            height: 105px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 50%;
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .followed-name {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .followed-country {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .followed-info {
+            margin-top: 14px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .unfollow-form {
+            margin: 16px 0 0;
+        }
+
+        .unfollow-button {
+            padding: 9px 15px;
+            color: #071008;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .unfollow-button:hover {
+            color: white;
+            background-color: transparent;
+            border-color: rgba(255, 255, 255, 0.30);
+        }
+
+        .empty-state {
+            margin-top: 28px;
+            padding: 70px 25px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            color: var(--primary);
+            font-size: 55px;
+        }
+
+        .empty-title {
+            margin-top: 18px;
+            font-size: 22px;
+        }
+
+        .empty-description {
+            max-width: 460px;
+            margin: 10px auto 22px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .discover-button {
+            display: inline-block;
+            padding: 12px 20px;
+            color: #061108;
+            background-color: var(--primary);
+            border-radius: 23px;
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        @@media (max-width: 1100px) {
+            .followed-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @@media (max-width: 800px) {
+            .followed-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @@media (max-width: 520px) {
+            .followed-content {
+                padding: 20px 16px;
+            }
+
+            .followed-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .followed-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button" class="menu-button" id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+                <h1>Takip Ettiklerim</h1>
+                <p>Takip ettiğin sanatçıları görüntüle</p>
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="Index"
+           class="secondary-button">
+            ← Ana Sayfaya Dön
+        </a>
+
+    </header>
+
+    <div class="followed-content">
+
+        <section class="followed-hero">
+
+            <div class="followed-hero-icon">
+                ★
+            </div>
+
+            <div>
+                <p class="followed-hero-label">
+                    Kitaplığım
+                </p>
+
+                <h2 class="followed-hero-title">
+                    Takip Ettiklerim
+                </h2>
+
+                <p class="followed-hero-description">
+                    Yeni şarkılarını takip etmek istediğin sanatçılar burada görünür.
+                </p>
+
+                <p class="followed-hero-count">
+                    @Model.Artists.Count() sanatçı
+                </p>
+            </div>
+
+        </section>
+
+        @if (Model.Artists.Any())
+        {
+            <section class="followed-grid">
+
+                @foreach (var artist in Model.Artists)
+                {
+                    <article class="followed-card">
+
+                        <div class="followed-image">
+                            @(string.IsNullOrWhiteSpace(artist.Name)
+                                ? "?"
+                                : artist.Name.Substring(0, 1).ToUpper())
+                        </div>
+
+                        <h3 class="followed-name">
+                            @artist.Name
+                        </h3>
+
+                        <p class="followed-country">
+                            @artist.Country
+                        </p>
+
+                        <div class="followed-info">
+                            <div>
+                                Çıkış yılı:
+                                @(artist.DebutYear?.ToString() ?? "Bilinmiyor")
+                            </div>
+
+                            <div>
+                                @artist.TotalFollowers takipçi
+                            </div>
+
+                            <div>
+                                Takip tarihi:
+                                @artist.FollowedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                            </div>
+                        </div>
+
+                        <form asp-controller="UserDashboard"
+                              asp-action="ToggleFollow"
+                              method="post"
+                              class="unfollow-form">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="artistId" value="@artist.ArtistId" />
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+
+                            <button type="submit"
+                                    class="unfollow-button"
+                                    title="Takipten çık">
+                                Takip Ediliyor
+                            </button>
+
+                        </form>
+
+                    </article>
+                }
+
+            </section>
+        }
+        else
+        {
+            <section class="empty-state">
+
+                <div class="empty-icon">
+                    ☆
+                </div>
+
+                <h3 class="empty-title">
+                    Henüz takip ettiğin sanatçı yok
+                </h3>
+
+                <p class="empty-description">
+                    Ana sayfadaki sanatçı kartlarından sevdiğin sanatçıları
+                    takip ederek burada görüntüleyebilirsin.
+                </p>
+
+                <a asp-controller="UserDashboard"
+                   asp-action="Index"
+                   class="discover-button">
+                    Sanatçıları Keşfet
+                </a>
+
+            </section>
+        }
+
+    </div>
+
+</main>

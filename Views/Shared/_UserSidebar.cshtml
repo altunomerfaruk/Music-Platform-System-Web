@@ -6,26 +6,36 @@
 
     var isHome = controller == "UserDashboard" && action == "Index";
     var isLikedSongs = controller == "UserDashboard" && action == "LikedSongs";
+    var isFollowedArtists = controller == "UserDashboard" && action == "FollowedArtists";
 }
 
 <aside class="sidebar" id="sidebar">
 
-    <a asp-controller="UserDashboard" asp-action="Index" class="brand">
+    <a asp-controller="UserDashboard"
+       asp-action="Index"
+       class="brand">
 
         <div class="brand-icon">
             ♪
         </div>
 
         <div>
-            <span class="brand-name">MusicProject</span>
-            <span class="brand-panel">Müzik dünyan</span>
+            <span class="brand-name">
+                MusicProject
+            </span>
+
+            <span class="brand-panel">
+                Müzik dünyan
+            </span>
         </div>
 
     </a>
 
     <nav class="navigation">
 
-        <p class="navigation-title">Keşfet</p>
+        <p class="navigation-title">
+            Keşfet
+        </p>
 
         <ul class="navigation-list">
 
@@ -34,28 +44,46 @@
                    asp-action="Index"
                    class="navigation-link @(isHome ? "active" : "")">
 
-                    <span class="navigation-icon">▦</span>
+                    <span class="navigation-icon">
+                        ▦
+                    </span>
+
                     Ana Sayfa
                 </a>
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">♫</span>
+                <a href="#"
+                   class="navigation-link">
+
+                    <span class="navigation-icon">
+                        ♫
+                    </span>
+
                     Şarkıları Keşfet
                 </a>
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">★</span>
+                <a href="#"
+                   class="navigation-link">
+
+                    <span class="navigation-icon">
+                        ★
+                    </span>
+
                     Sanatçılar
                 </a>
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">▤</span>
+                <a href="#"
+                   class="navigation-link">
+
+                    <span class="navigation-icon">
+                        ▤
+                    </span>
+
                     Türler
                 </a>
             </li>
@@ -73,7 +101,10 @@
                    asp-action="LikedSongs"
                    class="navigation-link @(isLikedSongs ? "active" : "")">
 
-                    <span class="navigation-icon">♥</span>
+                    <span class="navigation-icon">
+                        ♥
+                    </span>
+
                     Beğendiğim Şarkılar
 
                     <span class="navigation-badge">
@@ -83,26 +114,47 @@
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">★</span>
+
+                <!-- DEĞİŞİKLİK:
+                     href="#" kaldırıldı.
+                     Artık FollowedArtists action'ına gider. -->
+                <a asp-controller="UserDashboard"
+                   asp-action="FollowedArtists"
+                   class="navigation-link @(isFollowedArtists ? "active" : "")">
+
+                    <span class="navigation-icon">
+                        ★
+                    </span>
+
                     Takip Ettiklerim
 
                     <span class="navigation-badge">
                         @Model.FollowedArtistCount
                     </span>
                 </a>
+
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">◷</span>
+                <a href="#"
+                   class="navigation-link">
+
+                    <span class="navigation-icon">
+                        ◷
+                    </span>
+
                     Son Dinlediklerim
                 </a>
             </li>
 
             <li class="navigation-item">
-                <a href="#" class="navigation-link">
-                    <span class="navigation-icon">⚙</span>
+                <a href="#"
+                   class="navigation-link">
+
+                    <span class="navigation-icon">
+                        ⚙
+                    </span>
+
                     Hesap Ayarları
                 </a>
             </li>

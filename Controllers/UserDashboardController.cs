@@ -30,86 +30,95 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var userIdValue = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!int.TryParse(
-                    userIdValue,
-                    out var userId))
+            if (!int.TryParse(userIdValue, out var userId))
             {
-                return RedirectToAction(
-                    "Login",
-                    "Auth"
-                );
+                return RedirectToAction("Login", "Auth");
             }
+
+            var likedSongIds = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .ToHashSet();
+
+            var followedArtistIds = _followedArtistService
+                .GetActiveFollowedArtistIds(userId)
+                .ToHashSet();
 
             var model = new UserDashboardViewModel
             {
-                Username = User.FindFirstValue(
-                    ClaimTypes.Name
-                ) ?? "Kullanıcı",
-
-                Email = User.FindFirstValue(
-                    ClaimTypes.Email
-                ) ?? string.Empty,
-
-                Role = User.FindFirstValue(
-                    ClaimTypes.Role
-                ) ?? "User",
-
-                PopularSongs =
-                    _songService.GetPopularSongs(),
-
-                Artists =
-                    _artistService.GetAllArtists(),
-
-                LikedSongIds =
-                    _likedSongService
-                        .GetActiveLikedSongIds(userId)
-                        .ToHashSet(),
-
-                FollowedArtistIds =
-                    _followedArtistService
-                        .GetActiveFollowedArtistIds(userId)
-                        .ToHashSet()
+                Email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+                PopularSongs = _songService.GetPopularSongs(),
+                Artists = _artistService.GetAllArtists(),
+                LikedSongIds = likedSongIds,
+                FollowedArtistIds = followedArtistIds
             };
+
+            FillLayoutData(model, userId);
 
             return View(model);
         }
-        [HttpGet]
+
+
+
+            [HttpGet]
         public IActionResult LikedSongs()
         {
-            var userIdValue = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!int.TryParse(
-                    userIdValue,
-                    out var userId))
+            if (!int.TryParse(userIdValue, out var userId))
             {
-                return RedirectToAction(
-                    "Login",
-                    "Auth"
-                );
+                return RedirectToAction("Login", "Auth");
             }
 
             var model = new LikedSongsViewModel
             {
-                Username =
-                    User.FindFirstValue(
-                        ClaimTypes.Name
-                    ) ?? "Kullanıcı",
-
-                Songs =
-                    _likedSongService
-                        .GetLikedSongsByUser(
-                            userId
-                        )
+                Songs = _likedSongService
+                    .GetLikedSongsByUser(userId)
+                    .ToList()
             };
+
+            FillLayoutData(model, userId);
 
             return View(model);
         }
+
+        [HttpGet]
+        public IActionResult FollowedArtists()
+        {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var model = new FollowedArtistsViewModel
+            {
+                Artists = _followedArtistService
+                    .GetFollowedArtistsByUser(userId)
+                    .ToList()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
+        private void FillLayoutData(UserLayoutViewModel model, int userId)
+        {
+            model.Username = User.FindFirstValue(ClaimTypes.Name) ?? "Kullanıcı";
+            model.Role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
+
+            model.LikedSongCount = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .Count();
+
+            model.FollowedArtistCount = _followedArtistService
+                .GetActiveFollowedArtistIds(userId)
+                .Count();
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -140,35 +149,31 @@ namespace MusicProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ToggleFollow(int artistId)
+        public IActionResult ToggleFollow(int artistId, string? returnUrl)
         {
-            var userIdValue = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!int.TryParse(
-                    userIdValue,
-                    out var userId))
+            if (!int.TryParse(userIdValue, out var userId))
             {
-                return RedirectToAction(
-                    "Login",
-                    "Auth"
-                );
+                return RedirectToAction("Login", "Auth");
             }
 
             if (artistId <= 0)
             {
-                return BadRequest(
-                    "Geçersiz sanatçı bilgisi."
-                );
+                return BadRequest("Geçersiz sanatçı bilgisi.");
             }
 
-            _followedArtistService.ToggleFollow(
-                userId,
-                artistId
-            );
+            _followedArtistService.ToggleFollow(userId, artistId);
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
 
             return RedirectToAction("Index");
         }
+
+
     }
+    
 }
