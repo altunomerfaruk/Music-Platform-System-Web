@@ -11,13 +11,22 @@
 
         <div class="topbar-left">
 
-            <button type="button" class="menu-button" id="menuButton">
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
                 ☰
             </button>
 
             <div class="page-heading">
-                <h1>Ana Sayfa</h1>
-                <p>Sevdiğin müzikleri keşfet ve dinlemeye başla.</p>
+
+                <h1>
+                    Ana Sayfa
+                </h1>
+
+                <p>
+                    Sevdiğin müzikleri keşfet ve dinlemeye başla.
+                </p>
+
             </div>
 
         </div>
@@ -25,10 +34,14 @@
         <div class="topbar-actions">
 
             <div class="search-box">
-                <span>⌕</span>
+
+                <span>
+                    ⌕
+                </span>
 
                 <input type="text"
                        placeholder="Şarkı, sanatçı veya albüm ara..." />
+
             </div>
 
             <button type="button"
@@ -36,6 +49,7 @@
                     title="Bildirimler">
 
                 ♢
+
                 <span class="notification-dot"></span>
 
             </button>
@@ -60,18 +74,20 @@
                 </h2>
 
                 <p class="welcome-description">
-                    Yeni yayınlanan şarkıları keşfet, favori
-                    sanatçılarını takip et ve beğendiğin müzikleri
-                    kendi kitaplığında sakla.
+                    Yeni yayınlanan şarkıları keşfet, favori sanatçılarını takip et
+                    ve beğendiğin müzikleri kendi kitaplığında sakla.
                 </p>
 
                 <div class="welcome-actions">
 
-                    <button type="button" class="primary-button">
+                    <button type="button"
+                            class="primary-button">
                         ▶ Dinlemeye Başla
                     </button>
 
-                    <a href="#" class="secondary-button">
+                    <a asp-controller="UserDashboard"
+                       asp-action="AllSongs"
+                       class="secondary-button">
                         Şarkıları Keşfet
                     </a>
 
@@ -91,11 +107,15 @@
             <div class="section-header">
 
                 <div>
-                    <h3 class="section-title">Müzik özetin</h3>
+
+                    <h3 class="section-title">
+                        Müzik özetin
+                    </h3>
 
                     <p class="section-description">
                         Hesabındaki müzik etkinliklerinin kısa özeti
                     </p>
+
                 </div>
 
             </div>
@@ -176,14 +196,23 @@
             <div class="section-header">
 
                 <div>
-                    <h3 class="section-title">Popüler şarkılar</h3>
+
+                    <h3 class="section-title">
+                        Popüler şarkılar
+                    </h3>
 
                     <p class="section-description">
                         Platformda en çok dinlenen şarkılar
                     </p>
+
                 </div>
 
-                <a href="#" class="section-link">
+                @* DEĞİŞİKLİK:
+                   Geçici href="#" kaldırıldı.
+                   Artık bütün şarkıların bulunduğu AllSongs sayfasına gider. *@
+                <a asp-controller="UserDashboard"
+                   asp-action="AllSongs"
+                   class="section-link">
                     Tümünü Gör
                 </a>
 
@@ -264,9 +293,11 @@
             }
             else
             {
-                <div class="panel" style="padding: 24px;">
+                <div class="panel"
+                     style="padding: 24px;">
 
-                    <p class="section-description" style="margin: 0;">
+                    <p class="section-description"
+                       style="margin: 0;">
                         Henüz gösterilecek popüler şarkı bulunmuyor.
                     </p>
 
@@ -281,6 +312,7 @@
             <div class="section-header">
 
                 <div>
+
                     <h3 class="section-title">
                         Keşfedebileceğin sanatçılar
                     </h3>
@@ -288,9 +320,11 @@
                     <p class="section-description">
                         Yeni sanatçılarla ve yeni müziklerle tanış
                     </p>
+
                 </div>
 
-                <a href="#" class="section-link">
+                <a href="#"
+                   class="section-link">
                     Tüm Sanatçılar
                 </a>
 
@@ -305,8 +339,8 @@
                         <article class="artist-card">
 
                             @* DEĞİŞİKLİK:
-                               Görsel, isim ve sanatçı etiketi
-                               ArtistDetails sayfasına yönlendiriliyor. *@
+                               Sanatçı görseli ve adı ArtistDetails
+                               sayfasına yönlendiriliyor. *@
                             <a asp-controller="UserDashboard"
                                asp-action="ArtistDetails"
                                asp-route-artistId="@artist.Id"
@@ -358,9 +392,11 @@
             }
             else
             {
-                <div class="panel" style="padding: 24px;">
+                <div class="panel"
+                     style="padding: 24px;">
 
-                    <p class="section-description" style="margin: 0;">
+                    <p class="section-description"
+                       style="margin: 0;">
                         Henüz gösterilecek sanatçı bulunmuyor.
                     </p>
 
@@ -375,6 +411,7 @@
             <div class="panel-header">
 
                 <div>
+
                     <h3 class="section-title">
                         Son dinlediklerin
                     </h3>
@@ -382,9 +419,11 @@
                     <p class="section-description">
                         Kaldığın yerden dinlemeye devam et
                     </p>
+
                 </div>
 
-                <a href="#" class="section-link">
+                <a href="#"
+                   class="section-link">
                     Geçmişi Gör
                 </a>
 
@@ -407,6 +446,7 @@
                     <tbody>
 
                         <tr>
+
                             <td>
 
                                 <div class="table-song">
@@ -416,6 +456,7 @@
                                     </div>
 
                                     <div>
+
                                         <div class="cell-title">
                                             Gece Yolculuğu
                                         </div>
@@ -423,24 +464,38 @@
                                         <div class="cell-subtitle">
                                             Elif Kaya
                                         </div>
+
                                     </div>
 
                                 </div>
 
                             </td>
 
-                            <td>Bağımsız Single</td>
-                            <td>Pop</td>
-                            <td>3:42</td>
+                            <td>
+                                Bağımsız Single
+                            </td>
 
                             <td>
-                                <button type="button" class="table-play-button">
+                                Pop
+                            </td>
+
+                            <td>
+                                3:42
+                            </td>
+
+                            <td>
+
+                                <button type="button"
+                                        class="table-play-button">
                                     ▶
                                 </button>
+
                             </td>
+
                         </tr>
 
                         <tr>
+
                             <td>
 
                                 <div class="table-song">
@@ -450,6 +505,7 @@
                                     </div>
 
                                     <div>
+
                                         <div class="cell-title">
                                             Son Durak
                                         </div>
@@ -457,24 +513,38 @@
                                         <div class="cell-subtitle">
                                             Atlas
                                         </div>
+
                                     </div>
 
                                 </div>
 
                             </td>
 
-                            <td>Şehir Işıkları</td>
-                            <td>Alternatif</td>
-                            <td>4:05</td>
+                            <td>
+                                Şehir Işıkları
+                            </td>
 
                             <td>
-                                <button type="button" class="table-play-button">
+                                Alternatif
+                            </td>
+
+                            <td>
+                                4:05
+                            </td>
+
+                            <td>
+
+                                <button type="button"
+                                        class="table-play-button">
                                     ▶
                                 </button>
+
                             </td>
+
                         </tr>
 
                         <tr>
+
                             <td>
 
                                 <div class="table-song">
@@ -484,6 +554,7 @@
                                     </div>
 
                                     <div>
+
                                         <div class="cell-title">
                                             Sessiz Şehir
                                         </div>
@@ -491,21 +562,34 @@
                                         <div class="cell-subtitle">
                                             Mavi
                                         </div>
+
                                     </div>
 
                                 </div>
 
                             </td>
 
-                            <td>Gecenin İçinden</td>
-                            <td>Indie</td>
-                            <td>3:18</td>
+                            <td>
+                                Gecenin İçinden
+                            </td>
 
                             <td>
-                                <button type="button" class="table-play-button">
+                                Indie
+                            </td>
+
+                            <td>
+                                3:18
+                            </td>
+
+                            <td>
+
+                                <button type="button"
+                                        class="table-play-button">
                                     ▶
                                 </button>
+
                             </td>
+
                         </tr>
 
                     </tbody>
@@ -541,7 +625,8 @@
 
         </div>
 
-        <button type="button" class="like-button liked">
+        <button type="button"
+                class="like-button liked">
             ♥
         </button>
 
@@ -604,7 +689,9 @@
 
     <div class="player-right">
 
-        <span>🔊</span>
+        <span>
+            🔊
+        </span>
 
         <div class="volume-line">
             <div class="volume-value"></div>

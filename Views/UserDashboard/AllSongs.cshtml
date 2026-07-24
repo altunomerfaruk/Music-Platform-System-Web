@@ -1,0 +1,477 @@
+﻿@model MusicProject.Models.ViewModels.AllSongsViewModel
+
+@{
+    ViewData["Title"] = "Tüm Şarkılar";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <style>
+        .all-songs-content {
+            padding: 34px;
+        }
+
+        .songs-hero {
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.24), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+        .songs-hero-icon {
+            width: 125px;
+            height: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 22px;
+            font-size: 52px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.30);
+        }
+
+        .songs-hero-label {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .songs-hero-title {
+            margin-top: 10px;
+            font-size: clamp(30px, 4vw, 48px);
+        }
+
+        .songs-hero-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .songs-hero-count {
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .songs-panel {
+            margin-top: 28px;
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+        }
+
+        .songs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .songs-table th,
+        .songs-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .songs-table th {
+            color: #687169;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .songs-table td {
+            color: #d8ded9;
+            font-size: 12px;
+        }
+
+        .songs-table tbody tr {
+            transition: 0.2s;
+        }
+
+        .songs-table tbody tr:hover {
+            background-color: var(--card-hover);
+        }
+
+        .songs-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .song-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .song-cover-small {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+            border-radius: 11px;
+            font-size: 18px;
+        }
+
+        .song-details-link {
+            display: inline-block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .song-title {
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+            transition: 0.2s;
+        }
+
+        .song-details-link:hover .song-title {
+            color: var(--primary);
+        }
+
+        .song-album {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .song-streams {
+            color: var(--text-secondary);
+        }
+
+        .play-button {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .play-button:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.07);
+        }
+
+        .like-form {
+            margin: 0;
+        }
+
+        .like-button {
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            transition: 0.2s;
+        }
+
+        .like-button:hover,
+        .like-button.liked {
+            color: var(--primary);
+            transform: scale(1.10);
+        }
+
+        .empty-state {
+            margin-top: 28px;
+            padding: 70px 25px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            color: var(--primary);
+            font-size: 55px;
+        }
+
+        .empty-title {
+            margin-top: 18px;
+            font-size: 22px;
+        }
+
+        .empty-description {
+            max-width: 460px;
+            margin: 10px auto 22px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 12px 20px;
+            color: #061108;
+            background-color: var(--primary);
+            border-radius: 23px;
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        /* DEĞİŞİKLİK:
+           .cshtml dosyalarında CSS medya sorgusu @@media şeklinde yazılır.
+           Tek @ kullanılırsa Razor bunu C# kodu olarak yorumlamaya çalışır. */
+        @@media (max-width: 800px) {
+            .all-songs-content {
+                padding: 20px 16px;
+            }
+
+            .songs-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .songs-panel {
+                overflow-x: auto;
+            }
+
+            .songs-table {
+                min-width: 720px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+                <h1>Tüm Şarkılar</h1>
+                <p>Platformdaki bütün şarkıları keşfet</p>
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="Index"
+           class="secondary-button">
+            ← Ana Sayfaya Dön
+        </a>
+
+    </header>
+
+    <div class="all-songs-content">
+
+        <section class="songs-hero">
+
+            <div class="songs-hero-icon">
+                ♪
+            </div>
+
+            <div>
+
+                <p class="songs-hero-label">
+                    Müzik kataloğu
+                </p>
+
+                <h2 class="songs-hero-title">
+                    Tüm Şarkılar
+                </h2>
+
+                <p class="songs-hero-description">
+                    Platformda yayınlanan bütün şarkıları alfabetik sırayla görüntüle.
+                </p>
+
+                <p class="songs-hero-count">
+                    @Model.Songs.Count() şarkı
+                </p>
+
+            </div>
+
+        </section>
+
+        @if (Model.Songs.Any())
+        {
+            <section class="songs-panel">
+
+                <table class="songs-table">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Şarkı</th>
+                            <th>Albüm</th>
+                            <th>Dinlenme</th>
+                            <th>Oynat</th>
+                            <th>Kaydet</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            var songNumber = 1;
+                        }
+
+                        @foreach (var song in Model.Songs)
+                        {
+                            var isLiked = Model.LikedSongIds.Contains(song.Id);
+
+                            // DEĞİŞİKLİK:
+                            // Razor attribute içinde ternary ifadelerin yanlış
+                            // yorumlanmaması için değerler önceden hazırlanıyor.
+                            var likeButtonClass = isLiked
+                                ? "like-button liked"
+                                : "like-button";
+
+                            var likeButtonTitle = isLiked
+                                ? "Beğeniyi kaldır"
+                                : "Şarkıyı beğen";
+
+                            var likeButtonIcon = isLiked
+                                ? "♥"
+                                : "♡";
+
+                            var playButtonTitle = $"{song.Title} şarkısını oynat";
+
+                            <tr>
+
+                                <td>
+                                    @songNumber
+                                </td>
+
+                                <td>
+
+                                    <div class="song-cell">
+
+                                        <div class="song-cover-small">
+                                            ♪
+                                        </div>
+
+                                        <div>
+
+                                            <a asp-controller="UserDashboard"
+                                               asp-action="SongDetails"
+                                               asp-route-songId="@song.Id"
+                                               class="song-details-link">
+
+                                                <div class="song-title">
+                                                    @song.Title
+                                                </div>
+
+                                            </a>
+
+                                            <div class="song-album">
+                                                @(song.Album?.Name ?? "Single")
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    @(song.Album?.Name ?? "Single")
+                                </td>
+
+                                <td class="song-streams">
+                                    @(song.SongStat?.TotalStreams ?? 0)
+                                </td>
+
+                                <td>
+
+                                    <button type="button"
+                                            class="play-button"
+                                            data-song-id="@song.Id"
+                                            title="@playButtonTitle">
+                                        ▶
+                                    </button>
+
+                                </td>
+
+                                <td>
+
+                                    <form asp-controller="UserDashboard"
+                                          asp-action="ToggleLike"
+                                          method="post"
+                                          class="like-form">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="songId"
+                                               value="@song.Id" />
+
+                                        <input type="hidden"
+                                               name="returnUrl"
+                                               value="@currentUrl" />
+
+                                        <button type="submit"
+                                                class="@likeButtonClass"
+                                                title="@likeButtonTitle">
+                                            @likeButtonIcon
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            songNumber++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </section>
+        }
+        else
+        {
+            <section class="empty-state">
+
+                <div class="empty-icon">
+                    ♫
+                </div>
+
+                <h3 class="empty-title">
+                    Henüz şarkı bulunmuyor
+                </h3>
+
+                <p class="empty-description">
+                    Platforma şarkı eklendiğinde bütün şarkılar bu sayfada
+                    alfabetik olarak listelenecek.
+                </p>
+
+                <a asp-controller="UserDashboard"
+                   asp-action="Index"
+                   class="home-button">
+                    Ana Sayfaya Dön
+                </a>
+
+            </section>
+        }
+
+    </div>
+
+</main>

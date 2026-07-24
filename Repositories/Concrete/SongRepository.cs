@@ -15,6 +15,9 @@ namespace MusicProject.Repositories.Concrete
         public IEnumerable<Song> GetSongsSortedByAlphabet()
         {
             return _dbSet
+                .AsNoTracking()
+                .Include(song => song.Album)
+                .Include(song => song.SongStat)
                 .OrderBy(song => song.Title)
                 .ThenByDescending(song => song.AlbumId)
                 .ToList();
@@ -45,7 +48,7 @@ namespace MusicProject.Repositories.Concrete
             return _context.Songs
                 .AsNoTracking()
                 .Include(song => song.Album)
-                    .ThenInclude(album => album.Artist)
+                    .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
                     .ThenInclude(songArtist => songArtist.Artist)
                 .Include(song => song.SongGenres)

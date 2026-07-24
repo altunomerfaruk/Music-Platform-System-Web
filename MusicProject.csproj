@@ -15,6 +15,11 @@
 
   <ItemGroup>
     <Content Remove="Views\ArtistDashBoard\AdminDashboard.cshtml" />
+    <Content Remove="Views\UserDashboard\AllSongs.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Views\UserDashboard\AllSongs.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicProject.Controllers.Base; 
 using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
@@ -7,24 +8,25 @@ using System.Security.Claims;
 namespace MusicProject.Controllers
 {
     [Authorize(Roles = "User,Artist")]
-    public class UserDashboardController : Controller
+    public class UserDashboardController : UserBaseController
     {
+
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
-        private readonly IAlbumService _albumService; 
+        private readonly IAlbumService _albumService;
         private readonly ILikedSongService _likedSongService;
         private readonly IFollowedArtistService _followedArtistService;
 
         public UserDashboardController(
             ISongService songService,
             IArtistService artistService,
-            IAlbumService albumService, 
+            IAlbumService albumService,
             ILikedSongService likedSongService,
             IFollowedArtistService followedArtistService)
         {
             _songService = songService;
             _artistService = artistService;
-            _albumService = albumService; 
+            _albumService = albumService;
             _likedSongService = likedSongService;
             _followedArtistService = followedArtistService;
         }
@@ -32,11 +34,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             var likedSongIds = _likedSongService
@@ -64,11 +64,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult SongDetails(int songId)
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             if (songId <= 0)
@@ -101,11 +99,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult LikedSongs()
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             var model = new LikedSongsViewModel
@@ -123,11 +119,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult FollowedArtists()
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             var model = new FollowedArtistsViewModel
@@ -145,11 +139,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult ArtistDetails(int artistId)
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             if (artistId <= 0)
@@ -185,13 +177,9 @@ namespace MusicProject.Controllers
         [HttpGet]
         public IActionResult AlbumDetails(int albumId)
         {
-            // DEĞİŞİKLİK: Albüm detay sayfasını açan yeni action eklendi.
-
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             if (albumId <= 0)
@@ -219,15 +207,34 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult AllSongs()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var model = new AllSongsViewModel
+            {
+                Songs = _songService.GetSongsSortedByAlphabet(),
+                LikedSongIds = _likedSongService
+                    .GetActiveLikedSongIds(userId)
+                    .ToHashSet()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ToggleLike(int songId, string? returnUrl)
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             if (songId <= 0)
@@ -249,11 +256,10 @@ namespace MusicProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ToggleFollow(int artistId, string? returnUrl)
         {
-            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!int.TryParse(userIdValue, out var userId))
+            if (!TryGetCurrentUserId(out var userId))
             {
-                return RedirectToAction("Login", "Auth");
+                return RedirectToLogin();
             }
 
             if (artistId <= 0)
