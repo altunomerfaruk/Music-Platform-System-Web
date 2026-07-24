@@ -40,5 +40,18 @@ namespace MusicProject.Repositories.Concrete
                 .Take(5)
                 .ToList();
         }
+       public Song? GetSongDetailsById(int songId)
+        {
+            return _context.Songs
+                .AsNoTracking()
+                .Include(song => song.Album)
+                    .ThenInclude(album => album.Artist)
+                .Include(song => song.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Artist)
+                .Include(song => song.SongGenres)
+                    .ThenInclude(songGenre => songGenre.Genre)
+                .Include(song => song.SongStat)
+                .FirstOrDefault(song => song.Id == songId);
+        }
     }
 }

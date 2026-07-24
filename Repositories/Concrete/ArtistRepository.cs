@@ -1,8 +1,7 @@
-﻿using MusicProject.data;
+﻿using Microsoft.EntityFrameworkCore;
+using MusicProject.data;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MusicProject.Repositories.Concrete
 {
@@ -23,7 +22,22 @@ namespace MusicProject.Repositories.Concrete
         public Artist? GetByID(int id)
         {
             return _context.Artists.Find(id);
-
+        }
+        //geri dön
+        public Artist? GetArtistDetailsById(int artistId)
+        {
+            return _context.Artists
+                .AsNoTracking()
+                .Include(artist => artist.Albums)
+                    .ThenInclude(album => album.Songs)
+                .Include(artist => artist.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Song)
+                        .ThenInclude(song => song.SongStat)
+                .Include(artist => artist.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Song)
+                        .ThenInclude(song => song.Album)
+                .Include(artist => artist.Followers)
+                .FirstOrDefault(artist => artist.Id == artistId);
         }
 
         public void Create(Artist entity)

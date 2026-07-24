@@ -77,11 +77,27 @@
             transition: 0.2s;
         }
 
-        .followed-card:hover {
-            background-color: var(--card-hover);
-            border-color: rgba(30, 215, 96, 0.25);
-            transform: translateY(-4px);
+            .followed-card:hover {
+                background-color: var(--card-hover);
+                border-color: rgba(30, 215, 96, 0.25);
+                transform: translateY(-4px);
+            }
+
+        /* DEĞİŞİKLİK:
+                   Sanatçı bilgileri ArtistDetails sayfasına yönlendiren
+                   bağlantının içine alındı. Link görünümü kart tasarımını bozmaz. */
+        .followed-details-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
         }
+
+            .followed-details-link:focus-visible {
+                outline: 2px solid var(--primary);
+                outline-offset: 6px;
+                border-radius: 14px;
+            }
 
         .followed-image {
             width: 105px;
@@ -128,14 +144,15 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: 850;
+            cursor: pointer;
             transition: 0.2s;
         }
 
-        .unfollow-button:hover {
-            color: white;
-            background-color: transparent;
-            border-color: rgba(255, 255, 255, 0.30);
-        }
+            .unfollow-button:hover {
+                color: white;
+                background-color: transparent;
+                border-color: rgba(255, 255, 255, 0.30);
+            }
 
         .empty-state {
             margin-top: 28px;
@@ -264,36 +281,49 @@
                 {
                     <article class="followed-card">
 
-                        <div class="followed-image">
-                            @(string.IsNullOrWhiteSpace(artist.Name)
-                                ? "?"
-                                : artist.Name.Substring(0, 1).ToUpper())
-                        </div>
+                        @* DEĞİŞİKLİK:
+                           Görsel, isim, ülke ve sanatçı bilgileri artık
+                           ArtistDetails action'ına yönlendiriliyor. *@
+                        <a asp-controller="UserDashboard"
+                           asp-action="ArtistDetails"
+                           asp-route-artistId="@artist.ArtistId"
+                           class="followed-details-link">
 
-                        <h3 class="followed-name">
-                            @artist.Name
-                        </h3>
-
-                        <p class="followed-country">
-                            @artist.Country
-                        </p>
-
-                        <div class="followed-info">
-                            <div>
-                                Çıkış yılı:
-                                @(artist.DebutYear?.ToString() ?? "Bilinmiyor")
+                            <div class="followed-image">
+                                @(string.IsNullOrWhiteSpace(artist.Name)
+                                    ? "?"
+                                    : artist.Name.Substring(0, 1).ToUpper())
                             </div>
 
-                            <div>
-                                @artist.TotalFollowers takipçi
+                            <h3 class="followed-name">
+                                @artist.Name
+                            </h3>
+
+                            <p class="followed-country">
+                                @artist.Country
+                            </p>
+
+                            <div class="followed-info">
+                                <div>
+                                    Çıkış yılı:
+                                    @(artist.DebutYear?.ToString() ?? "Bilinmiyor")
+                                </div>
+
+                                <div>
+                                    @artist.TotalFollowers takipçi
+                                </div>
+
+                                <div>
+                                    Takip tarihi:
+                                    @artist.FollowedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                                </div>
                             </div>
 
-                            <div>
-                                Takip tarihi:
-                                @artist.FollowedAt.ToLocalTime().ToString("dd.MM.yyyy")
-                            </div>
-                        </div>
+                        </a>
 
+                        @* DEĞİŞİKLİK:
+                           Takipten çıkma formu bağlantının dışında bırakıldı.
+                           Böylece butona basınca detay sayfasına yönlendirme yapılmaz. *@
                         <form asp-controller="UserDashboard"
                               asp-action="ToggleFollow"
                               method="post"

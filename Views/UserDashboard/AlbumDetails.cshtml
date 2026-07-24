@@ -1,0 +1,450 @@
+﻿@model MusicProject.Models.ViewModels.AlbumDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Album.Name;
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <style>
+        .album-details-content {
+            padding: 34px;
+        }
+
+        .album-hero {
+            padding: 38px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.26), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.22);
+            border-radius: 22px;
+        }
+
+        .album-hero-cover {
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1b3323, #0a100c);
+            border-radius: 18px;
+            font-size: 62px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+            .album-hero-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .album-type {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .album-title {
+            margin-top: 10px;
+            font-size: clamp(35px, 5vw, 58px);
+        }
+
+        .album-description {
+            max-width: 680px;
+            margin-top: 12px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .album-meta {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .artist-link {
+            color: white;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+            .artist-link:hover {
+                color: var(--primary);
+            }
+
+        .details-section {
+            margin-top: 32px;
+        }
+
+        .section-header {
+            margin-bottom: 17px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 21px;
+        }
+
+        .section-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .song-panel {
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .song-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .song-table th,
+            .song-table td {
+                padding: 15px 17px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+            }
+
+            .song-table th {
+                color: #687169;
+                font-size: 10px;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .song-table td {
+                color: #d8ded9;
+                font-size: 12px;
+            }
+
+            .song-table tbody tr:hover {
+                background-color: var(--card-hover);
+            }
+
+            .song-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+        .song-details-link {
+            display: inline-block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+            .song-details-link:hover .song-name {
+                color: var(--primary);
+            }
+
+        .song-name {
+            color: white;
+            font-weight: 800;
+            transition: 0.2s;
+        }
+
+        .play-button {
+            width: 34px;
+            height: 34px;
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+            .play-button:hover {
+                transform: scale(1.08);
+            }
+
+        .like-form {
+            margin: 0;
+        }
+
+        .like-button {
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+            .like-button.liked {
+                color: var(--primary);
+            }
+
+        .empty-box {
+            padding: 45px 20px;
+            color: var(--text-secondary);
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            text-align: center;
+        }
+
+        @@media (max-width: 700px) {
+            .album-details-content {
+                padding: 20px 16px;
+            }
+
+            .album-hero {
+                padding: 27px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .album-hero-cover {
+                width: 135px;
+                height: 135px;
+                font-size: 46px;
+            }
+
+            .song-panel {
+                overflow-x: auto;
+            }
+
+            .song-table {
+                min-width: 650px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+                <h1>@Model.Album.Name</h1>
+                <p>Albüm detayları</p>
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="ArtistDetails"
+           asp-route-artistId="@Model.Album.ArtistId"
+           class="secondary-button">
+            ← Sanatçıya Dön
+        </a>
+
+    </header>
+
+    <div class="album-details-content">
+
+        <section class="album-hero">
+
+            <div class="album-hero-cover">
+
+                @if (!string.IsNullOrWhiteSpace(Model.Album.CoverImageUrl))
+                {
+                    <img src="@Model.Album.CoverImageUrl"
+                         alt="@Model.Album.Name albüm kapağı" />
+                }
+                else
+                {
+                    <span>♪</span>
+                }
+
+            </div>
+
+            <div>
+
+                <p class="album-type">
+                    Albüm
+                </p>
+
+                <h2 class="album-title">
+                    @Model.Album.Name
+                </h2>
+
+                <p class="album-description">
+                    @Model.Album.Description
+                </p>
+
+                <div class="album-meta">
+
+                    <a asp-controller="UserDashboard"
+                       asp-action="ArtistDetails"
+                       asp-route-artistId="@Model.Album.ArtistId"
+                       class="artist-link">
+                        @Model.Album.ArtistName
+                    </a>
+
+                    <span>
+                        @Model.Album.ReleaseDate.ToString("dd.MM.yyyy")
+                    </span>
+
+                    <span>
+                        @Model.Album.Songs.Count() şarkı
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="details-section">
+
+            <div class="section-header">
+
+                <div>
+                    <h3 class="section-title">
+                        Albüm şarkıları
+                    </h3>
+
+                    <p class="section-description">
+                        Albümde bulunan şarkılar
+                    </p>
+                </div>
+
+            </div>
+
+            @if (Model.Album.Songs.Any())
+            {
+                <div class="song-panel">
+
+                    <table class="song-table">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Şarkı</th>
+                                <th>Dinlenme</th>
+                                <th>Beğeni</th>
+                                <th>Oynat</th>
+                                <th>Kaydet</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @{
+                                var songNumber = 1;
+                            }
+
+                            @foreach (var song in Model.Album.Songs)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @songNumber
+                                    </td>
+
+                                    <td>
+
+                                        @* DEĞİŞİKLİK:
+                                           Şarkı adına basılınca SongDetails
+                                           sayfasına yönlendirilir. *@
+                                        <a asp-controller="UserDashboard"
+                                           asp-action="SongDetails"
+                                           asp-route-songId="@song.SongId"
+                                           class="song-details-link">
+
+                                            <div class="song-name">
+                                                @song.Title
+                                            </div>
+
+                                        </a>
+
+                                    </td>
+
+                                    <td>
+                                        @song.TotalStreams
+                                    </td>
+
+                                    <td>
+                                        @song.TotalLikes
+                                    </td>
+
+                                    <td>
+
+                                        <button type="button"
+                                                class="play-button"
+                                                data-song-id="@song.SongId"
+                                                title="@song.Title şarkısını oynat">
+                                            ▶
+                                        </button>
+
+                                    </td>
+
+                                    <td>
+
+                                        <form asp-controller="UserDashboard"
+                                              asp-action="ToggleLike"
+                                              method="post"
+                                              class="like-form">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="songId"
+                                                   value="@song.SongId" />
+
+                                            <input type="hidden"
+                                                   name="returnUrl"
+                                                   value="@currentUrl" />
+
+                                            <button type="submit"
+                                                    class="like-button @(Model.LikedSongIds.Contains(song.SongId) ? "liked" : "")"
+                                                    title="@(Model.LikedSongIds.Contains(song.SongId) ? "Beğeniyi kaldır" : "Şarkıyı beğen")">
+
+                                                @(Model.LikedSongIds.Contains(song.SongId) ? "♥" : "♡")
+
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                songNumber++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="empty-box">
+                    Bu albümde henüz şarkı bulunmuyor.
+                </div>
+            }
+
+        </section>
+
+    </div>
+
+</main>

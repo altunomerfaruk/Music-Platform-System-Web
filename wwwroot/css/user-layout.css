@@ -1229,6 +1229,42 @@
     background-color: rgba(0, 0, 0, 0.65);
 }
 
-.sidebar-overlay.open {
+    .sidebar-overlay.open {
+        display: block;
+    }
+
+/* =========================================
+   DETAY SAYFASI BAĞLANTILARI
+========================================= */
+
+.artist-details-link {
     display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.song-details-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+    .song-details-link:hover .song-name {
+        color: var(--primary);
+    }
+
+.followed-details-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.album-details-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
 }

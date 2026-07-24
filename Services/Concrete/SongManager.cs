@@ -1,7 +1,7 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.DTOs;
+using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
-
 namespace MusicProject.Services.Concrete
 {
     public class SongManager : ISongService
@@ -13,6 +13,44 @@ namespace MusicProject.Services.Concrete
             _songRepository = songRepository;
         }
 
+        public SongDetailsDto? GetSongDetails(int songId)
+        {
+            var song = _songRepository.GetSongDetailsById(songId);
+
+            if (song == null)
+            {
+                return null;
+            }
+
+            var artists = song.SongArtists
+                .Select(songArtist => new SongArtistDto
+                {
+                    ArtistId = songArtist.ArtistId,
+                    Name = songArtist.Artist.Name
+                })
+                .ToList();
+
+            var genres = song.SongGenres
+                .Select(songGenre => new SongGenreDto
+                {
+                    GenreId = songGenre.GenreId,
+                    Name = songGenre.Genre.Name
+                })
+                .ToList();
+
+            return new SongDetailsDto
+            {
+                SongId = song.Id,
+                Title = song.Title,
+                AlbumId = song.AlbumId,
+                AlbumName = song.Album?.Name ?? "Single",
+                TotalStreams = song.SongStat?.TotalStreams ?? 0,
+                TotalLikes = song.SongStat?.TotalLikes ?? 0,
+                PopularityScore = song.SongStat?.PopularityScore ?? 0,
+                Artists = artists,
+                Genres = genres
+            };
+        }
         public IEnumerable<Song> GetAllSongs()
         {
             return _songRepository.GetAll();

@@ -7,666 +7,612 @@
 
 <main class="main-content">
 
-            <header class="topbar">
+    <header class="topbar">
 
-                <div class="topbar-left">
+        <div class="topbar-left">
 
-                    <button type="button"
-                            class="menu-button"
-                            id="menuButton">
-                        ☰
-                    </button>
+            <button type="button" class="menu-button" id="menuButton">
+                ☰
+            </button>
 
-                    <div class="page-heading">
-
-                        <h1>
-                            Ana Sayfa
-                        </h1>
-
-                        <p>
-                            Sevdiğin müzikleri keşfet ve dinlemeye başla.
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="topbar-actions">
-
-                    <div class="search-box">
-
-                        <span>
-                            ⌕
-                        </span>
-
-                        <input type="text"
-                               placeholder="Şarkı, sanatçı veya albüm ara..." />
-
-                    </div>
-
-                    <button type="button"
-                            class="notification-button"
-                            title="Bildirimler">
-
-                        ♢
-
-                        <span class="notification-dot"></span>
-
-                    </button>
-
-                </div>
-
-            </header>
-
-            <div class="dashboard-content">
-
-                <!-- KARŞILAMA ALANI -->
-                <section class="welcome-banner">
-
-                    <div class="welcome-content">
-
-                        <p class="welcome-label">
-                            Senin için seçildi
-                        </p>
-
-                        <h2 class="welcome-title">
-                            Tekrar hoş geldin, @Model.Username.
-                        </h2>
-
-                        <p class="welcome-description">
-                            Yeni yayınlanan şarkıları keşfet, favori
-                            sanatçılarını takip et ve beğendiğin müzikleri
-                            kendi kitaplığında sakla.
-                        </p>
-
-                        <div class="welcome-actions">
-
-                            <button type="button"
-                                    class="primary-button">
-                                ▶ Dinlemeye Başla
-                            </button>
-
-                            <a href="#"
-                               class="secondary-button">
-                                Şarkıları Keşfet
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                    <div class="featured-cover">
-                        ♪
-                    </div>
-
-                </section>
-
-                <!-- KULLANICI İSTATİSTİKLERİ -->
-                <section class="section">
-
-                    <div class="section-header">
-
-                        <div>
-                            <h3 class="section-title">
-                                Müzik özetin
-                            </h3>
-
-                            <p class="section-description">
-                                Hesabındaki müzik etkinliklerinin kısa özeti
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <div class="stat-grid">
-
-                        <article class="stat-card">
-
-                            <div class="stat-icon">
-                                ▶
-                            </div>
-
-                            <div class="stat-number">
-                                148
-                            </div>
-
-                            <div class="stat-label">
-                                Dinlediğin şarkı
-                            </div>
-
-                        </article>
-
-                        <article class="stat-card">
-
-                            <div class="stat-icon">
-                                ♥
-                            </div>
-
-                            <div class="stat-number">
-                                @Model.LikedSongIds.Count
-                            </div>
-
-                            <div class="stat-label">
-                                Beğendiğin şarkı
-                            </div>
-
-                        </article>
-
-                        <article class="stat-card">
-
-                            <div class="stat-icon">
-                                ★
-                            </div>
-
-                            <div class="stat-number">
-                                @Model.FollowedArtistIds.Count
-                            </div>
-
-                            <div class="stat-label">
-                                Takip ettiğin sanatçı
-                            </div>
-
-                        </article>
-
-                        <article class="stat-card">
-
-                            <div class="stat-icon">
-                                ◷
-                            </div>
-
-                            <div class="stat-number">
-                                12 saat
-                            </div>
-
-                            <div class="stat-label">
-                                Toplam dinleme süresi
-                            </div>
-
-                        </article>
-
-                    </div>
-
-                </section>
-
-                <!-- POPÜLER ŞARKILAR -->
-                <section class="section">
-
-                    <div class="section-header">
-
-                        <div>
-                            <h3 class="section-title">
-                                Popüler şarkılar
-                            </h3>
-
-                            <p class="section-description">
-                                Platformda en çok dinlenen şarkılar
-                            </p>
-                        </div>
-
-                        <a href="#"
-                           class="section-link">
-                            Tümünü Gör
-                        </a>
-
-                    </div>
-
-                    @if (Model.PopularSongs.Any())
-                    {
-                        <div class="song-grid">
-
-                            @foreach (var song in Model.PopularSongs)
-                            {
-                                <article class="song-card">
-
-                                    <div class="song-card-cover">
-
-                                        ♪
-
-                                        <button type="button"
-                                                class="song-play-button"
-                                                data-song-id="@song.Id"
-                                                title="@song.Title şarkısını oynat">
-                                            ▶
-                                        </button>
-
-                                    </div>
-
-                                    <h4 class="song-name">
-                                        @song.Title
-                                    </h4>
-
-                                    <p class="song-artist">
-                                        @(song.Album?.Name ?? "Albüm bilgisi yok")
-                                    </p>
-
-                                    <div class="song-card-footer">
-
-                                        <span class="song-duration">
-                                            @(song.SongStat?.TotalStreams ?? 0) dinlenme
-                                        </span>
-
-                                        <form asp-controller="UserDashboard"
-                                              asp-action="ToggleLike"
-                                              method="post"
-                                              class="like-form">
-
-                                            @Html.AntiForgeryToken()
-
-                                            <input type="hidden"
-                                                   name="songId"
-                                                   value="@song.Id" />
-
-                                            <button type="submit"
-                                                    class="like-button @(Model.LikedSongIds.Contains(song.Id) ? "liked" : "")"
-                                                    title="@(Model.LikedSongIds.Contains(song.Id)
-                                                                                                                                                                                                        ? "Beğeniyi kaldır"
-                                                                                                                                                                                                        : "Şarkıyı beğen")">
-
-                                                @(Model.LikedSongIds.Contains(song.Id)
-                                                    ? "♥"
-                                                    : "♡")
-
-                                            </button>
-
-                                        </form>
-
-                                    </div>
-
-                                </article>
-                            }
-
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="panel"
-                             style="padding: 24px;">
-
-                            <p class="section-description"
-                               style="margin: 0;">
-                                Henüz gösterilecek popüler şarkı bulunmuyor.
-                            </p>
-
-                        </div>
-                    }
-
-                </section>
-
-                <!-- SANATÇILAR -->
-                <section class="section">
-
-                    <div class="section-header">
-
-                        <div>
-                            <h3 class="section-title">
-                                Keşfedebileceğin sanatçılar
-                            </h3>
-
-                            <p class="section-description">
-                                Yeni sanatçılarla ve yeni müziklerle tanış
-                            </p>
-                        </div>
-
-                        <a href="#"
-                           class="section-link">
-                            Tüm Sanatçılar
-                        </a>
-
-                    </div>
-
-                    @if (Model.Artists.Any())
-                    {
-                        <div class="artist-grid">
-
-                            @foreach (var artist in Model.Artists.Take(6))
-                            {
-                                <article class="artist-card">
-
-                                    <div class="artist-image">
-                                        @(string.IsNullOrWhiteSpace(artist.Name)
-                                            ? "?"
-                                            : artist.Name.Substring(0, 1).ToUpper())
-                                    </div>
-
-                                    <h4 class="artist-name">
-                                        @artist.Name
-                                    </h4>
-
-                                    <p class="artist-label">
-                                        Sanatçı
-                                    </p>
-
-                                    <!-- DEĞİŞİKLİK:
-                                         Eski yalnızca görünümde duran buton kaldırıldı.
-                                         Artık ToggleFollow action'ına POST isteği gönderiliyor. -->
-                                    <form asp-controller="UserDashboard"
-                                          asp-action="ToggleFollow"
-                                          method="post"
-                                          class="follow-form">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="artistId"
-                                               value="@artist.Id" />
-
-                                        <button type="submit"
-                                                class="follow-button @(Model.FollowedArtistIds.Contains(artist.Id) ? "followed" : "")"
-                                                title="@(Model.FollowedArtistIds.Contains(artist.Id)
-                                                                                                                                            ? "Takipten çık"
-                                                                                                                                            : "Sanatçıyı takip et")">
-
-                                            @(Model.FollowedArtistIds.Contains(artist.Id)
-                                                ? "Takip Ediliyor"
-                                                : "Takip Et")
-
-                                        </button>
-
-                                    </form>
-
-                                </article>
-                            }
-
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="panel"
-                             style="padding: 24px;">
-
-                            <p class="section-description"
-                               style="margin: 0;">
-                                Henüz gösterilecek sanatçı bulunmuyor.
-                            </p>
-
-                        </div>
-                    }
-
-                </section>
-
-                <!-- SON DİNLENENLER -->
-                <section class="section panel">
-
-                    <div class="panel-header">
-
-                        <div>
-                            <h3 class="section-title">
-                                Son dinlediklerin
-                            </h3>
-
-                            <p class="section-description">
-                                Kaldığın yerden dinlemeye devam et
-                            </p>
-                        </div>
-
-                        <a href="#"
-                           class="section-link">
-                            Geçmişi Gör
-                        </a>
-
-                    </div>
-
-                    <div class="table-wrapper">
-
-                        <table class="data-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Şarkı</th>
-                                    <th>Albüm</th>
-                                    <th>Tür</th>
-                                    <th>Süre</th>
-                                    <th>Dinle</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                <tr>
-                                    <td>
-
-                                        <div class="table-song">
-
-                                            <div class="table-cover">
-                                                ♪
-                                            </div>
-
-                                            <div>
-                                                <div class="cell-title">
-                                                    Gece Yolculuğu
-                                                </div>
-
-                                                <div class="cell-subtitle">
-                                                    Elif Kaya
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </td>
-
-                                    <td>
-                                        Bağımsız Single
-                                    </td>
-
-                                    <td>
-                                        Pop
-                                    </td>
-
-                                    <td>
-                                        3:42
-                                    </td>
-
-                                    <td>
-
-                                        <button type="button"
-                                                class="table-play-button">
-                                            ▶
-                                        </button>
-
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>
-
-                                        <div class="table-song">
-
-                                            <div class="table-cover">
-                                                ♪
-                                            </div>
-
-                                            <div>
-                                                <div class="cell-title">
-                                                    Son Durak
-                                                </div>
-
-                                                <div class="cell-subtitle">
-                                                    Atlas
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </td>
-
-                                    <td>
-                                        Şehir Işıkları
-                                    </td>
-
-                                    <td>
-                                        Alternatif
-                                    </td>
-
-                                    <td>
-                                        4:05
-                                    </td>
-
-                                    <td>
-
-                                        <button type="button"
-                                                class="table-play-button">
-                                            ▶
-                                        </button>
-
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>
-
-                                        <div class="table-song">
-
-                                            <div class="table-cover">
-                                                ♪
-                                            </div>
-
-                                            <div>
-                                                <div class="cell-title">
-                                                    Sessiz Şehir
-                                                </div>
-
-                                                <div class="cell-subtitle">
-                                                    Mavi
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </td>
-
-                                    <td>
-                                        Gecenin İçinden
-                                    </td>
-
-                                    <td>
-                                        Indie
-                                    </td>
-
-                                    <td>
-                                        3:18
-                                    </td>
-
-                                    <td>
-
-                                        <button type="button"
-                                                class="table-play-button">
-                                            ▶
-                                        </button>
-
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </section>
-
-            </div>
-
-        </main>
-
-<!-- ALT MÜZİK OYNATICI -->
-        <div class="music-player">
-
-            <div class="playing-song">
-
-                <div class="playing-cover">
-                    ♪
-                </div>
-
-                <div class="playing-info">
-
-                    <div class="playing-name">
-                        Gece Yolculuğu
-                    </div>
-
-                    <div class="playing-artist">
-                        Elif Kaya
-                    </div>
-
-                </div>
-
-                <button type="button"
-                        class="like-button liked">
-                    ♥
-                </button>
-
-            </div>
-
-            <div class="player-center">
-
-                <div class="player-controls">
-
-                    <button type="button"
-                            class="player-control"
-                            title="Karıştır">
-                        ⤨
-                    </button>
-
-                    <button type="button"
-                            class="player-control"
-                            title="Önceki">
-                        ◀
-                    </button>
-
-                    <button type="button"
-                            class="main-play-button"
-                            id="mainPlayButton"
-                            title="Oynat">
-                        ▶
-                    </button>
-
-                    <button type="button"
-                            class="player-control"
-                            title="Sonraki">
-                        ▶
-                    </button>
-
-                    <button type="button"
-                            class="player-control"
-                            title="Tekrarla">
-                        ↻
-                    </button>
-
-                </div>
-
-                <div class="progress-area">
-
-                    <span class="progress-time">
-                        1:24
-                    </span>
-
-                    <div class="progress-line">
-                        <div class="progress-value"></div>
-                    </div>
-
-                    <span class="progress-time">
-                        3:42
-                    </span>
-
-                </div>
-
-            </div>
-
-            <div class="player-right">
-
-                <span>
-                    🔊
-                </span>
-
-                <div class="volume-line">
-                    <div class="volume-value"></div>
-                </div>
-
+            <div class="page-heading">
+                <h1>Ana Sayfa</h1>
+                <p>Sevdiğin müzikleri keşfet ve dinlemeye başla.</p>
             </div>
 
         </div>
 
+        <div class="topbar-actions">
+
+            <div class="search-box">
+                <span>⌕</span>
+
+                <input type="text"
+                       placeholder="Şarkı, sanatçı veya albüm ara..." />
+            </div>
+
+            <button type="button"
+                    class="notification-button"
+                    title="Bildirimler">
+
+                ♢
+                <span class="notification-dot"></span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+    <div class="dashboard-content">
+
+        <!-- KARŞILAMA ALANI -->
+        <section class="welcome-banner">
+
+            <div class="welcome-content">
+
+                <p class="welcome-label">
+                    Senin için seçildi
+                </p>
+
+                <h2 class="welcome-title">
+                    Tekrar hoş geldin, @Model.Username.
+                </h2>
+
+                <p class="welcome-description">
+                    Yeni yayınlanan şarkıları keşfet, favori
+                    sanatçılarını takip et ve beğendiğin müzikleri
+                    kendi kitaplığında sakla.
+                </p>
+
+                <div class="welcome-actions">
+
+                    <button type="button" class="primary-button">
+                        ▶ Dinlemeye Başla
+                    </button>
+
+                    <a href="#" class="secondary-button">
+                        Şarkıları Keşfet
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div class="featured-cover">
+                ♪
+            </div>
+
+        </section>
+
+        <!-- KULLANICI İSTATİSTİKLERİ -->
+        <section class="section">
+
+            <div class="section-header">
+
+                <div>
+                    <h3 class="section-title">Müzik özetin</h3>
+
+                    <p class="section-description">
+                        Hesabındaki müzik etkinliklerinin kısa özeti
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="stat-grid">
+
+                <article class="stat-card">
+
+                    <div class="stat-icon">
+                        ▶
+                    </div>
+
+                    <div class="stat-number">
+                        148
+                    </div>
+
+                    <div class="stat-label">
+                        Dinlediğin şarkı
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <div class="stat-icon">
+                        ♥
+                    </div>
+
+                    <div class="stat-number">
+                        @Model.LikedSongIds.Count
+                    </div>
+
+                    <div class="stat-label">
+                        Beğendiğin şarkı
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <div class="stat-icon">
+                        ★
+                    </div>
+
+                    <div class="stat-number">
+                        @Model.FollowedArtistIds.Count
+                    </div>
+
+                    <div class="stat-label">
+                        Takip ettiğin sanatçı
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <div class="stat-icon">
+                        ◷
+                    </div>
+
+                    <div class="stat-number">
+                        12 saat
+                    </div>
+
+                    <div class="stat-label">
+                        Toplam dinleme süresi
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+        <!-- POPÜLER ŞARKILAR -->
+        <section class="section">
+
+            <div class="section-header">
+
+                <div>
+                    <h3 class="section-title">Popüler şarkılar</h3>
+
+                    <p class="section-description">
+                        Platformda en çok dinlenen şarkılar
+                    </p>
+                </div>
+
+                <a href="#" class="section-link">
+                    Tümünü Gör
+                </a>
+
+            </div>
+
+            @if (Model.PopularSongs.Any())
+            {
+                <div class="song-grid">
+
+                    @foreach (var song in Model.PopularSongs)
+                    {
+                        <article class="song-card">
+
+                            <div class="song-card-cover">
+
+                                ♪
+
+                                <button type="button"
+                                        class="song-play-button"
+                                        data-song-id="@song.Id"
+                                        title="@song.Title şarkısını oynat">
+                                    ▶
+                                </button>
+
+                            </div>
+
+                            @* DEĞİŞİKLİK:
+                               Şarkı adı ve albüm bilgisi SongDetails
+                               sayfasına yönlendiriliyor. *@
+                            <a asp-controller="UserDashboard"
+                               asp-action="SongDetails"
+                               asp-route-songId="@song.Id"
+                               class="song-details-link">
+
+                                <h4 class="song-name">
+                                    @song.Title
+                                </h4>
+
+                                <p class="song-artist">
+                                    @(song.Album?.Name ?? "Albüm bilgisi yok")
+                                </p>
+
+                            </a>
+
+                            <div class="song-card-footer">
+
+                                <span class="song-duration">
+                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                </span>
+
+                                <form asp-controller="UserDashboard"
+                                      asp-action="ToggleLike"
+                                      method="post"
+                                      class="like-form">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="songId"
+                                           value="@song.Id" />
+
+                                    <button type="submit"
+                                            class="like-button @(Model.LikedSongIds.Contains(song.Id) ? "liked" : "")"
+                                            title="@(Model.LikedSongIds.Contains(song.Id) ? "Beğeniyi kaldır" : "Şarkıyı beğen")">
+
+                                        @(Model.LikedSongIds.Contains(song.Id) ? "♥" : "♡")
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </article>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="panel" style="padding: 24px;">
+
+                    <p class="section-description" style="margin: 0;">
+                        Henüz gösterilecek popüler şarkı bulunmuyor.
+                    </p>
+
+                </div>
+            }
+
+        </section>
+
+        <!-- SANATÇILAR -->
+        <section class="section">
+
+            <div class="section-header">
+
+                <div>
+                    <h3 class="section-title">
+                        Keşfedebileceğin sanatçılar
+                    </h3>
+
+                    <p class="section-description">
+                        Yeni sanatçılarla ve yeni müziklerle tanış
+                    </p>
+                </div>
+
+                <a href="#" class="section-link">
+                    Tüm Sanatçılar
+                </a>
+
+            </div>
+
+            @if (Model.Artists.Any())
+            {
+                <div class="artist-grid">
+
+                    @foreach (var artist in Model.Artists.Take(6))
+                    {
+                        <article class="artist-card">
+
+                            @* DEĞİŞİKLİK:
+                               Görsel, isim ve sanatçı etiketi
+                               ArtistDetails sayfasına yönlendiriliyor. *@
+                            <a asp-controller="UserDashboard"
+                               asp-action="ArtistDetails"
+                               asp-route-artistId="@artist.Id"
+                               class="artist-details-link">
+
+                                <div class="artist-image">
+                                    @(string.IsNullOrWhiteSpace(artist.Name)
+                                        ? "?"
+                                        : artist.Name.Substring(0, 1).ToUpper())
+                                </div>
+
+                                <h4 class="artist-name">
+                                    @artist.Name
+                                </h4>
+
+                                <p class="artist-label">
+                                    Sanatçı
+                                </p>
+
+                            </a>
+
+                            <form asp-controller="UserDashboard"
+                                  asp-action="ToggleFollow"
+                                  method="post"
+                                  class="follow-form">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="artistId"
+                                       value="@artist.Id" />
+
+                                <button type="submit"
+                                        class="follow-button @(Model.FollowedArtistIds.Contains(artist.Id) ? "followed" : "")"
+                                        title="@(Model.FollowedArtistIds.Contains(artist.Id) ? "Takipten çık" : "Sanatçıyı takip et")">
+
+                                    @(Model.FollowedArtistIds.Contains(artist.Id)
+                                        ? "Takip Ediliyor"
+                                        : "Takip Et")
+
+                                </button>
+
+                            </form>
+
+                        </article>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="panel" style="padding: 24px;">
+
+                    <p class="section-description" style="margin: 0;">
+                        Henüz gösterilecek sanatçı bulunmuyor.
+                    </p>
+
+                </div>
+            }
+
+        </section>
+
+        <!-- SON DİNLENENLER -->
+        <section class="section panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3 class="section-title">
+                        Son dinlediklerin
+                    </h3>
+
+                    <p class="section-description">
+                        Kaldığın yerden dinlemeye devam et
+                    </p>
+                </div>
+
+                <a href="#" class="section-link">
+                    Geçmişi Gör
+                </a>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+                        <tr>
+                            <th>Şarkı</th>
+                            <th>Albüm</th>
+                            <th>Tür</th>
+                            <th>Süre</th>
+                            <th>Dinle</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>
+
+                                <div class="table-song">
+
+                                    <div class="table-cover">
+                                        ♪
+                                    </div>
+
+                                    <div>
+                                        <div class="cell-title">
+                                            Gece Yolculuğu
+                                        </div>
+
+                                        <div class="cell-subtitle">
+                                            Elif Kaya
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>Bağımsız Single</td>
+                            <td>Pop</td>
+                            <td>3:42</td>
+
+                            <td>
+                                <button type="button" class="table-play-button">
+                                    ▶
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+
+                                <div class="table-song">
+
+                                    <div class="table-cover">
+                                        ♪
+                                    </div>
+
+                                    <div>
+                                        <div class="cell-title">
+                                            Son Durak
+                                        </div>
+
+                                        <div class="cell-subtitle">
+                                            Atlas
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>Şehir Işıkları</td>
+                            <td>Alternatif</td>
+                            <td>4:05</td>
+
+                            <td>
+                                <button type="button" class="table-play-button">
+                                    ▶
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+
+                                <div class="table-song">
+
+                                    <div class="table-cover">
+                                        ♪
+                                    </div>
+
+                                    <div>
+                                        <div class="cell-title">
+                                            Sessiz Şehir
+                                        </div>
+
+                                        <div class="cell-subtitle">
+                                            Mavi
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>Gecenin İçinden</td>
+                            <td>Indie</td>
+                            <td>3:18</td>
+
+                            <td>
+                                <button type="button" class="table-play-button">
+                                    ▶
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
     </div>
+
+</main>
+
+<!-- ALT MÜZİK OYNATICI -->
+<div class="music-player">
+
+    <div class="playing-song">
+
+        <div class="playing-cover">
+            ♪
+        </div>
+
+        <div class="playing-info">
+
+            <div class="playing-name">
+                Gece Yolculuğu
+            </div>
+
+            <div class="playing-artist">
+                Elif Kaya
+            </div>
+
+        </div>
+
+        <button type="button" class="like-button liked">
+            ♥
+        </button>
+
+    </div>
+
+    <div class="player-center">
+
+        <div class="player-controls">
+
+            <button type="button"
+                    class="player-control"
+                    title="Karıştır">
+                ⤨
+            </button>
+
+            <button type="button"
+                    class="player-control"
+                    title="Önceki">
+                ◀
+            </button>
+
+            <button type="button"
+                    class="main-play-button"
+                    id="mainPlayButton"
+                    title="Oynat">
+                ▶
+            </button>
+
+            <button type="button"
+                    class="player-control"
+                    title="Sonraki">
+                ▶
+            </button>
+
+            <button type="button"
+                    class="player-control"
+                    title="Tekrarla">
+                ↻
+            </button>
+
+        </div>
+
+        <div class="progress-area">
+
+            <span class="progress-time">
+                1:24
+            </span>
+
+            <div class="progress-line">
+                <div class="progress-value"></div>
+            </div>
+
+            <span class="progress-time">
+                3:42
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="player-right">
+
+        <span>🔊</span>
+
+        <div class="volume-line">
+            <div class="volume-value"></div>
+        </div>
+
+    </div>
+
+</div>
 
 @section Scripts {
     <script>

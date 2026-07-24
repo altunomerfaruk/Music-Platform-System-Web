@@ -77,8 +77,6 @@ namespace MusicProject.data
 
         private static void AddElifKaya(AppDbContext context)
         {
-            // DEĞİŞİKLİK:
-            // Elif Kaya daha önce eklendiyse tekrar eklenmesini engelliyoruz.
             if (context.Artists.Any(
                     artist => artist.Name == "Elif Kaya"))
             {

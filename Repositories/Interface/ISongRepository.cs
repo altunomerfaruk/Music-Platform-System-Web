@@ -8,5 +8,7 @@ namespace MusicProject.Repositories.Interface
         List<Song> GetSongsByAlbum(int albumId);
 
         List<Song> GetPopularSongs();
+
+        Song? GetSongDetailsById(int songId);
     }
 }

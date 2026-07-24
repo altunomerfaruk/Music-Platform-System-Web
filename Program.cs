@@ -65,6 +65,7 @@ builder.Services.AddScoped<
     IFollowedArtistRepository,
     FollowedArtistRepository
 >();
+builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 
 // ==========================================
 // SERVICE KAYITLARI
@@ -99,6 +100,8 @@ builder.Services.AddScoped<
     IFollowedArtistService,
     FollowedArtistService
 >();
+
+builder.Services.AddScoped<IAlbumService, AlbumManager>();
 
 // ==========================================
 // 3. MVC VE GÜVENLİK SERVİSLERİ

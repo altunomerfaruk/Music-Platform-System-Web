@@ -4,7 +4,6 @@ using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
 
-
 namespace MusicProject.Controllers
 {
     [Authorize(Roles = "User,Artist")]
@@ -12,17 +11,20 @@ namespace MusicProject.Controllers
     {
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
+        private readonly IAlbumService _albumService; 
         private readonly ILikedSongService _likedSongService;
         private readonly IFollowedArtistService _followedArtistService;
 
         public UserDashboardController(
             ISongService songService,
             IArtistService artistService,
+            IAlbumService albumService, 
             ILikedSongService likedSongService,
             IFollowedArtistService followedArtistService)
         {
             _songService = songService;
             _artistService = artistService;
+            _albumService = albumService; 
             _likedSongService = likedSongService;
             _followedArtistService = followedArtistService;
         }
@@ -59,9 +61,44 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult SongDetails(int songId)
+        {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
-            [HttpGet]
+            if (songId <= 0)
+            {
+                return BadRequest("Geçersiz şarkı bilgisi.");
+            }
+
+            var song = _songService.GetSongDetails(songId);
+
+            if (song == null)
+            {
+                return NotFound("Şarkı bulunamadı.");
+            }
+
+            var likedSongIds = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .ToHashSet();
+
+            var model = new SongDetailsViewModel
+            {
+                Song = song,
+                IsLiked = likedSongIds.Contains(songId)
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
+        [HttpGet]
         public IActionResult LikedSongs()
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -105,20 +142,82 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
-        private void FillLayoutData(UserLayoutViewModel model, int userId)
+        [HttpGet]
+        public IActionResult ArtistDetails(int artistId)
         {
-            model.Username = User.FindFirstValue(ClaimTypes.Name) ?? "Kullanıcı";
-            model.Role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            model.LikedSongCount = _likedSongService
-                .GetActiveLikedSongIds(userId)
-                .Count();
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
-            model.FollowedArtistCount = _followedArtistService
+            if (artistId <= 0)
+            {
+                return BadRequest("Geçersiz sanatçı bilgisi.");
+            }
+
+            var artist = _artistService.GetArtistDetails(artistId);
+
+            if (artist == null)
+            {
+                return NotFound("Sanatçı bulunamadı.");
+            }
+
+            var followedArtistIds = _followedArtistService
                 .GetActiveFollowedArtistIds(userId)
-                .Count();
+                .ToHashSet();
+
+            var model = new ArtistDetailsViewModel
+            {
+                Artist = artist,
+                IsFollowed = followedArtistIds.Contains(artistId),
+                LikedSongIds = _likedSongService
+                    .GetActiveLikedSongIds(userId)
+                    .ToHashSet()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
         }
 
+        [HttpGet]
+        public IActionResult AlbumDetails(int albumId)
+        {
+            // DEĞİŞİKLİK: Albüm detay sayfasını açan yeni action eklendi.
+
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (albumId <= 0)
+            {
+                return BadRequest("Geçersiz albüm bilgisi.");
+            }
+
+            var album = _albumService.GetAlbumDetails(albumId);
+
+            if (album == null)
+            {
+                return NotFound("Albüm bulunamadı.");
+            }
+
+            var model = new AlbumDetailsViewModel
+            {
+                Album = album,
+                LikedSongIds = _likedSongService
+                    .GetActiveLikedSongIds(userId)
+                    .ToHashSet()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -137,7 +236,6 @@ namespace MusicProject.Controllers
             }
 
             _likedSongService.ToggleLike(userId, songId);
-
 
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
@@ -173,7 +271,18 @@ namespace MusicProject.Controllers
             return RedirectToAction("Index");
         }
 
+        private void FillLayoutData(UserLayoutViewModel model, int userId)
+        {
+            model.Username = User.FindFirstValue(ClaimTypes.Name) ?? "Kullanıcı";
+            model.Role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
 
+            model.LikedSongCount = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .Count();
+
+            model.FollowedArtistCount = _followedArtistService
+                .GetActiveFollowedArtistIds(userId)
+                .Count();
+        }
     }
-    
 }

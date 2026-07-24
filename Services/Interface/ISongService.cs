@@ -1,4 +1,5 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.DTOs;
+using MusicProject.Models.Concrete;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +8,6 @@ namespace MusicProject.Services.Interface
 {
     public interface ISongService
     {
-        // Temel CRUD işlemleri
         IEnumerable<Song> GetAllSongs();
         Song? GetSongById(int id);
         void AddSong(Song song);
@@ -16,5 +16,6 @@ namespace MusicProject.Services.Interface
         List<Song> GetPopularSongs();
         List<Song> GetSongsByAlbum(int albumId);
         IEnumerable<Song> GetSongsSortedByAlphabet();
+        SongDetailsDto? GetSongDetails(int songId);
     }
 }
