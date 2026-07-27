@@ -75,37 +75,37 @@
             border-collapse: collapse;
         }
 
-        .songs-table th,
-        .songs-table td {
-            padding: 15px 18px;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-        }
+            .songs-table th,
+            .songs-table td {
+                padding: 15px 18px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+            }
 
-        .songs-table th {
-            color: #687169;
-            font-size: 10px;
-            font-weight: 850;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
+            .songs-table th {
+                color: #687169;
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
 
-        .songs-table td {
-            color: #d8ded9;
-            font-size: 12px;
-        }
+            .songs-table td {
+                color: #d8ded9;
+                font-size: 12px;
+            }
 
-        .songs-table tbody tr {
-            transition: 0.2s;
-        }
+            .songs-table tbody tr {
+                transition: 0.2s;
+            }
 
-        .songs-table tbody tr:hover {
-            background-color: var(--card-hover);
-        }
+                .songs-table tbody tr:hover {
+                    background-color: var(--card-hover);
+                }
 
-        .songs-table tbody tr:last-child td {
-            border-bottom: none;
-        }
+                .songs-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
 
         .song-cell {
             display: flex;
@@ -167,10 +167,10 @@
             transition: 0.2s;
         }
 
-        .play-button:hover {
-            background-color: var(--primary-hover);
-            transform: scale(1.07);
-        }
+            .play-button:hover {
+                background-color: var(--primary-hover);
+                transform: scale(1.07);
+            }
 
         .like-form {
             margin: 0;
@@ -184,11 +184,11 @@
             transition: 0.2s;
         }
 
-        .like-button:hover,
-        .like-button.liked {
-            color: var(--primary);
-            transform: scale(1.10);
-        }
+            .like-button:hover,
+            .like-button.liked {
+                color: var(--primary);
+                transform: scale(1.10);
+            }
 
         .empty-state {
             margin-top: 28px;
@@ -227,9 +227,6 @@
             font-weight: 850;
         }
 
-        /* DEĞİŞİKLİK:
-           .cshtml dosyalarında CSS medya sorgusu @@media şeklinde yazılır.
-           Tek @ kullanılırsa Razor bunu C# kodu olarak yorumlamaya çalışır. */
         @@media (max-width: 800px) {
             .all-songs-content {
                 padding: 20px 16px;
@@ -336,8 +333,8 @@
                             var isLiked = Model.LikedSongIds.Contains(song.Id);
 
                             // DEĞİŞİKLİK:
-                            // Razor attribute içinde ternary ifadelerin yanlış
-                            // yorumlanmaması için değerler önceden hazırlanıyor.
+                            // Razor attribute'larında karmaşık ternary kullanmamak için
+                            // buton değerleri önceden hazırlanıyor.
                             var likeButtonClass = isLiked
                                 ? "like-button liked"
                                 : "like-button";
@@ -437,6 +434,9 @@
 
                             </tr>
 
+                            // DEĞİŞİKLİK:
+                            // Zaten foreach C# bloğunda olduğumuz için
+                            // @{ songNumber++; } değil, doğrudan bu şekilde yazılır.
                             songNumber++;
                         }
 

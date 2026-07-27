@@ -23,7 +23,6 @@ namespace MusicProject.Repositories.Concrete
         {
             return _context.Artists.Find(id);
         }
-        //geri dön
         public Artist? GetArtistDetailsById(int artistId)
         {
             return _context.Artists

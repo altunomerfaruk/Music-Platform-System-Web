@@ -8,7 +8,6 @@ namespace MusicProject.Repositories.Interface
         IEnumerable<Artist> GetAll();
         Artist? GetByID(int id);
         Artist? GetArtistDetailsById(int artistId);
-
         void Create(Artist entity);
         void Update(Artist entity);
         void Delete(int id);

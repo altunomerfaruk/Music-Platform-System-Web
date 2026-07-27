@@ -23,5 +23,14 @@ namespace MusicProject.Repositories.Concrete
                     .ThenInclude(song => song.SongStat)
                 .FirstOrDefault(album => album.Id == albumId);
         }
+        public IEnumerable<Album> GetAllAlbums()
+        {
+            return _context.Albums
+                .AsNoTracking()
+                .Include(album => album.Artist)
+                .OrderBy(album => album.Name)
+                .ToList();
+        }
     }
+    
 }

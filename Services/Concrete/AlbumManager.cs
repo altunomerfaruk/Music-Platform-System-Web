@@ -1,4 +1,5 @@
 ﻿using MusicProject.DTOs;
+using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
@@ -11,6 +12,11 @@ namespace MusicProject.Services.Concrete
         public AlbumManager(IAlbumRepository albumRepository)
         {
             _albumRepository = albumRepository;
+        }
+
+        public IEnumerable<Album> GetAllAlbums()
+        {
+            return _albumRepository.GetAllAlbums();
         }
 
         public AlbumDetailsDto? GetAlbumDetails(int albumId)

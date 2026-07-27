@@ -1,0 +1,373 @@
+﻿@model MusicProject.Models.ViewModels.AllArtistsViewModel
+
+@{
+    ViewData["Title"] = "Tüm Sanatçılar";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <style>
+        .all-artists-content {
+            padding: 34px;
+        }
+
+        .artists-hero {
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.24), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+        .artists-hero-icon {
+            width: 125px;
+            height: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 50%;
+            font-size: 52px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.30);
+        }
+
+        .artists-hero-label {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .artists-hero-title {
+            margin-top: 10px;
+            font-size: clamp(30px, 4vw, 48px);
+        }
+
+        .artists-hero-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .artists-hero-count {
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .all-artists-grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 20px;
+        }
+
+        .all-artist-card {
+            padding: 22px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .all-artist-card:hover {
+            background-color: var(--card-hover);
+            transform: translateY(-4px);
+        }
+
+        .all-artist-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .all-artist-image {
+            width: 105px;
+            height: 105px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background: linear-gradient(135deg, var(--primary), #8cffb4);
+            border-radius: 50%;
+            font-size: 38px;
+            font-weight: 900;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .all-artist-name {
+            margin-top: 18px;
+            color: white;
+            font-size: 16px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .all-artist-link:hover .all-artist-name {
+            color: var(--primary);
+        }
+
+        .all-artist-label {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .follow-form {
+            margin-top: 17px;
+        }
+
+        .follow-button {
+            width: 100%;
+            padding: 10px 14px;
+            color: white;
+            background-color: transparent;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            font-size: 11px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .follow-button:hover {
+            color: #071008;
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .follow-button.followed {
+            color: #071008;
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .empty-state {
+            margin-top: 28px;
+            padding: 70px 25px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            color: var(--primary);
+            font-size: 55px;
+        }
+
+        .empty-title {
+            margin-top: 18px;
+            font-size: 22px;
+        }
+
+        .empty-description {
+            max-width: 460px;
+            margin: 10px auto 22px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 12px 20px;
+            color: #061108;
+            background-color: var(--primary);
+            border-radius: 23px;
+            font-size: 12px;
+            font-weight: 850;
+            text-decoration: none;
+        }
+
+        @@media (max-width: 800px) {
+            .all-artists-content {
+                padding: 20px 16px;
+            }
+
+            .artists-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .artists-hero-icon {
+                width: 95px;
+                height: 95px;
+                font-size: 40px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+
+                <h1>
+                    Tüm Sanatçılar
+                </h1>
+
+                <p>
+                    Platformdaki bütün sanatçıları keşfet.
+                </p>
+
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="Index"
+           class="secondary-button">
+            ← Ana Sayfaya Dön
+        </a>
+
+    </header>
+
+    <div class="all-artists-content">
+
+        <section class="artists-hero">
+
+            <div class="artists-hero-icon">
+                ★
+            </div>
+
+            <div>
+
+                <p class="artists-hero-label">
+                    Sanatçı kataloğu
+                </p>
+
+                <h2 class="artists-hero-title">
+                    Tüm Sanatçılar
+                </h2>
+
+                <p class="artists-hero-description">
+                    Platformda bulunan sanatçıları keşfet ve beğendiklerini takip et.
+                </p>
+
+                <p class="artists-hero-count">
+                    @Model.Artists.Count() sanatçı
+                </p>
+
+            </div>
+
+        </section>
+
+        @if (Model.Artists.Any())
+        {
+            <section class="all-artists-grid">
+
+                @foreach (var artist in Model.Artists)
+                {
+                    var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+
+                    var followButtonClass = isFollowed
+                        ? "follow-button followed"
+                        : "follow-button";
+
+                    var followButtonTitle = isFollowed
+                        ? "Takipten çık"
+                        : "Sanatçıyı takip et";
+
+                    var followButtonText = isFollowed
+                        ? "Takip Ediliyor"
+                        : "Takip Et";
+
+                    <article class="all-artist-card">
+
+                        <a asp-controller="UserDashboard"
+                           asp-action="ArtistDetails"
+                           asp-route-artistId="@artist.Id"
+                           class="all-artist-link">
+
+                            <div class="all-artist-image">
+                                @(string.IsNullOrWhiteSpace(artist.Name)
+                                    ? "?"
+                                    : artist.Name.Substring(0, 1).ToUpper())
+                            </div>
+
+                            <h3 class="all-artist-name">
+                                @artist.Name
+                            </h3>
+
+                            <p class="all-artist-label">
+                                Sanatçı
+                            </p>
+
+                        </a>
+
+                        <form asp-controller="UserDashboard"
+                              asp-action="ToggleFollow"
+                              method="post"
+                              class="follow-form">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="artistId"
+                                   value="@artist.Id" />
+
+                            <input type="hidden"
+                                   name="returnUrl"
+                                   value="@currentUrl" />
+
+                            <button type="submit"
+                                    class="@followButtonClass"
+                                    title="@followButtonTitle">
+                                @followButtonText
+                            </button>
+
+                        </form>
+
+                    </article>
+                }
+
+            </section>
+        }
+        else
+        {
+            <section class="empty-state">
+
+                <div class="empty-icon">
+                    ★
+                </div>
+
+                <h3 class="empty-title">
+                    Henüz sanatçı bulunmuyor
+                </h3>
+
+                <p class="empty-description">
+                    Platforma sanatçı eklendiğinde bütün sanatçılar bu sayfada
+                    alfabetik olarak görüntülenecek.
+                </p>
+
+                <a asp-controller="UserDashboard"
+                   asp-action="Index"
+                   class="home-button">
+                    Ana Sayfaya Dön
+                </a>
+
+            </section>
+        }
+
+    </div>
+
+</main>

@@ -3,6 +3,147 @@
 @{
     ViewData["Title"] = "Kullanıcı Paneli";
     Layout = "_UserLayout";
+
+    // DEĞİŞİKLİK:
+    // JavaScript içinde sabit URL yazmak yerine MVC'nin oluşturduğu URL kullanılıyor.
+    var searchSuggestionsUrl = Url.Action("SearchSuggestions", "UserDashboard");
+    var searchResultsUrl = Url.Action("Search", "UserDashboard");
+    var songDetailsUrl = Url.Action("SongDetails", "UserDashboard");
+    var artistDetailsUrl = Url.Action("ArtistDetails", "UserDashboard");
+    var albumDetailsUrl = Url.Action("AlbumDetails", "UserDashboard");
+}
+
+@section Styles {
+    <style>
+        /* DEĞİŞİKLİK:
+                   Canlı arama panelinin arama kutusuna göre konumlanması için eklendi. */
+        .live-search-container {
+            position: relative;
+            width: 100%;
+            max-width: 430px;
+        }
+
+            .live-search-container .search-box {
+                width: 100%;
+            }
+
+        .search-suggestions {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            left: 0;
+            z-index: 1500;
+            display: none;
+            max-height: 440px;
+            overflow-y: auto;
+            background-color: #101612;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.50);
+        }
+
+            .search-suggestions.show {
+                display: block;
+            }
+
+        .suggestion-loading,
+        .suggestion-empty {
+            padding: 22px 16px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .suggestion-group {
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+            .suggestion-group:last-of-type {
+                border-bottom: none;
+            }
+
+        .suggestion-group-title {
+            padding: 5px 15px 9px;
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .suggestion-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: inherit;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+            .suggestion-item:hover,
+            .suggestion-item.active {
+                background-color: var(--card-hover);
+            }
+
+        .suggestion-icon {
+            width: 39px;
+            height: 39px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.11);
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .suggestion-content {
+            min-width: 0;
+        }
+
+        .suggestion-name {
+            overflow: hidden;
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suggestion-subtitle {
+            margin-top: 3px;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suggestion-all-results {
+            padding: 14px 15px;
+            display: block;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            text-align: center;
+            text-decoration: none;
+            border-top: 1px solid var(--border);
+            transition: 0.2s;
+        }
+
+            .suggestion-all-results:hover {
+                background-color: var(--card-hover);
+            }
+
+        @@media (max-width: 900px) {
+            .live-search-container {
+                max-width: none;
+            }
+        }
+    </style>
 }
 
 <main class="main-content">
@@ -33,14 +174,39 @@
 
         <div class="topbar-actions">
 
-            <div class="search-box">
+            @* DEĞİŞİKLİK:
+               Mevcut Search formu korunuyor.
+               Enter'a basıldığında Search action'ı ve SearchResults.cshtml çalışır.
+               Yazı yazılırken ise alttaki panel canlı sonuçları gösterir. *@
+            <div class="live-search-container"
+                 id="liveSearchContainer">
 
-                <span>
-                    ⌕
-                </span>
+                <form asp-controller="UserDashboard"
+                      asp-action="Search"
+                      method="get"
+                      class="search-box"
+                      id="searchForm">
 
-                <input type="text"
-                       placeholder="Şarkı, sanatçı veya albüm ara..." />
+                    <span>
+                        ⌕
+                    </span>
+
+                    <input type="text"
+                           name="query"
+                           id="searchInput"
+                           placeholder="Şarkı, sanatçı veya albüm ara..."
+                           autocomplete="off"
+                           aria-label="Şarkı, sanatçı veya albüm ara"
+                           aria-controls="searchSuggestions"
+                           aria-expanded="false" />
+
+                </form>
+
+                @* Canlı arama sonuçları JavaScript ile buraya yazılır. *@
+                <div class="search-suggestions"
+                     id="searchSuggestions"
+                     role="listbox">
+                </div>
 
             </div>
 
@@ -207,9 +373,6 @@
 
                 </div>
 
-                @* DEĞİŞİKLİK:
-                   Geçici href="#" kaldırıldı.
-                   Artık bütün şarkıların bulunduğu AllSongs sayfasına gider. *@
                 <a asp-controller="UserDashboard"
                    asp-action="AllSongs"
                    class="section-link">
@@ -224,6 +387,20 @@
 
                     @foreach (var song in Model.PopularSongs)
                     {
+                        var isLiked = Model.LikedSongIds.Contains(song.Id);
+
+                        var likeButtonClass = isLiked
+                            ? "like-button liked"
+                            : "like-button";
+
+                        var likeButtonTitle = isLiked
+                            ? "Beğeniyi kaldır"
+                            : "Şarkıyı beğen";
+
+                        var likeButtonIcon = isLiked
+                            ? "♥"
+                            : "♡";
+
                         <article class="song-card">
 
                             <div class="song-card-cover">
@@ -239,9 +416,6 @@
 
                             </div>
 
-                            @* DEĞİŞİKLİK:
-                               Şarkı adı ve albüm bilgisi SongDetails
-                               sayfasına yönlendiriliyor. *@
                             <a asp-controller="UserDashboard"
                                asp-action="SongDetails"
                                asp-route-songId="@song.Id"
@@ -275,11 +449,9 @@
                                            value="@song.Id" />
 
                                     <button type="submit"
-                                            class="like-button @(Model.LikedSongIds.Contains(song.Id) ? "liked" : "")"
-                                            title="@(Model.LikedSongIds.Contains(song.Id) ? "Beğeniyi kaldır" : "Şarkıyı beğen")">
-
-                                        @(Model.LikedSongIds.Contains(song.Id) ? "♥" : "♡")
-
+                                            class="@likeButtonClass"
+                                            title="@likeButtonTitle">
+                                        @likeButtonIcon
                                     </button>
 
                                 </form>
@@ -323,7 +495,8 @@
 
                 </div>
 
-                <a href="#"
+                <a asp-controller="UserDashboard"
+                   asp-action="AllArtists"
                    class="section-link">
                     Tüm Sanatçılar
                 </a>
@@ -336,11 +509,22 @@
 
                     @foreach (var artist in Model.Artists.Take(6))
                     {
+                        var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+
+                        var followButtonClass = isFollowed
+                            ? "follow-button followed"
+                            : "follow-button";
+
+                        var followButtonTitle = isFollowed
+                            ? "Takipten çık"
+                            : "Sanatçıyı takip et";
+
+                        var followButtonText = isFollowed
+                            ? "Takip Ediliyor"
+                            : "Takip Et";
+
                         <article class="artist-card">
 
-                            @* DEĞİŞİKLİK:
-                               Sanatçı görseli ve adı ArtistDetails
-                               sayfasına yönlendiriliyor. *@
                             <a asp-controller="UserDashboard"
                                asp-action="ArtistDetails"
                                asp-route-artistId="@artist.Id"
@@ -374,13 +558,9 @@
                                        value="@artist.Id" />
 
                                 <button type="submit"
-                                        class="follow-button @(Model.FollowedArtistIds.Contains(artist.Id) ? "followed" : "")"
-                                        title="@(Model.FollowedArtistIds.Contains(artist.Id) ? "Takipten çık" : "Sanatçıyı takip et")">
-
-                                    @(Model.FollowedArtistIds.Contains(artist.Id)
-                                        ? "Takip Ediliyor"
-                                        : "Takip Et")
-
+                                        class="@followButtonClass"
+                                        title="@followButtonTitle">
+                                    @followButtonText
                                 </button>
 
                             </form>
@@ -715,5 +895,244 @@
                 mainPlayButton.title = "Oynat";
             }
         });
+
+                // DEĞİŞİKLİK: Canlı arama başlangıcı.
+                const liveSearchContainer = document.getElementById("liveSearchContainer");
+                const searchInput = document.getElementById("searchInput");
+                const searchSuggestions = document.getElementById("searchSuggestions");
+
+                const searchSuggestionsUrl = "@searchSuggestionsUrl";
+                const searchResultsUrl = "@searchResultsUrl";
+                const songDetailsUrl = "@songDetailsUrl";
+                const artistDetailsUrl = "@artistDetailsUrl";
+                const albumDetailsUrl = "@albumDetailsUrl";
+
+                let searchTimer = null;
+                let activeRequestController = null;
+
+                searchInput?.addEventListener("input", function () {
+                    clearTimeout(searchTimer);
+
+                    const query = searchInput.value.trim();
+
+                    if (query.length < 2) {
+                        closeSearchSuggestions();
+                        return;
+                    }
+
+                    showSearchLoading();
+
+                    // Kullanıcı yazmayı bıraktıktan 300 ms sonra istek gönderilir.
+                    searchTimer = setTimeout(function () {
+                        loadSearchSuggestions(query);
+                    }, 300);
+                });
+
+                searchInput?.addEventListener("focus", function () {
+                    const query = searchInput.value.trim();
+
+                    if (query.length >= 2 &&
+                        searchSuggestions.innerHTML.trim() !== "") {
+                        openSearchSuggestions();
+                    }
+                });
+
+                async function loadSearchSuggestions(query) {
+                    if (activeRequestController) {
+                        activeRequestController.abort();
+                    }
+
+                    activeRequestController = new AbortController();
+
+                    try {
+                        const url =
+                            `${searchSuggestionsUrl}?query=${encodeURIComponent(query)}`;
+
+                        const response = await fetch(url, {
+                            method: "GET",
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest"
+                            },
+                            signal: activeRequestController.signal
+                        });
+
+                        if (!response.ok) {
+                            throw new Error("Canlı arama sonuçları alınamadı.");
+                        }
+
+                        const data = await response.json();
+
+                        // İstek sürerken kullanıcı başka bir değer yazdıysa eski sonucu gösterme.
+                        if (searchInput.value.trim() !== query) {
+                            return;
+                        }
+
+                        renderSearchSuggestions(data, query);
+                    }
+                    catch (error) {
+                        if (error.name === "AbortError") {
+                            return;
+                        }
+
+                        console.error(error);
+                        closeSearchSuggestions();
+                    }
+                }
+
+                function renderSearchSuggestions(data, query) {
+                    const songs = Array.isArray(data.songs) ? data.songs : [];
+                    const artists = Array.isArray(data.artists) ? data.artists : [];
+                    const albums = Array.isArray(data.albums) ? data.albums : [];
+
+                    const hasSongs = songs.length > 0;
+                    const hasArtists = artists.length > 0;
+                    const hasAlbums = albums.length > 0;
+
+                    if (!hasSongs && !hasArtists && !hasAlbums) {
+                        searchSuggestions.innerHTML = `
+                            <div class="suggestion-empty">
+                                “${escapeHtml(query)}” için sonuç bulunamadı.
+                            </div>
+
+                            <a href="${createSearchResultsUrl(query)}"
+                               class="suggestion-all-results">
+                                Ayrıntılı arama sayfasını aç
+                            </a>
+                        `;
+
+                        openSearchSuggestions();
+                        return;
+                    }
+
+                    let html = "";
+
+                    if (hasSongs) {
+                        html += createSuggestionGroup(
+                            "Şarkılar",
+                            songs,
+                            songDetailsUrl,
+                            "songId",
+                            "♪"
+                        );
+                    }
+
+                    if (hasArtists) {
+                        html += createSuggestionGroup(
+                            "Sanatçılar",
+                            artists,
+                            artistDetailsUrl,
+                            "artistId",
+                            "★"
+                        );
+                    }
+
+                    if (hasAlbums) {
+                        html += createSuggestionGroup(
+                            "Albümler",
+                            albums,
+                            albumDetailsUrl,
+                            "albumId",
+                            "▣"
+                        );
+                    }
+
+                    html += `
+                        <a href="${createSearchResultsUrl(query)}"
+                           class="suggestion-all-results">
+                            Tüm sonuçları görüntüle
+                        </a>
+                    `;
+
+                    searchSuggestions.innerHTML = html;
+                    openSearchSuggestions();
+                }
+
+                function createSuggestionGroup(title, items, baseUrl, routeName, icon) {
+                    const itemHtml = items.map(function (item) {
+                        const itemUrl =
+                            `${baseUrl}?${routeName}=${encodeURIComponent(item.id)}`;
+
+                        return `
+                            <a href="${itemUrl}"
+                               class="suggestion-item"
+                               role="option">
+
+                                <div class="suggestion-icon">
+                                    ${icon}
+                                </div>
+
+                                <div class="suggestion-content">
+
+                                    <div class="suggestion-name">
+                                        ${escapeHtml(item.name)}
+                                    </div>
+
+                                    <div class="suggestion-subtitle">
+                                        ${escapeHtml(item.subtitle)}
+                                    </div>
+
+                                </div>
+
+                            </a>
+                        `;
+                    }).join("");
+
+                    return `
+                        <div class="suggestion-group">
+
+                            <div class="suggestion-group-title">
+                                ${escapeHtml(title)}
+                            </div>
+
+                            ${itemHtml}
+
+                        </div>
+                    `;
+                }
+
+                function createSearchResultsUrl(query) {
+                    return `${searchResultsUrl}?query=${encodeURIComponent(query)}`;
+                }
+
+                function showSearchLoading() {
+                    searchSuggestions.innerHTML = `
+                        <div class="suggestion-loading">
+                            Sonuçlar aranıyor...
+                        </div>
+                    `;
+
+                    openSearchSuggestions();
+                }
+
+                function openSearchSuggestions() {
+                    searchSuggestions.classList.add("show");
+                    searchInput?.setAttribute("aria-expanded", "true");
+                }
+
+                function closeSearchSuggestions() {
+                    searchSuggestions.classList.remove("show");
+                    searchSuggestions.innerHTML = "";
+                    searchInput?.setAttribute("aria-expanded", "false");
+                }
+
+                function escapeHtml(value) {
+                    const temporaryElement = document.createElement("div");
+                    temporaryElement.textContent = value ?? "";
+                    return temporaryElement.innerHTML;
+                }
+
+                document.addEventListener("click", function (event) {
+                    if (liveSearchContainer &&
+                        !liveSearchContainer.contains(event.target)) {
+                        closeSearchSuggestions();
+                    }
+                });
+
+                document.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape") {
+                        closeSearchSuggestions();
+                        searchInput?.blur();
+                    }
+                });
     </script>
 }

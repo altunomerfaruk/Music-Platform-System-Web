@@ -1,0 +1,677 @@
+﻿@model MusicProject.Models.ViewModels.SearchResultsViewModel
+
+@{
+    ViewData["Title"] = "Arama Sonuçları";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    var songCount = Model.Songs.Count();
+    var artistCount = Model.Artists.Count();
+    var albumCount = Model.Albums.Count();
+    var totalResultCount = songCount + artistCount + albumCount;
+}
+
+@section Styles {
+    <style>
+        .search-results-content {
+            padding: 34px;
+        }
+
+        .search-results-hero {
+            padding: 30px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+        .search-results-label {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .search-results-title {
+            margin-top: 10px;
+            font-size: clamp(28px, 4vw, 44px);
+        }
+
+        .search-results-query {
+            color: var(--primary);
+        }
+
+        .search-results-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .search-results-form {
+            max-width: 620px;
+            margin-top: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-results-input {
+            width: 100%;
+            padding: 13px 17px;
+            color: white;
+            background-color: rgba(5, 10, 7, 0.70);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            outline: none;
+        }
+
+            .search-results-input:focus {
+                border-color: var(--primary);
+            }
+
+        .search-submit-button {
+            padding: 13px 21px;
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 24px;
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .result-section {
+            margin-top: 34px;
+        }
+
+        .result-section-header {
+            margin-bottom: 17px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .result-section-title {
+            font-size: 21px;
+        }
+
+        .result-section-count {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .search-song-list {
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .search-song-row {
+            padding: 15px 18px;
+            display: grid;
+            grid-template-columns: minmax(220px, 2fr) minmax(150px, 1fr) auto auto;
+            align-items: center;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+            transition: 0.2s;
+        }
+
+            .search-song-row:last-child {
+                border-bottom: none;
+            }
+
+            .search-song-row:hover {
+                background-color: var(--card-hover);
+            }
+
+        .search-song-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-song-cover {
+            width: 47px;
+            height: 47px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+            border-radius: 11px;
+            font-size: 19px;
+        }
+
+        .search-result-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .search-song-name {
+            color: white;
+            font-size: 13px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .search-result-link:hover .search-song-name,
+        .search-result-link:hover .search-card-title {
+            color: var(--primary);
+        }
+
+        .search-song-album,
+        .search-song-streams {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .search-like-form,
+        .search-follow-form {
+            margin: 0;
+        }
+
+        .search-like-button {
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            font-size: 21px;
+            transition: 0.2s;
+        }
+
+            .search-like-button:hover,
+            .search-like-button.liked {
+                color: var(--primary);
+                transform: scale(1.10);
+            }
+
+        .search-play-button {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 50%;
+        }
+
+        .search-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 18px;
+        }
+
+        .search-result-card {
+            padding: 21px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+            .search-result-card:hover {
+                background-color: var(--card-hover);
+                transform: translateY(-4px);
+            }
+
+        .search-artist-image {
+            width: 92px;
+            height: 92px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background: linear-gradient(135deg, var(--primary), #8cffb4);
+            border-radius: 50%;
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .search-album-image {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+            border-radius: 15px;
+            font-size: 40px;
+        }
+
+        .search-card-title {
+            margin-top: 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .search-card-description {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .search-follow-button {
+            width: 100%;
+            margin-top: 16px;
+            padding: 9px 13px;
+            color: white;
+            background-color: transparent;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            font-size: 11px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+            .search-follow-button:hover,
+            .search-follow-button.followed {
+                color: #071008;
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
+
+        .search-empty-state {
+            margin-top: 30px;
+            padding: 65px 25px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+        }
+
+        .search-empty-icon {
+            color: var(--primary);
+            font-size: 52px;
+        }
+
+        .search-empty-title {
+            margin-top: 17px;
+            font-size: 21px;
+        }
+
+        .search-empty-description {
+            max-width: 480px;
+            margin: 10px auto 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @@media (max-width: 850px) {
+            .search-results-content {
+                padding: 20px 16px;
+            }
+
+            .search-song-row {
+                grid-template-columns: minmax(190px, 1fr) auto auto;
+            }
+
+            .search-song-streams {
+                display: none;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+                <h1>Arama Sonuçları</h1>
+                <p>Şarkı, sanatçı ve albüm sonuçlarını görüntüle.</p>
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="Index"
+           class="secondary-button">
+            ← Ana Sayfaya Dön
+        </a>
+
+    </header>
+
+    <div class="search-results-content">
+
+        <section class="search-results-hero">
+
+            <p class="search-results-label">
+                Müzik araması
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Query))
+            {
+                <h2 class="search-results-title">
+                    “<span class="search-results-query">@Model.Query</span>”
+                    için sonuçlar
+                </h2>
+
+                <p class="search-results-description">
+                    Toplam @totalResultCount sonuç bulundu.
+                </p>
+            }
+            else
+            {
+                <h2 class="search-results-title">
+                    Ne dinlemek istiyorsun?
+                </h2>
+
+                <p class="search-results-description">
+                    Şarkı, sanatçı veya albüm adı yazarak arama yap.
+                </p>
+            }
+
+            <form asp-controller="UserDashboard"
+                  asp-action="Search"
+                  method="get"
+                  class="search-results-form">
+
+                <input type="text"
+                       name="query"
+                       value="@Model.Query"
+                       class="search-results-input"
+                       placeholder="Şarkı, sanatçı veya albüm ara..."
+                       autocomplete="off" />
+
+                <button type="submit"
+                        class="search-submit-button">
+                    Ara
+                </button>
+
+            </form>
+
+        </section>
+
+        @if (string.IsNullOrWhiteSpace(Model.Query))
+        {
+            <section class="search-empty-state">
+
+                <div class="search-empty-icon">
+                    ⌕
+                </div>
+
+                <h3 class="search-empty-title">
+                    Arama kelimesi girilmedi
+                </h3>
+
+                <p class="search-empty-description">
+                    Sonuçları görüntülemek için bir şarkı, sanatçı veya albüm adı yaz.
+                </p>
+
+            </section>
+        }
+        else if (totalResultCount == 0)
+        {
+            <section class="search-empty-state">
+
+                <div class="search-empty-icon">
+                    ♫
+                </div>
+
+                <h3 class="search-empty-title">
+                    Sonuç bulunamadı
+                </h3>
+
+                <p class="search-empty-description">
+                    “@Model.Query” aramasıyla eşleşen bir sonuç bulunamadı.
+                </p>
+
+            </section>
+        }
+        else
+        {
+            @if (Model.Songs.Any())
+            {
+                <section class="result-section">
+
+                    <div class="result-section-header">
+
+                        <h3 class="result-section-title">
+                            Şarkılar
+                        </h3>
+
+                        <span class="result-section-count">
+                            @songCount sonuç
+                        </span>
+
+                    </div>
+
+                    <div class="search-song-list">
+
+                        @foreach (var song in Model.Songs)
+                        {
+                            var isLiked = Model.LikedSongIds.Contains(song.Id);
+                            var likeButtonClass = isLiked
+                                ? "search-like-button liked"
+                                : "search-like-button";
+                            var likeButtonTitle = isLiked
+                                ? "Beğeniyi kaldır"
+                                : "Şarkıyı beğen";
+                            var likeButtonIcon = isLiked ? "♥" : "♡";
+
+                            <article class="search-song-row">
+
+                                <a asp-controller="UserDashboard"
+                                   asp-action="SongDetails"
+                                   asp-route-songId="@song.Id"
+                                   class="search-result-link">
+
+                                    <div class="search-song-info">
+
+                                        <div class="search-song-cover">
+                                            ♪
+                                        </div>
+
+                                        <div>
+
+                                            <div class="search-song-name">
+                                                @song.Title
+                                            </div>
+
+                                            <div class="search-song-album">
+                                                @(song.Album?.Name ?? "Single")
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </a>
+
+                                <div class="search-song-streams">
+                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                </div>
+
+                                <button type="button"
+                                        class="search-play-button"
+                                        data-song-id="@song.Id">
+                                    ▶
+                                </button>
+
+                                <form asp-controller="UserDashboard"
+                                      asp-action="ToggleLike"
+                                      method="post"
+                                      class="search-like-form">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="songId"
+                                           value="@song.Id" />
+
+                                    <input type="hidden"
+                                           name="returnUrl"
+                                           value="@currentUrl" />
+
+                                    <button type="submit"
+                                            class="@likeButtonClass"
+                                            title="@likeButtonTitle">
+                                        @likeButtonIcon
+                                    </button>
+
+                                </form>
+
+                            </article>
+                        }
+
+                    </div>
+
+                </section>
+            }
+
+            @if (Model.Artists.Any())
+            {
+                <section class="result-section">
+
+                    <div class="result-section-header">
+
+                        <h3 class="result-section-title">
+                            Sanatçılar
+                        </h3>
+
+                        <span class="result-section-count">
+                            @artistCount sonuç
+                        </span>
+
+                    </div>
+
+                    <div class="search-card-grid">
+
+                        @foreach (var artist in Model.Artists)
+                        {
+                            var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+                            var followButtonClass = isFollowed
+                                ? "search-follow-button followed"
+                                : "search-follow-button";
+                            var followButtonTitle = isFollowed
+                                ? "Takipten çık"
+                                : "Sanatçıyı takip et";
+                            var followButtonText = isFollowed
+                                ? "Takip Ediliyor"
+                                : "Takip Et";
+
+                            <article class="search-result-card">
+
+                                <a asp-controller="UserDashboard"
+                                   asp-action="ArtistDetails"
+                                   asp-route-artistId="@artist.Id"
+                                   class="search-result-link">
+
+                                    <div class="search-artist-image">
+                                        @(string.IsNullOrWhiteSpace(artist.Name)
+                                            ? "?"
+                                            : artist.Name.Substring(0, 1).ToUpper())
+                                    </div>
+
+                                    <h4 class="search-card-title">
+                                        @artist.Name
+                                    </h4>
+
+                                    <p class="search-card-description">
+                                        Sanatçı
+                                    </p>
+
+                                </a>
+
+                                <form asp-controller="UserDashboard"
+                                      asp-action="ToggleFollow"
+                                      method="post"
+                                      class="search-follow-form">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="artistId"
+                                           value="@artist.Id" />
+
+                                    <input type="hidden"
+                                           name="returnUrl"
+                                           value="@currentUrl" />
+
+                                    <button type="submit"
+                                            class="@followButtonClass"
+                                            title="@followButtonTitle">
+                                        @followButtonText
+                                    </button>
+
+                                </form>
+
+                            </article>
+                        }
+
+                    </div>
+
+                </section>
+            }
+
+            @if (Model.Albums.Any())
+            {
+                <section class="result-section">
+
+                    <div class="result-section-header">
+
+                        <h3 class="result-section-title">
+                            Albümler
+                        </h3>
+
+                        <span class="result-section-count">
+                            @albumCount sonuç
+                        </span>
+
+                    </div>
+
+                    <div class="search-card-grid">
+
+                        @foreach (var album in Model.Albums)
+                        {
+                            <article class="search-result-card">
+
+                                <a asp-controller="UserDashboard"
+                                   asp-action="AlbumDetails"
+                                   asp-route-albumId="@album.Id"
+                                   class="search-result-link">
+
+                                    <div class="search-album-image">
+                                        ♪
+                                    </div>
+
+                                    <h4 class="search-card-title">
+                                        @album.Name
+                                    </h4>
+
+                                    <p class="search-card-description">
+                                        @album.Artist.Name
+                                    </p>
+
+                                </a>
+
+                            </article>
+                        }
+
+                    </div>
+
+                </section>
+            }
+        }
+
+    </div>
+
+</main>
