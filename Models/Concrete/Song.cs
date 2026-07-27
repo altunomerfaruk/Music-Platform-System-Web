@@ -9,7 +9,6 @@ namespace MusicProject.Models.Concrete
         [Required]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
-        // DEĞİŞİKLİK: Title alanının null kalmaması için string.Empty eklendi.
 
         public int? AlbumId { get; set; }
 
@@ -31,5 +30,7 @@ namespace MusicProject.Models.Concrete
 
         public virtual ICollection<LikedSong> LikedSongs { get; set; }
             = new List<LikedSong>();
+        public virtual ICollection<ListeningHistory> ListeningHistories { get; set; }
+            = new List<ListeningHistory>();
     }
 }

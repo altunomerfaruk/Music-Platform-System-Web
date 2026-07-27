@@ -37,6 +37,8 @@ namespace MusicProject.data
 
         public DbSet<FollowedArtist> FollowedArtists { get; set; }
 
+        public DbSet<ListeningHistory> ListeningHistories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -79,6 +81,19 @@ namespace MusicProject.data
                 .HasOne(song => song.SongStat)
                 .WithOne(songStat => songStat.Song)
                 .HasForeignKey<SongStat>(songStat => songStat.SongId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            modelBuilder.Entity<ListeningHistory>()
+                .HasOne(listeningHistory => listeningHistory.User)
+                .WithMany(user => user.ListeningHistories)
+                .HasForeignKey(listeningHistory => listeningHistory.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ListeningHistory>()
+                .HasOne(listeningHistory => listeningHistory.Song)
+                .WithMany(song => song.ListeningHistories)
+                .HasForeignKey(listeningHistory => listeningHistory.SongId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

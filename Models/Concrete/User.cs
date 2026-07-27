@@ -36,6 +36,7 @@ namespace MusicProject.Models.Concrete
             set;
         } = new List<FollowedArtist>();
 
-
+        public virtual ICollection<ListeningHistory> ListeningHistories { get; set; }
+        = new List<ListeningHistory>();
     }
 }

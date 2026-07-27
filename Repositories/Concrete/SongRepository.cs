@@ -54,7 +54,21 @@ namespace MusicProject.Repositories.Concrete
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
                 .Include(song => song.SongStat)
+                .FirstOrDefault(song => song.Id == songId) ;
+        }
+        public Song? GetSongForListening(int songId)
+        {
+            return _context.Songs
+                .Include(song => song.SongStat)
+                .Include(song => song.Album)
+                    .ThenInclude(album => album!.Artist)
+                .Include(song => song.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Artist)
+                .Include(song => song.SongGenres)
+                    .ThenInclude(songGenre => songGenre.Genre)
                 .FirstOrDefault(song => song.Id == songId);
         }
+
     }
+    
 }

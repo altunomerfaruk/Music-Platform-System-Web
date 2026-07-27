@@ -1,0 +1,372 @@
+﻿@model MusicProject.Models.ViewModels.ListeningHistoryViewModel
+
+@{
+    ViewData["Title"] = "Dinleme Geçmişi";
+    Layout = "_UserLayout";
+}
+
+@section Styles {
+    <style>
+        .history-content {
+            padding: 34px;
+        }
+
+        .history-hero {
+            padding: 32px;
+            background: linear-gradient(130deg, rgba(30, 215, 96, 0.22), rgba(18, 23, 19, 0.98) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+        .history-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .history-title {
+            margin-top: 9px;
+            font-size: clamp(30px, 4vw, 46px);
+        }
+
+        .history-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .history-count {
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .history-panel {
+            margin-top: 28px;
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .history-table th,
+            .history-table td {
+                padding: 15px 18px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+            }
+
+            .history-table th {
+                color: #687169;
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .history-table td {
+                color: #d8ded9;
+                font-size: 12px;
+            }
+
+            .history-table tbody tr {
+                transition: 0.2s;
+            }
+
+                .history-table tbody tr:hover {
+                    background-color: var(--card-hover);
+                }
+
+                .history-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+        .history-song {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-cover {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+            border-radius: 11px;
+            font-size: 18px;
+        }
+
+        .history-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .history-song-title {
+            color: white;
+            font-size: 13px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .history-link:hover .history-song-title {
+            color: var(--primary);
+        }
+
+        .history-subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .history-play-button {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        .history-empty {
+            margin-top: 28px;
+            padding: 70px 25px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            text-align: center;
+        }
+
+        .history-empty-icon {
+            color: var(--primary);
+            font-size: 52px;
+        }
+
+        .history-empty-title {
+            margin-top: 18px;
+            font-size: 22px;
+        }
+
+        .history-empty-description {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        @@media (max-width: 800px) {
+            .history-content {
+                padding: 20px 16px;
+            }
+
+            .history-panel {
+                overflow-x: auto;
+            }
+
+            .history-table {
+                min-width: 720px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+
+                <h1>
+                    Dinleme Geçmişi
+                </h1>
+
+                <p>
+                    Daha önce dinlediğin şarkıları görüntüle.
+                </p>
+
+            </div>
+
+        </div>
+
+        <a asp-controller="UserDashboard"
+           asp-action="Index"
+           class="secondary-button">
+            ← Ana Sayfaya Dön
+        </a>
+
+    </header>
+
+    <div class="history-content">
+
+        <section class="history-hero">
+
+            <p class="history-label">
+                Müzik geçmişin
+            </p>
+
+            <h2 class="history-title">
+                Son dinlediklerin
+            </h2>
+
+            <p class="history-description">
+                Dinlediğin şarkılar en yeniden en eskiye doğru sıralanır.
+            </p>
+
+            <p class="history-count">
+                Toplam @Model.TotalListeningCount dinleme
+            </p>
+
+        </section>
+
+        @if (Model.ListeningHistory.Any())
+        {
+            <section class="history-panel">
+
+                <table class="history-table">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Şarkı</th>
+                            <th>Albüm</th>
+                            <th>Tür</th>
+                            <th>Dinlenme tarihi</th>
+                            <th>Dinle</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            var historyNumber = 1;
+                        }
+
+                        @foreach (var history in Model.ListeningHistory)
+                        {
+                            <tr>
+
+                                <td>
+                                    @historyNumber
+                                </td>
+
+                                <td>
+
+                                    <a asp-controller="UserDashboard"
+                                       asp-action="SongDetails"
+                                       asp-route-songId="@history.SongId"
+                                       class="history-link">
+
+                                        <div class="history-song">
+
+                                            <div class="history-cover">
+                                                ♪
+                                            </div>
+
+                                            <div>
+
+                                                <div class="history-song-title">
+                                                    @history.SongTitle
+                                                </div>
+
+                                                <div class="history-subtitle">
+                                                    @history.ArtistName
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </a>
+
+                                </td>
+
+                                <td>
+                                    @if (history.AlbumId.HasValue)
+                                    {
+                                        <a asp-controller="UserDashboard"
+                                           asp-action="AlbumDetails"
+                                           asp-route-albumId="@history.AlbumId"
+                                           class="history-link">
+                                            @history.AlbumName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @history.AlbumName
+                                    }
+                                </td>
+
+                                <td>
+                                    @history.GenreName
+                                </td>
+
+                                <td>
+                                    @history.ListenedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </td>
+
+                                <td>
+
+                                    @* data-song-id sayesinde ortak user-player.js çalışır. *@
+                                    <button type="button"
+                                            class="history-play-button"
+                                            data-song-id="@history.SongId"
+                                            title="@history.SongTitle şarkısını oynat">
+                                        ▶
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            historyNumber++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </section>
+        }
+        else
+        {
+            <section class="history-empty">
+
+                <div class="history-empty-icon">
+                    ◷
+                </div>
+
+                <h3 class="history-empty-title">
+                    Henüz dinleme geçmişin yok
+                </h3>
+
+                <p class="history-empty-description">
+                    Bir şarkıyı oynattığında dinleme kaydı burada görünecek.
+                </p>
+
+            </section>
+        }
+
+    </div>
+
+</main>

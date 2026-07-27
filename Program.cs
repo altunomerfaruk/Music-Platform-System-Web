@@ -103,6 +103,16 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<IAlbumService, AlbumManager>();
 
+builder.Services.AddScoped<IListeningHistoryRepository, ListeningHistoryRepository>();
+builder.Services.AddScoped<IListeningHistoryService, ListeningHistoryManager>();
+
+
+
+
+
+
+
+
 // ==========================================
 // 3. MVC VE GÜVENLİK SERVİSLERİ
 // ==========================================

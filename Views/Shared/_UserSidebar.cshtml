@@ -5,8 +5,16 @@
     var action = ViewContext.RouteData.Values["action"]?.ToString();
 
     var isHome = controller == "UserDashboard" && action == "Index";
+    var isAllSongs = controller == "UserDashboard" && action == "AllSongs";
+    var isAllArtists = controller == "UserDashboard" && action == "AllArtists";
     var isLikedSongs = controller == "UserDashboard" && action == "LikedSongs";
     var isFollowedArtists = controller == "UserDashboard" && action == "FollowedArtists";
+
+    // DEĞİŞİKLİK:
+    // Son Dinlediklerim sayfası aktif olduğunda menü öğesinin
+    // active class alması için eklendi.
+    var isListeningHistory = controller == "UserDashboard" &&
+                             action == "ListeningHistory";
 }
 
 <aside class="sidebar" id="sidebar">
@@ -20,6 +28,7 @@
         </div>
 
         <div>
+
             <span class="brand-name">
                 MusicProject
             </span>
@@ -27,6 +36,7 @@
             <span class="brand-panel">
                 Müzik dünyan
             </span>
+
         </div>
 
     </a>
@@ -40,43 +50,62 @@
         <ul class="navigation-list">
 
             <li class="navigation-item">
+
                 <a asp-controller="UserDashboard"
                    asp-action="Index"
-                   class="navigation-link @(isHome ? "active" : "")">
+                   class="navigation-link @(isHome ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ▦
                     </span>
 
                     Ana Sayfa
+
                 </a>
+
             </li>
 
             <li class="navigation-item">
-                <a href="#"
-                   class="navigation-link">
+
+                @* DEĞİŞİKLİK:
+                   Geçici href="#" kaldırıldı.
+                   Artık AllSongs action'ına gider. *@
+                <a asp-controller="UserDashboard"
+                   asp-action="AllSongs"
+                   class="navigation-link @(isAllSongs ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ♫
                     </span>
 
                     Şarkıları Keşfet
+
                 </a>
+
             </li>
 
             <li class="navigation-item">
-                <a href="#"
-                   class="navigation-link">
+
+                @* DEĞİŞİKLİK:
+                   Geçici href="#" kaldırıldı.
+                   Artık AllArtists action'ına gider. *@
+                <a asp-controller="UserDashboard"
+                   asp-action="AllArtists"
+                   class="navigation-link @(isAllArtists ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ★
                     </span>
 
                     Sanatçılar
+
                 </a>
+
             </li>
 
             <li class="navigation-item">
+
+                @* Türler sayfası henüz yapılmadığı için geçici olarak pasif bırakıldı. *@
                 <a href="#"
                    class="navigation-link">
 
@@ -85,21 +114,25 @@
                     </span>
 
                     Türler
+
                 </a>
+
             </li>
 
         </ul>
 
-        <p class="navigation-title" style="margin-top: 27px;">
+        <p class="navigation-title"
+           style="margin-top: 27px;">
             Kitaplığım
         </p>
 
         <ul class="navigation-list">
 
             <li class="navigation-item">
+
                 <a asp-controller="UserDashboard"
                    asp-action="LikedSongs"
-                   class="navigation-link @(isLikedSongs ? "active" : "")">
+                   class="navigation-link @(isLikedSongs ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ♥
@@ -110,17 +143,16 @@
                     <span class="navigation-badge">
                         @Model.LikedSongCount
                     </span>
+
                 </a>
+
             </li>
 
             <li class="navigation-item">
 
-                <!-- DEĞİŞİKLİK:
-                     href="#" kaldırıldı.
-                     Artık FollowedArtists action'ına gider. -->
                 <a asp-controller="UserDashboard"
                    asp-action="FollowedArtists"
-                   class="navigation-link @(isFollowedArtists ? "active" : "")">
+                   class="navigation-link @(isFollowedArtists ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ★
@@ -131,23 +163,29 @@
                     <span class="navigation-badge">
                         @Model.FollowedArtistCount
                     </span>
+
                 </a>
 
             </li>
 
             <li class="navigation-item">
-                <a href="#"
-                   class="navigation-link">
+                <a asp-controller="UserDashboard"
+                   asp-action="ListeningHistory"
+                   class="navigation-link @(isListeningHistory ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ◷
                     </span>
 
                     Son Dinlediklerim
+
                 </a>
+
             </li>
 
             <li class="navigation-item">
+
+                @* Hesap ayarları sayfası henüz yapılmadığı için şimdilik geçici. *@
                 <a href="#"
                    class="navigation-link">
 
@@ -156,7 +194,9 @@
                     </span>
 
                     Hesap Ayarları
+
                 </a>
+
             </li>
 
         </ul>

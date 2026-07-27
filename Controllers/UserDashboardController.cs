@@ -16,19 +16,21 @@ namespace MusicProject.Controllers
         private readonly IAlbumService _albumService;
         private readonly ILikedSongService _likedSongService;
         private readonly IFollowedArtistService _followedArtistService;
-
+        private readonly IListeningHistoryService _listeningHistoryService;
         public UserDashboardController(
             ISongService songService,
             IArtistService artistService,
             IAlbumService albumService,
             ILikedSongService likedSongService,
-            IFollowedArtistService followedArtistService)
+            IFollowedArtistService followedArtistService,
+            IListeningHistoryService listeningHistoryService)
         {
             _songService = songService;
             _artistService = artistService;
             _albumService = albumService;
             _likedSongService = likedSongService;
             _followedArtistService = followedArtistService;
+            _listeningHistoryService = listeningHistoryService;
         }
 
         [HttpGet]
@@ -39,21 +41,28 @@ namespace MusicProject.Controllers
                 return RedirectToLogin();
             }
 
-            var likedSongIds = _likedSongService
-                .GetActiveLikedSongIds(userId)
-                .ToHashSet();
-
-            var followedArtistIds = _followedArtistService
-                .GetActiveFollowedArtistIds(userId)
-                .ToHashSet();
-
             var model = new UserDashboardViewModel
             {
-                Email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
                 PopularSongs = _songService.GetPopularSongs(),
-                Artists = _artistService.GetAllArtists(),
-                LikedSongIds = likedSongIds,
-                FollowedArtistIds = followedArtistIds
+
+                Artists = _artistService
+                    .GetAllArtists()
+                    .Take(6)
+                    .ToList(),
+
+                LikedSongIds = _likedSongService
+                    .GetActiveLikedSongIds(userId)
+                    .ToHashSet(),
+
+                FollowedArtistIds = _followedArtistService
+                    .GetActiveFollowedArtistIds(userId)
+                    .ToHashSet(),
+
+                TotalListeningCount = _listeningHistoryService
+                    .GetTotalListeningCount(userId),
+
+                RecentListeningHistory = _listeningHistoryService
+                    .GetRecentListeningHistory(userId, 5)
             };
 
             FillLayoutData(model, userId);
@@ -374,7 +383,27 @@ namespace MusicProject.Controllers
                 albums
             });
         }
+        [HttpGet]
+        public IActionResult ListeningHistory()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
 
+            var model = new ListeningHistoryViewModel
+            {
+                ListeningHistory = _listeningHistoryService
+                    .GetRecentListeningHistory(userId, 100),
+
+                TotalListeningCount = _listeningHistoryService
+                    .GetTotalListeningCount(userId)
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ToggleLike(int songId, string? returnUrl)
@@ -436,6 +465,38 @@ namespace MusicProject.Controllers
             model.FollowedArtistCount = _followedArtistService
                 .GetActiveFollowedArtistIds(userId)
                 .Count();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult PlaySong(int songId)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Kullanıcı oturumu bulunamadı."
+                });
+            }
+
+            var isAdded = _listeningHistoryService.AddListening(userId, songId);
+
+            if (!isAdded)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Şarkı bulunamadı."
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                message = "Dinleme kaydı oluşturuldu."
+            });
         }
     }
 }

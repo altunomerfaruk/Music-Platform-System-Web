@@ -4,8 +4,8 @@
     ViewData["Title"] = "Kullanıcı Paneli";
     Layout = "_UserLayout";
 
-    // DEĞİŞİKLİK:
-    // JavaScript içinde sabit URL yazmak yerine MVC'nin oluşturduğu URL kullanılıyor.
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
     var searchSuggestionsUrl = Url.Action("SearchSuggestions", "UserDashboard");
     var searchResultsUrl = Url.Action("Search", "UserDashboard");
     var songDetailsUrl = Url.Action("SongDetails", "UserDashboard");
@@ -15,17 +15,15 @@
 
 @section Styles {
     <style>
-        /* DEĞİŞİKLİK:
-                   Canlı arama panelinin arama kutusuna göre konumlanması için eklendi. */
         .live-search-container {
             position: relative;
             width: 100%;
             max-width: 430px;
         }
 
-            .live-search-container .search-box {
-                width: 100%;
-            }
+        .live-search-container .search-box {
+            width: 100%;
+        }
 
         .search-suggestions {
             position: absolute;
@@ -42,9 +40,9 @@
             box-shadow: 0 22px 55px rgba(0, 0, 0, 0.50);
         }
 
-            .search-suggestions.show {
-                display: block;
-            }
+        .search-suggestions.show {
+            display: block;
+        }
 
         .suggestion-loading,
         .suggestion-empty {
@@ -59,9 +57,9 @@
             border-bottom: 1px solid var(--border);
         }
 
-            .suggestion-group:last-of-type {
-                border-bottom: none;
-            }
+        .suggestion-group:last-of-type {
+            border-bottom: none;
+        }
 
         .suggestion-group-title {
             padding: 5px 15px 9px;
@@ -82,10 +80,10 @@
             transition: 0.2s;
         }
 
-            .suggestion-item:hover,
-            .suggestion-item.active {
-                background-color: var(--card-hover);
-            }
+        .suggestion-item:hover,
+        .suggestion-item.active {
+            background-color: var(--card-hover);
+        }
 
         .suggestion-icon {
             width: 39px;
@@ -134,9 +132,36 @@
             transition: 0.2s;
         }
 
-            .suggestion-all-results:hover {
-                background-color: var(--card-hover);
-            }
+        .suggestion-all-results:hover {
+            background-color: var(--card-hover);
+        }
+
+        .history-empty {
+            padding: 36px 20px;
+            text-align: center;
+        }
+
+        .history-empty-icon {
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 34px;
+        }
+
+        .history-empty-text {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .history-album-link {
+            color: inherit;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .history-album-link:hover {
+            color: var(--primary);
+        }
 
         @@media (max-width: 900px) {
             .live-search-container {
@@ -174,10 +199,6 @@
 
         <div class="topbar-actions">
 
-            @* DEĞİŞİKLİK:
-               Mevcut Search formu korunuyor.
-               Enter'a basıldığında Search action'ı ve SearchResults.cshtml çalışır.
-               Yazı yazılırken ise alttaki panel canlı sonuçları gösterir. *@
             <div class="live-search-container"
                  id="liveSearchContainer">
 
@@ -202,7 +223,6 @@
 
                 </form>
 
-                @* Canlı arama sonuçları JavaScript ile buraya yazılır. *@
                 <div class="search-suggestions"
                      id="searchSuggestions"
                      role="listbox">
@@ -246,10 +266,11 @@
 
                 <div class="welcome-actions">
 
-                    <button type="button"
-                            class="primary-button">
+                    <a asp-controller="UserDashboard"
+                       asp-action="AllSongs"
+                       class="primary-button">
                         ▶ Dinlemeye Başla
-                    </button>
+                    </a>
 
                     <a asp-controller="UserDashboard"
                        asp-action="AllSongs"
@@ -294,12 +315,13 @@
                         ▶
                     </div>
 
-                    <div class="stat-number">
-                        148
+                    <div class="stat-number"
+                         id="totalListeningCount">
+                        @Model.TotalListeningCount
                     </div>
 
                     <div class="stat-label">
-                        Dinlediğin şarkı
+                        Toplam dinleme
                     </div>
 
                 </article>
@@ -343,11 +365,11 @@
                     </div>
 
                     <div class="stat-number">
-                        12 saat
+                        @Model.RecentListeningHistory.Count()
                     </div>
 
                     <div class="stat-label">
-                        Toplam dinleme süresi
+                        Son listelenen dinleme
                     </div>
 
                 </article>
@@ -447,6 +469,10 @@
                                     <input type="hidden"
                                            name="songId"
                                            value="@song.Id" />
+
+                                    <input type="hidden"
+                                           name="returnUrl"
+                                           value="@currentUrl" />
 
                                     <button type="submit"
                                             class="@likeButtonClass"
@@ -557,6 +583,10 @@
                                        name="artistId"
                                        value="@artist.Id" />
 
+                                <input type="hidden"
+                                       name="returnUrl"
+                                       value="@currentUrl" />
+
                                 <button type="submit"
                                         class="@followButtonClass"
                                         title="@followButtonTitle">
@@ -602,181 +632,130 @@
 
                 </div>
 
-                <a href="#"
+                <a asp-controller="UserDashboard"
+                   asp-action="ListeningHistory"
                    class="section-link">
                     Geçmişi Gör
                 </a>
 
             </div>
 
-            <div class="table-wrapper">
+            @if (Model.RecentListeningHistory.Any())
+            {
+                <div class="table-wrapper">
 
-                <table class="data-table">
+                    <table class="data-table">
 
-                    <thead>
-                        <tr>
-                            <th>Şarkı</th>
-                            <th>Albüm</th>
-                            <th>Tür</th>
-                            <th>Süre</th>
-                            <th>Dinle</th>
-                        </tr>
-                    </thead>
+                        <thead>
+                            <tr>
+                                <th>Şarkı</th>
+                                <th>Albüm</th>
+                                <th>Tür</th>
+                                <th>Dinlenme zamanı</th>
+                                <th>Dinle</th>
+                            </tr>
+                        </thead>
 
-                    <tbody>
+                        <tbody>
 
-                        <tr>
+                            @foreach (var history in Model.RecentListeningHistory)
+                            {
+                                <tr>
 
-                            <td>
+                                    <td>
 
-                                <div class="table-song">
+                                        <a asp-controller="UserDashboard"
+                                           asp-action="SongDetails"
+                                           asp-route-songId="@history.SongId"
+                                           class="song-details-link">
 
-                                    <div class="table-cover">
-                                        ♪
-                                    </div>
+                                            <div class="table-song">
 
-                                    <div>
+                                                <div class="table-cover">
+                                                    ♪
+                                                </div>
 
-                                        <div class="cell-title">
-                                            Gece Yolculuğu
-                                        </div>
+                                                <div>
 
-                                        <div class="cell-subtitle">
-                                            Elif Kaya
-                                        </div>
+                                                    <div class="cell-title">
+                                                        @history.SongTitle
+                                                    </div>
 
-                                    </div>
+                                                    <div class="cell-subtitle">
+                                                        @history.ArtistName
+                                                    </div>
 
-                                </div>
+                                                </div>
 
-                            </td>
+                                            </div>
 
-                            <td>
-                                Bağımsız Single
-                            </td>
+                                        </a>
 
-                            <td>
-                                Pop
-                            </td>
+                                    </td>
 
-                            <td>
-                                3:42
-                            </td>
+                                    <td>
 
-                            <td>
+                                        @if (history.AlbumId.HasValue)
+                                        {
+                                            <a asp-controller="UserDashboard"
+                                               asp-action="AlbumDetails"
+                                               asp-route-albumId="@history.AlbumId"
+                                               class="history-album-link">
+                                                @history.AlbumName
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            @history.AlbumName
+                                        }
 
-                                <button type="button"
-                                        class="table-play-button">
-                                    ▶
-                                </button>
+                                    </td>
 
-                            </td>
+                                    <td>
+                                        @history.GenreName
+                                    </td>
 
-                        </tr>
+                                    <td>
+                                        @* DEĞİŞİKLİK:
+                                           Zincir ifade tamamen @() içine alındı.
+                                           Böylece metotlar ekrana düz yazı olarak basılmaz. *@
+                                        @(history.ListenedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
+                                    </td>
 
-                        <tr>
+                                    <td>
 
-                            <td>
+                                        <button type="button"
+                                                class="table-play-button"
+                                                data-song-id="@history.SongId"
+                                                title="@history.SongTitle şarkısını oynat">
+                                            ▶
+                                        </button>
 
-                                <div class="table-song">
+                                    </td>
 
-                                    <div class="table-cover">
-                                        ♪
-                                    </div>
+                                </tr>
+                            }
 
-                                    <div>
+                        </tbody>
 
-                                        <div class="cell-title">
-                                            Son Durak
-                                        </div>
+                    </table>
 
-                                        <div class="cell-subtitle">
-                                            Atlas
-                                        </div>
+                </div>
+            }
+            else
+            {
+                <div class="history-empty">
 
-                                    </div>
+                    <div class="history-empty-icon">
+                        ◷
+                    </div>
 
-                                </div>
+                    <p class="history-empty-text">
+                        Henüz bir şarkı dinlemedin. Oynat butonuna bastığında burada görünecek.
+                    </p>
 
-                            </td>
-
-                            <td>
-                                Şehir Işıkları
-                            </td>
-
-                            <td>
-                                Alternatif
-                            </td>
-
-                            <td>
-                                4:05
-                            </td>
-
-                            <td>
-
-                                <button type="button"
-                                        class="table-play-button">
-                                    ▶
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>
-
-                                <div class="table-song">
-
-                                    <div class="table-cover">
-                                        ♪
-                                    </div>
-
-                                    <div>
-
-                                        <div class="cell-title">
-                                            Sessiz Şehir
-                                        </div>
-
-                                        <div class="cell-subtitle">
-                                            Mavi
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                            </td>
-
-                            <td>
-                                Gecenin İçinden
-                            </td>
-
-                            <td>
-                                Indie
-                            </td>
-
-                            <td>
-                                3:18
-                            </td>
-
-                            <td>
-
-                                <button type="button"
-                                        class="table-play-button">
-                                    ▶
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
+                </div>
+            }
 
         </section>
 
@@ -795,19 +774,22 @@
 
         <div class="playing-info">
 
-            <div class="playing-name">
-                Gece Yolculuğu
+            <div class="playing-name"
+                 id="playingSongName">
+                Henüz şarkı seçilmedi
             </div>
 
-            <div class="playing-artist">
-                Elif Kaya
+            <div class="playing-artist"
+                 id="playingSongArtist">
+                Bir şarkıyı oynat
             </div>
 
         </div>
 
         <button type="button"
-                class="like-button liked">
-            ♥
+                class="like-button"
+                title="Şarkıyı beğen">
+            ♡
         </button>
 
     </div>
@@ -852,7 +834,7 @@
         <div class="progress-area">
 
             <span class="progress-time">
-                1:24
+                0:00
             </span>
 
             <div class="progress-line">
@@ -860,7 +842,7 @@
             </div>
 
             <span class="progress-time">
-                3:42
+                0:00
             </span>
 
         </div>
@@ -896,243 +878,241 @@
             }
         });
 
-                // DEĞİŞİKLİK: Canlı arama başlangıcı.
-                const liveSearchContainer = document.getElementById("liveSearchContainer");
-                const searchInput = document.getElementById("searchInput");
-                const searchSuggestions = document.getElementById("searchSuggestions");
+        // CANLI ARAMA
+        const liveSearchContainer = document.getElementById("liveSearchContainer");
+        const searchInput = document.getElementById("searchInput");
+        const searchSuggestions = document.getElementById("searchSuggestions");
 
-                const searchSuggestionsUrl = "@searchSuggestionsUrl";
-                const searchResultsUrl = "@searchResultsUrl";
-                const songDetailsUrl = "@songDetailsUrl";
-                const artistDetailsUrl = "@artistDetailsUrl";
-                const albumDetailsUrl = "@albumDetailsUrl";
+        const searchSuggestionsUrl = "@searchSuggestionsUrl";
+        const searchResultsUrl = "@searchResultsUrl";
+        const songDetailsUrl = "@songDetailsUrl";
+        const artistDetailsUrl = "@artistDetailsUrl";
+        const albumDetailsUrl = "@albumDetailsUrl";
 
-                let searchTimer = null;
-                let activeRequestController = null;
+        let searchTimer = null;
+        let activeRequestController = null;
 
-                searchInput?.addEventListener("input", function () {
-                    clearTimeout(searchTimer);
+        searchInput?.addEventListener("input", function () {
+            clearTimeout(searchTimer);
 
-                    const query = searchInput.value.trim();
+            const query = searchInput.value.trim();
 
-                    if (query.length < 2) {
-                        closeSearchSuggestions();
-                        return;
-                    }
+            if (query.length < 2) {
+                closeSearchSuggestions();
+                return;
+            }
 
-                    showSearchLoading();
+            showSearchLoading();
 
-                    // Kullanıcı yazmayı bıraktıktan 300 ms sonra istek gönderilir.
-                    searchTimer = setTimeout(function () {
-                        loadSearchSuggestions(query);
-                    }, 300);
+            searchTimer = setTimeout(function () {
+                loadSearchSuggestions(query);
+            }, 300);
+        });
+
+        searchInput?.addEventListener("focus", function () {
+            const query = searchInput.value.trim();
+
+            if (query.length >= 2 &&
+                searchSuggestions.innerHTML.trim() !== "") {
+                openSearchSuggestions();
+            }
+        });
+
+        async function loadSearchSuggestions(query) {
+            if (activeRequestController) {
+                activeRequestController.abort();
+            }
+
+            activeRequestController = new AbortController();
+
+            try {
+                const url =
+                    `${searchSuggestionsUrl}?query=${encodeURIComponent(query)}`;
+
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    signal: activeRequestController.signal
                 });
 
-                searchInput?.addEventListener("focus", function () {
-                    const query = searchInput.value.trim();
-
-                    if (query.length >= 2 &&
-                        searchSuggestions.innerHTML.trim() !== "") {
-                        openSearchSuggestions();
-                    }
-                });
-
-                async function loadSearchSuggestions(query) {
-                    if (activeRequestController) {
-                        activeRequestController.abort();
-                    }
-
-                    activeRequestController = new AbortController();
-
-                    try {
-                        const url =
-                            `${searchSuggestionsUrl}?query=${encodeURIComponent(query)}`;
-
-                        const response = await fetch(url, {
-                            method: "GET",
-                            headers: {
-                                "X-Requested-With": "XMLHttpRequest"
-                            },
-                            signal: activeRequestController.signal
-                        });
-
-                        if (!response.ok) {
-                            throw new Error("Canlı arama sonuçları alınamadı.");
-                        }
-
-                        const data = await response.json();
-
-                        // İstek sürerken kullanıcı başka bir değer yazdıysa eski sonucu gösterme.
-                        if (searchInput.value.trim() !== query) {
-                            return;
-                        }
-
-                        renderSearchSuggestions(data, query);
-                    }
-                    catch (error) {
-                        if (error.name === "AbortError") {
-                            return;
-                        }
-
-                        console.error(error);
-                        closeSearchSuggestions();
-                    }
+                if (!response.ok) {
+                    throw new Error("Canlı arama sonuçları alınamadı.");
                 }
 
-                function renderSearchSuggestions(data, query) {
-                    const songs = Array.isArray(data.songs) ? data.songs : [];
-                    const artists = Array.isArray(data.artists) ? data.artists : [];
-                    const albums = Array.isArray(data.albums) ? data.albums : [];
+                const data = await response.json();
 
-                    const hasSongs = songs.length > 0;
-                    const hasArtists = artists.length > 0;
-                    const hasAlbums = albums.length > 0;
+                if (searchInput.value.trim() !== query) {
+                    return;
+                }
 
-                    if (!hasSongs && !hasArtists && !hasAlbums) {
-                        searchSuggestions.innerHTML = `
-                            <div class="suggestion-empty">
-                                “${escapeHtml(query)}” için sonuç bulunamadı.
+                renderSearchSuggestions(data, query);
+            }
+            catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
+                console.error(error);
+                closeSearchSuggestions();
+            }
+        }
+
+        function renderSearchSuggestions(data, query) {
+            const songs = Array.isArray(data.songs) ? data.songs : [];
+            const artists = Array.isArray(data.artists) ? data.artists : [];
+            const albums = Array.isArray(data.albums) ? data.albums : [];
+
+            const hasSongs = songs.length > 0;
+            const hasArtists = artists.length > 0;
+            const hasAlbums = albums.length > 0;
+
+            if (!hasSongs && !hasArtists && !hasAlbums) {
+                searchSuggestions.innerHTML = `
+                    <div class="suggestion-empty">
+                        “${escapeHtml(query)}” için sonuç bulunamadı.
+                    </div>
+
+                    <a href="${createSearchResultsUrl(query)}"
+                       class="suggestion-all-results">
+                        Ayrıntılı arama sayfasını aç
+                    </a>
+                `;
+
+                openSearchSuggestions();
+                return;
+            }
+
+            let html = "";
+
+            if (hasSongs) {
+                html += createSuggestionGroup(
+                    "Şarkılar",
+                    songs,
+                    songDetailsUrl,
+                    "songId",
+                    "♪"
+                );
+            }
+
+            if (hasArtists) {
+                html += createSuggestionGroup(
+                    "Sanatçılar",
+                    artists,
+                    artistDetailsUrl,
+                    "artistId",
+                    "★"
+                );
+            }
+
+            if (hasAlbums) {
+                html += createSuggestionGroup(
+                    "Albümler",
+                    albums,
+                    albumDetailsUrl,
+                    "albumId",
+                    "▣"
+                );
+            }
+
+            html += `
+                <a href="${createSearchResultsUrl(query)}"
+                   class="suggestion-all-results">
+                    Tüm sonuçları görüntüle
+                </a>
+            `;
+
+            searchSuggestions.innerHTML = html;
+            openSearchSuggestions();
+        }
+
+        function createSuggestionGroup(title, items, baseUrl, routeName, icon) {
+            const itemHtml = items.map(function (item) {
+                const itemUrl =
+                    `${baseUrl}?${routeName}=${encodeURIComponent(item.id)}`;
+
+                return `
+                    <a href="${itemUrl}"
+                       class="suggestion-item"
+                       role="option">
+
+                        <div class="suggestion-icon">
+                            ${icon}
+                        </div>
+
+                        <div class="suggestion-content">
+
+                            <div class="suggestion-name">
+                                ${escapeHtml(item.name)}
                             </div>
 
-                            <a href="${createSearchResultsUrl(query)}"
-                               class="suggestion-all-results">
-                                Ayrıntılı arama sayfasını aç
-                            </a>
-                        `;
-
-                        openSearchSuggestions();
-                        return;
-                    }
-
-                    let html = "";
-
-                    if (hasSongs) {
-                        html += createSuggestionGroup(
-                            "Şarkılar",
-                            songs,
-                            songDetailsUrl,
-                            "songId",
-                            "♪"
-                        );
-                    }
-
-                    if (hasArtists) {
-                        html += createSuggestionGroup(
-                            "Sanatçılar",
-                            artists,
-                            artistDetailsUrl,
-                            "artistId",
-                            "★"
-                        );
-                    }
-
-                    if (hasAlbums) {
-                        html += createSuggestionGroup(
-                            "Albümler",
-                            albums,
-                            albumDetailsUrl,
-                            "albumId",
-                            "▣"
-                        );
-                    }
-
-                    html += `
-                        <a href="${createSearchResultsUrl(query)}"
-                           class="suggestion-all-results">
-                            Tüm sonuçları görüntüle
-                        </a>
-                    `;
-
-                    searchSuggestions.innerHTML = html;
-                    openSearchSuggestions();
-                }
-
-                function createSuggestionGroup(title, items, baseUrl, routeName, icon) {
-                    const itemHtml = items.map(function (item) {
-                        const itemUrl =
-                            `${baseUrl}?${routeName}=${encodeURIComponent(item.id)}`;
-
-                        return `
-                            <a href="${itemUrl}"
-                               class="suggestion-item"
-                               role="option">
-
-                                <div class="suggestion-icon">
-                                    ${icon}
-                                </div>
-
-                                <div class="suggestion-content">
-
-                                    <div class="suggestion-name">
-                                        ${escapeHtml(item.name)}
-                                    </div>
-
-                                    <div class="suggestion-subtitle">
-                                        ${escapeHtml(item.subtitle)}
-                                    </div>
-
-                                </div>
-
-                            </a>
-                        `;
-                    }).join("");
-
-                    return `
-                        <div class="suggestion-group">
-
-                            <div class="suggestion-group-title">
-                                ${escapeHtml(title)}
+                            <div class="suggestion-subtitle">
+                                ${escapeHtml(item.subtitle)}
                             </div>
 
-                            ${itemHtml}
-
                         </div>
-                    `;
-                }
 
-                function createSearchResultsUrl(query) {
-                    return `${searchResultsUrl}?query=${encodeURIComponent(query)}`;
-                }
+                    </a>
+                `;
+            }).join("");
 
-                function showSearchLoading() {
-                    searchSuggestions.innerHTML = `
-                        <div class="suggestion-loading">
-                            Sonuçlar aranıyor...
-                        </div>
-                    `;
+            return `
+                <div class="suggestion-group">
 
-                    openSearchSuggestions();
-                }
+                    <div class="suggestion-group-title">
+                        ${escapeHtml(title)}
+                    </div>
 
-                function openSearchSuggestions() {
-                    searchSuggestions.classList.add("show");
-                    searchInput?.setAttribute("aria-expanded", "true");
-                }
+                    ${itemHtml}
 
-                function closeSearchSuggestions() {
-                    searchSuggestions.classList.remove("show");
-                    searchSuggestions.innerHTML = "";
-                    searchInput?.setAttribute("aria-expanded", "false");
-                }
+                </div>
+            `;
+        }
 
-                function escapeHtml(value) {
-                    const temporaryElement = document.createElement("div");
-                    temporaryElement.textContent = value ?? "";
-                    return temporaryElement.innerHTML;
-                }
+        function createSearchResultsUrl(query) {
+            return `${searchResultsUrl}?query=${encodeURIComponent(query)}`;
+        }
 
-                document.addEventListener("click", function (event) {
-                    if (liveSearchContainer &&
-                        !liveSearchContainer.contains(event.target)) {
-                        closeSearchSuggestions();
-                    }
-                });
+        function showSearchLoading() {
+            searchSuggestions.innerHTML = `
+                <div class="suggestion-loading">
+                    Sonuçlar aranıyor...
+                </div>
+            `;
 
-                document.addEventListener("keydown", function (event) {
-                    if (event.key === "Escape") {
-                        closeSearchSuggestions();
-                        searchInput?.blur();
-                    }
-                });
+            openSearchSuggestions();
+        }
+
+        function openSearchSuggestions() {
+            searchSuggestions.classList.add("show");
+            searchInput?.setAttribute("aria-expanded", "true");
+        }
+
+        function closeSearchSuggestions() {
+            searchSuggestions.classList.remove("show");
+            searchSuggestions.innerHTML = "";
+            searchInput?.setAttribute("aria-expanded", "false");
+        }
+
+        function escapeHtml(value) {
+            const temporaryElement = document.createElement("div");
+            temporaryElement.textContent = value ?? "";
+            return temporaryElement.innerHTML;
+        }
+
+        document.addEventListener("click", function (event) {
+            if (liveSearchContainer &&
+                !liveSearchContainer.contains(event.target)) {
+                closeSearchSuggestions();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeSearchSuggestions();
+                searchInput?.blur();
+            }
+        });
     </script>
 }

@@ -11,5 +11,6 @@ namespace MusicProject.Repositories.Interface
 
         Song? GetSongDetailsById(int songId);
 
+        Song? GetSongForListening(int songId);
     }
 }
