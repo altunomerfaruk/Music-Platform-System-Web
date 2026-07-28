@@ -1,0 +1,348 @@
+﻿@model MusicProject.Models.ViewModels.AllGenresViewModel
+
+@{
+    ViewData["Title"] = "Müzik Türleri";
+    Layout = "_UserLayout";
+}
+
+@section Styles {
+    <style>
+        .genres-page {
+            padding: 32px;
+        }
+
+        .genres-container {
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+        }
+
+        .genres-header {
+            margin-bottom: 28px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .genres-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 29px;
+            font-weight: 850;
+        }
+
+        .genres-description {
+            margin: 7px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .genres-count {
+            padding: 9px 13px;
+            flex-shrink: 0;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.09);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .genres-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .genre-card {
+            min-height: 205px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: inherit;
+            background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.15), transparent 45% ), var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            text-decoration: none;
+            transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s;
+        }
+
+            .genre-card:hover {
+                transform: translateY(-4px);
+                border-color: rgba(30, 215, 96, 0.38);
+                box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
+            }
+
+        .genre-card-decoration {
+            width: 105px;
+            height: 105px;
+            position: absolute;
+            top: -35px;
+            right: -30px;
+            background-color: rgba(30, 215, 96, 0.06);
+            border: 1px solid rgba(30, 215, 96, 0.08);
+            border-radius: 50%;
+        }
+
+        .genre-icon {
+            width: 53px;
+            height: 53px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.11);
+            border: 1px solid rgba(30, 215, 96, 0.17);
+            border-radius: 14px;
+            font-size: 23px;
+        }
+
+        .genre-card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .genre-name {
+            margin: 21px 0 7px;
+            overflow: hidden;
+            color: #ffffff;
+            font-size: 19px;
+            font-weight: 850;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .genre-song-count {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .genre-card-footer {
+            margin-top: 22px;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .genre-explore-text {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .genre-arrow {
+            width: 31px;
+            height: 31px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071109;
+            background-color: var(--primary);
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 900;
+            transition: transform 0.2s;
+        }
+
+        .genre-card:hover .genre-arrow {
+            transform: translateX(3px);
+        }
+
+        .genres-empty {
+            padding: 65px 25px;
+            text-align: center;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .genres-empty-icon {
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 45px;
+        }
+
+        .genres-empty-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 820;
+        }
+
+        .genres-empty-description {
+            margin: 8px auto 0;
+            max-width: 460px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @@media (max-width: 1100px) {
+            .genres-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @@media (max-width: 820px) {
+            .genres-page {
+                padding: 22px;
+            }
+
+            .genres-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @@media (max-width: 560px) {
+            .genres-page {
+                padding: 16px;
+            }
+
+            .genres-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .genres-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .genre-card {
+                min-height: 180px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+
+                <h1>
+                    Türler
+                </h1>
+
+                <p>
+                    Müzik tarzlarına göre şarkıları keşfet.
+                </p>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <div class="genres-page">
+
+        <div class="genres-container">
+
+            <div class="genres-header">
+
+                <div>
+
+                    <h2 class="genres-title">
+                        Müzik türleri
+                    </h2>
+
+                    <p class="genres-description">
+                        Sevdiğin müzik tarzını seç ve o türe ait şarkılara göz at.
+                    </p>
+
+                </div>
+
+                <div class="genres-count">
+                    @Model.Genres.Count() tür
+                </div>
+
+            </div>
+
+            @if (Model.Genres.Any())
+            {
+                <div class="genres-grid">
+
+                    @foreach (var genre in Model.Genres)
+                    {
+                        var songCount = genre.SongGenres?.Count ?? 0;
+
+                        <a asp-controller="UserDashboard"
+                           asp-action="GenreDetails"
+                           asp-route-genreId="@genre.Id"
+                           class="genre-card">
+
+                            <div class="genre-card-decoration"></div>
+
+                            <div class="genre-card-content">
+
+                                <div class="genre-icon">
+                                    ♫
+                                </div>
+
+                                <h3 class="genre-name">
+                                    @genre.Name
+                                </h3>
+
+                                <p class="genre-song-count">
+                                    @songCount şarkı
+                                </p>
+
+                            </div>
+
+                            <div class="genre-card-footer">
+
+                                <span class="genre-explore-text">
+                                    Türü keşfet
+                                </span>
+
+                                <span class="genre-arrow">
+                                    →
+                                </span>
+
+                            </div>
+
+                        </a>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="genres-empty">
+
+                    <div class="genres-empty-icon">
+                        ♫
+                    </div>
+
+                    <h3 class="genres-empty-title">
+                        Henüz müzik türü bulunmuyor
+                    </h3>
+
+                    <p class="genres-empty-description">
+                        Veritabanına tür eklendiğinde bu sayfada otomatik olarak listelenecek.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</main>

@@ -1,8 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.Models.Core;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MusicProject.Models.Concrete
@@ -11,12 +7,13 @@ namespace MusicProject.Models.Concrete
     public class SongGenre
     {
         public int SongId { get; set; }
+
         public int GenreId { get; set; }
 
-        [ForeignKey("SongId")]
+        [ForeignKey(nameof(SongId))]
         public virtual Song Song { get; set; } = null!;
 
-        [ForeignKey("GenreId")]
+        [ForeignKey(nameof(GenreId))]
         public virtual Genre Genre { get; set; } = null!;
     }
 }

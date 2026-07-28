@@ -7,14 +7,19 @@
     var isHome = controller == "UserDashboard" && action == "Index";
     var isAllSongs = controller == "UserDashboard" && action == "AllSongs";
     var isAllArtists = controller == "UserDashboard" && action == "AllArtists";
+
+    // DEĞİŞİKLİK:
+    // Türler sayfası ve tür detay sayfası için aktif menü kontrolü eklendi.
+    var isAllGenres = controller == "UserDashboard" && action == "AllGenres";
+    var isGenreDetails = controller == "UserDashboard" && action == "GenreDetails";
+    var isGenres = isAllGenres || isGenreDetails;
+
     var isLikedSongs = controller == "UserDashboard" && action == "LikedSongs";
     var isFollowedArtists = controller == "UserDashboard" && action == "FollowedArtists";
 
     var isListeningHistory = controller == "UserDashboard" &&
                              action == "ListeningHistory";
 
-    @* DEĞİŞİKLİK:
-       Hesap Ayarları sayfasının aktif menü kontrolü eklendi. *@
     var isUserSettings = controller == "UserDashboard" &&
                          action == "UserSettings";
 }
@@ -101,9 +106,13 @@
 
             <li class="navigation-item">
 
-                @* Türler sayfası henüz yapılmadığı için geçici olarak pasif bırakıldı. *@
-                <a href="#"
-                   class="navigation-link">
+                @* DEĞİŞİKLİK:
+                   Geçici href="#" kaldırıldı.
+                   Artık bütün türlerin listelendiği AllGenres action'ına gider.
+                   GenreDetails sayfasında da aktif görünür. *@
+                <a asp-controller="UserDashboard"
+                   asp-action="AllGenres"
+                   class="navigation-link @(isGenres ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ▤
@@ -182,9 +191,6 @@
 
             <li class="navigation-item">
 
-                @* DEĞİŞİKLİK:
-                   Geçici href="#" kaldırıldı.
-                   Artık UserSettings action'ına gider. *@
                 <a asp-controller="UserDashboard"
                    asp-action="UserSettings"
                    class="navigation-link @(isUserSettings ? "active" : string.Empty)">

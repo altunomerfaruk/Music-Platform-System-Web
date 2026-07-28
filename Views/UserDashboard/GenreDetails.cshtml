@@ -1,0 +1,664 @@
+﻿@model MusicProject.Models.ViewModels.GenreDetailsViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Genre.Name} Şarkıları";
+    Layout = "_UserLayout";
+
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    var songs = Model.Genre.SongGenres
+        .Select(songGenre => songGenre.Song)
+        .OrderBy(song => song.Title)
+        .ToList();
+}
+
+@section Styles {
+    <style>
+        .genre-details-page {
+            padding: 32px;
+        }
+
+        .genre-details-container {
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+        }
+
+        .genre-hero {
+            min-height: 240px;
+            padding: 34px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 30px;
+            background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.24), transparent 42% ), linear-gradient( 135deg, #17251c, #0f1612 );
+            border: 1px solid var(--border);
+            border-radius: 22px;
+        }
+
+        .genre-hero-decoration {
+            width: 270px;
+            height: 270px;
+            position: absolute;
+            top: -105px;
+            right: -65px;
+            background-color: rgba(30, 215, 96, 0.05);
+            border: 1px solid rgba(30, 215, 96, 0.09);
+            border-radius: 50%;
+        }
+
+        .genre-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .genre-label {
+            margin: 0 0 10px;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .genre-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(34px, 6vw, 60px);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+        }
+
+        .genre-description {
+            max-width: 590px;
+            margin: 12px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .genre-stat {
+            min-width: 125px;
+            padding: 18px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background-color: rgba(7, 15, 10, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .genre-stat-number {
+            color: #ffffff;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .genre-stat-label {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .genre-content {
+            margin-top: 25px;
+        }
+
+        .genre-section-header {
+            margin-bottom: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .genre-section-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 850;
+        }
+
+        .genre-section-description {
+            margin: 5px 0 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .back-link {
+            padding: 10px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #ffffff;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 750;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+            .back-link:hover {
+                color: var(--primary);
+                border-color: rgba(30, 215, 96, 0.28);
+            }
+
+        .genre-table-panel {
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .genre-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .genre-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .genre-table th,
+            .genre-table td {
+                padding: 15px 17px;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .genre-table th {
+                color: var(--text-secondary);
+                background-color: rgba(255, 255, 255, 0.015);
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .genre-table tbody tr {
+                transition: background-color 0.2s;
+            }
+
+                .genre-table tbody tr:hover {
+                    background-color: var(--card-hover);
+                }
+
+                .genre-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+        .genre-song-cell {
+            min-width: 260px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .genre-song-cover {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+            border: 1px solid rgba(30, 215, 96, 0.14);
+            border-radius: 10px;
+            font-size: 18px;
+        }
+
+        .genre-song-info {
+            min-width: 0;
+        }
+
+        .genre-song-title {
+            overflow: hidden;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 820;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .genre-song-artist {
+            margin-top: 4px;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .genre-details-link,
+        .genre-album-link {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+            .genre-details-link:hover,
+            .genre-album-link:hover {
+                color: var(--primary);
+            }
+
+        .genre-stream-count {
+            color: var(--text-secondary);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .genre-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 9px;
+        }
+
+        .genre-play-button,
+        .genre-like-button {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .genre-play-button {
+            color: #061108;
+            background-color: var(--primary);
+            border: none;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+            .genre-play-button:hover {
+                transform: scale(1.06);
+                background-color: #39eb79;
+            }
+
+        .genre-like-form {
+            margin: 0;
+        }
+
+        .genre-like-button {
+            color: #ffffff;
+            background-color: transparent;
+            border: 1px solid var(--border);
+            font-size: 17px;
+        }
+
+            .genre-like-button:hover {
+                color: var(--primary);
+                border-color: rgba(30, 215, 96, 0.32);
+            }
+
+            .genre-like-button.liked {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.09);
+                border-color: rgba(30, 215, 96, 0.27);
+            }
+
+        .genre-empty {
+            padding: 70px 25px;
+            text-align: center;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .genre-empty-icon {
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 46px;
+        }
+
+        .genre-empty-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 850;
+        }
+
+        .genre-empty-description {
+            margin: 8px auto 0;
+            max-width: 460px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @@media (max-width: 760px) {
+            .genre-details-page {
+                padding: 22px;
+            }
+
+            .genre-hero {
+                padding: 26px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .genre-stat {
+                width: 100%;
+            }
+
+            .genre-section-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .genre-table th:nth-child(3),
+            .genre-table td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        @@media (max-width: 560px) {
+            .genre-details-page {
+                padding: 16px;
+            }
+
+            .genre-hero {
+                min-height: 210px;
+                padding: 22px;
+            }
+
+            .genre-table th,
+            .genre-table td {
+                padding: 13px;
+            }
+
+                .genre-table th:nth-child(2),
+                .genre-table td:nth-child(2) {
+                    display: none;
+                }
+
+            .genre-song-cell {
+                min-width: 210px;
+            }
+        }
+    </style>
+}
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="menu-button"
+                    id="menuButton">
+                ☰
+            </button>
+
+            <div class="page-heading">
+
+                <h1>
+                    Tür Detayı
+                </h1>
+
+                <p>
+                    @Model.Genre.Name türündeki şarkıları keşfet.
+                </p>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <div class="genre-details-page">
+
+        <div class="genre-details-container">
+
+            <section class="genre-hero">
+
+                <div class="genre-hero-decoration"></div>
+
+                <div class="genre-hero-content">
+
+                    <p class="genre-label">
+                        Müzik türü
+                    </p>
+
+                    <h2 class="genre-title">
+                        @Model.Genre.Name
+                    </h2>
+
+                    <p class="genre-description">
+                        @Model.Genre.Name türüne bağlı şarkıları inceleyebilir,
+                        sevdiğin parçaları beğenebilir ve oynatabilirsin.
+                    </p>
+
+                </div>
+
+                <div class="genre-stat">
+
+                    <div class="genre-stat-number">
+                        @songs.Count
+                    </div>
+
+                    <div class="genre-stat-label">
+                        Şarkı
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="genre-content">
+
+                <div class="genre-section-header">
+
+                    <div>
+
+                        <h3 class="genre-section-title">
+                            @Model.Genre.Name şarkıları
+                        </h3>
+
+                        <p class="genre-section-description">
+                            Bu türe bağlı bütün şarkılar
+                        </p>
+
+                    </div>
+
+                    <a asp-controller="UserDashboard"
+                       asp-action="AllGenres"
+                       class="back-link">
+                        ← Tüm Türler
+                    </a>
+
+                </div>
+
+                @if (songs.Any())
+                {
+                    <div class="genre-table-panel">
+
+                        <div class="genre-table-wrapper">
+
+                            <table class="genre-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Şarkı</th>
+                                        <th>Albüm</th>
+                                        <th>Dinlenme</th>
+                                        <th style="text-align: right;">
+                                            İşlemler
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    @foreach (var song in songs)
+                                    {
+                                        var isLiked = Model.LikedSongIds.Contains(song.Id);
+
+                                        var artist = song.Album?.Artist ??
+                                                     song.SongArtists
+                                                         .Select(songArtist => songArtist.Artist)
+                                                         .FirstOrDefault();
+
+                                        var artistName = artist?.Name ?? "Sanatçı bilgisi yok";
+                                        var albumName = song.Album?.Name ?? "Single";
+
+                                        var likeButtonClass = isLiked
+                                            ? "genre-like-button liked"
+                                            : "genre-like-button";
+
+                                        var likeButtonIcon = isLiked
+                                            ? "♥"
+                                            : "♡";
+
+                                        var likeButtonTitle = isLiked
+                                            ? "Beğeniyi kaldır"
+                                            : "Şarkıyı beğen";
+
+                                        <tr>
+
+                                            <td>
+
+                                                <div class="genre-song-cell">
+
+                                                    <div class="genre-song-cover">
+                                                        ♪
+                                                    </div>
+
+                                                    <div class="genre-song-info">
+
+                                                        <a asp-controller="UserDashboard"
+                                                           asp-action="SongDetails"
+                                                           asp-route-songId="@song.Id"
+                                                           class="genre-details-link">
+
+                                                            <div class="genre-song-title">
+                                                                @song.Title
+                                                            </div>
+
+                                                        </a>
+
+                                                        <div class="genre-song-artist">
+                                                            @artistName
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </td>
+
+                                            <td>
+
+                                                @if (song.AlbumId.HasValue)
+                                                {
+                                                    <a asp-controller="UserDashboard"
+                                                       asp-action="AlbumDetails"
+                                                       asp-route-albumId="@song.AlbumId"
+                                                       class="genre-album-link">
+                                                        @albumName
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    @albumName
+                                                }
+
+                                            </td>
+
+                                            <td>
+
+                                                <span class="genre-stream-count">
+                                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                                </span>
+
+                                            </td>
+
+                                            <td>
+
+                                                <div class="genre-actions">
+
+                                                    @* data-song-id ortak user-player.js tarafından yakalanır. *@
+                                                    <button type="button"
+                                                            class="genre-play-button"
+                                                            data-song-id="@song.Id"
+                                                            title="@song.Title şarkısını oynat">
+                                                        ▶
+                                                    </button>
+
+                                                    <form asp-controller="UserDashboard"
+                                                          asp-action="ToggleLike"
+                                                          method="post"
+                                                          class="genre-like-form">
+
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden"
+                                                               name="songId"
+                                                               value="@song.Id" />
+
+                                                        <input type="hidden"
+                                                               name="returnUrl"
+                                                               value="@currentUrl" />
+
+                                                        <button type="submit"
+                                                                class="@likeButtonClass"
+                                                                title="@likeButtonTitle">
+                                                            @likeButtonIcon
+                                                        </button>
+
+                                                    </form>
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="genre-empty">
+
+                        <div class="genre-empty-icon">
+                            ♫
+                        </div>
+
+                        <h3 class="genre-empty-title">
+                            Bu türe bağlı şarkı bulunmuyor
+                        </h3>
+
+                        <p class="genre-empty-description">
+                            Şarkılar bu türe bağlandığında burada otomatik olarak listelenecek.
+                        </p>
+
+                    </div>
+                }
+
+            </section>
+
+        </div>
+
+    </div>
+
+</main>

@@ -105,7 +105,8 @@ builder.Services.AddScoped<IAlbumService, AlbumManager>();
 
 builder.Services.AddScoped<IListeningHistoryRepository, ListeningHistoryRepository>();
 builder.Services.AddScoped<IListeningHistoryService, ListeningHistoryManager>();
-
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IGenreService, GenreManager>();
 
 
 

@@ -1,22 +1,27 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MusicProject.Controllers.Base; 
+using MusicProject.Controllers.Base;
+using MusicProject.Models.Enums;
 using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
-using MusicProject.Models.Enums;
+
 namespace MusicProject.Controllers
 {
     [Authorize(Roles = "User,Artist")]
     public class UserDashboardController : UserBaseController
     {
-        private readonly IUserService _userService;
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
         private readonly IAlbumService _albumService;
         private readonly ILikedSongService _likedSongService;
         private readonly IFollowedArtistService _followedArtistService;
         private readonly IListeningHistoryService _listeningHistoryService;
+        private readonly IUserService _userService;
+        private readonly IGenreService _genreService;
+
         public UserDashboardController(
             ISongService songService,
             IArtistService artistService,
@@ -24,7 +29,8 @@ namespace MusicProject.Controllers
             ILikedSongService likedSongService,
             IFollowedArtistService followedArtistService,
             IListeningHistoryService listeningHistoryService,
-            IUserService userService)
+            IUserService userService,
+            IGenreService genreService)
         {
             _songService = songService;
             _artistService = artistService;
@@ -33,6 +39,7 @@ namespace MusicProject.Controllers
             _followedArtistService = followedArtistService;
             _listeningHistoryService = listeningHistoryService;
             _userService = userService;
+            _genreService = genreService;
         }
 
         [HttpGet]
@@ -175,6 +182,7 @@ namespace MusicProject.Controllers
             {
                 Artist = artist,
                 IsFollowed = followedArtistIds.Contains(artistId),
+
                 LikedSongIds = _likedSongService
                     .GetActiveLikedSongIds(userId)
                     .ToHashSet()
@@ -208,6 +216,7 @@ namespace MusicProject.Controllers
             var model = new AlbumDetailsViewModel
             {
                 Album = album,
+
                 LikedSongIds = _likedSongService
                     .GetActiveLikedSongIds(userId)
                     .ToHashSet()
@@ -217,30 +226,90 @@ namespace MusicProject.Controllers
 
             return View(model);
         }
+
         [HttpGet]
-        public IActionResult AllArtists()
+        [HttpGet]
+        public IActionResult AllArtists(string? search, string? country, string? sort, bool followedOnly = false)
         {
             if (!TryGetCurrentUserId(out var userId))
             {
                 return RedirectToLogin();
             }
 
+            search = search?.Trim() ?? string.Empty;
+            country = country?.Trim() ?? string.Empty;
+            sort = string.IsNullOrWhiteSpace(sort) ? "name-asc" : sort;
+
+            var allArtists = _artistService
+                .GetAllArtists()
+                .ToList();
+
+            var followedArtistIds = _followedArtistService
+                .GetActiveFollowedArtistIds(userId)
+                .ToHashSet();
+
+            var countries = allArtists
+                .Where(artist => !string.IsNullOrWhiteSpace(artist.Country))
+                .Select(artist => artist.Country!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(countryName => countryName)
+                .ToList();
+
+            IEnumerable<MusicProject.Models.Concrete.Artist> filteredArtists = allArtists;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filteredArtists = filteredArtists.Where(artist =>
+                    artist.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(country))
+            {
+                filteredArtists = filteredArtists.Where(artist =>
+                    !string.IsNullOrWhiteSpace(artist.Country) &&
+                    artist.Country.Equals(country, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (followedOnly)
+            {
+                filteredArtists = filteredArtists.Where(artist =>
+                    followedArtistIds.Contains(artist.Id));
+            }
+
+            filteredArtists = sort switch
+            {
+                "name-desc" => filteredArtists.OrderByDescending(artist => artist.Name),
+
+                "year-newest" => filteredArtists
+                    .OrderByDescending(artist => artist.DebutYear.HasValue)
+                    .ThenByDescending(artist => artist.DebutYear)
+                    .ThenBy(artist => artist.Name),
+
+                "year-oldest" => filteredArtists
+                    .OrderByDescending(artist => artist.DebutYear.HasValue)
+                    .ThenBy(artist => artist.DebutYear)
+                    .ThenBy(artist => artist.Name),
+
+                _ => filteredArtists.OrderBy(artist => artist.Name)
+            };
+
             var model = new AllArtistsViewModel
             {
-                Artists = _artistService
-                    .GetAllArtists()
-                    .OrderBy(artist => artist.Name)
-                    .ToList(),
-
-                FollowedArtistIds = _followedArtistService
-                    .GetActiveFollowedArtistIds(userId)
-                    .ToHashSet()
+                Artists = filteredArtists.ToList(),
+                FollowedArtistIds = followedArtistIds,
+                Search = search,
+                Country = country,
+                Sort = sort,
+                FollowedOnly = followedOnly,
+                Countries = countries,
+                TotalArtistCount = allArtists.Count
             };
 
             FillLayoutData(model, userId);
 
             return View(model);
         }
+
         [HttpGet]
         public IActionResult AllSongs()
         {
@@ -252,6 +321,64 @@ namespace MusicProject.Controllers
             var model = new AllSongsViewModel
             {
                 Songs = _songService.GetSongsSortedByAlphabet(),
+
+                LikedSongIds = _likedSongService
+                    .GetActiveLikedSongIds(userId)
+                    .ToHashSet()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult AllGenres()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var model = new AllGenresViewModel
+            {
+                Genres = _genreService
+                    .GetAllGenres()
+                    .OrderBy(genre => genre.Name)
+                    .ToList()
+            };
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
+        // DEĞİŞİKLİK:
+        // Seçilen müzik türünü ve o türe bağlı şarkıları gösterir.
+        [HttpGet]
+        public IActionResult GenreDetails(int genreId)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            if (genreId <= 0)
+            {
+                return BadRequest("Geçersiz tür bilgisi.");
+            }
+
+            var genre = _genreService.GetGenreDetails(genreId);
+
+            if (genre == null)
+            {
+                return NotFound("Tür bulunamadı.");
+            }
+
+            var model = new GenreDetailsViewModel
+            {
+                Genre = genre,
+
                 LikedSongIds = _likedSongService
                     .GetActiveLikedSongIds(userId)
                     .ToHashSet()
@@ -275,6 +402,7 @@ namespace MusicProject.Controllers
             var model = new SearchResultsViewModel
             {
                 Query = query,
+
                 LikedSongIds = _likedSongService
                     .GetActiveLikedSongIds(userId)
                     .ToHashSet(),
@@ -316,6 +444,7 @@ namespace MusicProject.Controllers
 
             return View("SearchResults", model);
         }
+
         [HttpGet]
         public IActionResult SearchSuggestions(string? query)
         {
@@ -398,7 +527,7 @@ namespace MusicProject.Controllers
 
             if (model == null)
             {
-                return NotFound();
+                return NotFound("Kullanıcı bulunamadı.");
             }
 
             FillLayoutData(model, userId);
@@ -408,7 +537,7 @@ namespace MusicProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UserSettings(UserSettingsViewModel model)
+        public async Task<IActionResult> UserSettings(UserSettingsViewModel model)
         {
             if (!TryGetCurrentUserId(out var userId))
             {
@@ -428,8 +557,10 @@ namespace MusicProject.Controllers
             switch (result)
             {
                 case UserSettingsResult.Success:
-                    TempData["SuccessMessage"] = "Bilgileriniz başarıyla güncellendi. " +
-                        "Değişikliklerin tamamını görmek için hesabınızdan çıkış yapıp tekrar giriş yapın.";
+                    await RefreshUserClaimsAsync(userId, model);
+
+                    TempData["SuccessMessage"] =
+                        "Hesap bilgileriniz başarıyla güncellendi.";
 
                     return RedirectToAction(nameof(UserSettings));
 
@@ -462,7 +593,7 @@ namespace MusicProject.Controllers
                     break;
 
                 case UserSettingsResult.UserNotFound:
-                    return NotFound();
+                    return NotFound("Kullanıcı bulunamadı.");
 
                 default:
                     ModelState.AddModelError(
@@ -476,6 +607,7 @@ namespace MusicProject.Controllers
 
             return View(model);
         }
+
         [HttpGet]
         public IActionResult ListeningHistory()
         {
@@ -497,6 +629,7 @@ namespace MusicProject.Controllers
 
             return View(model);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ToggleLike(int songId, string? returnUrl)
@@ -513,19 +646,19 @@ namespace MusicProject.Controllers
 
             _likedSongService.ToggleLike(userId, songId);
 
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            if (!string.IsNullOrWhiteSpace(returnUrl) &&
+                Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ToggleFollow(int artistId, string? returnUrl)
         {
-
             if (!TryGetCurrentUserId(out var userId))
             {
                 return RedirectToLogin();
@@ -538,28 +671,14 @@ namespace MusicProject.Controllers
 
             _followedArtistService.ToggleFollow(userId, artistId);
 
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            if (!string.IsNullOrWhiteSpace(returnUrl) &&
+                Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
-
-        private void FillLayoutData(UserLayoutViewModel model, int userId)
-        {
-            model.Username = User.FindFirstValue(ClaimTypes.Name) ?? "Kullanıcı";
-            model.Role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
-
-            model.LikedSongCount = _likedSongService
-                .GetActiveLikedSongIds(userId)
-                .Count();
-
-            model.FollowedArtistCount = _followedArtistService
-                .GetActiveFollowedArtistIds(userId)
-                .Count();
-        }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -590,6 +709,60 @@ namespace MusicProject.Controllers
                 success = true,
                 message = "Dinleme kaydı oluşturuldu."
             });
+        }
+
+        private void FillLayoutData(UserLayoutViewModel model, int userId)
+        {
+            model.Username =
+                User.FindFirstValue(ClaimTypes.Name) ?? "Kullanıcı";
+
+            model.Role =
+                User.FindFirstValue(ClaimTypes.Role) ?? "User";
+
+            model.LikedSongCount = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .Count();
+
+            model.FollowedArtistCount = _followedArtistService
+                .GetActiveFollowedArtistIds(userId)
+                .Count();
+        }
+
+        private async Task RefreshUserClaimsAsync(int userId, UserSettingsViewModel model)
+        {
+            var currentRole =
+                User.FindFirstValue(ClaimTypes.Role) ?? "User";
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Name, model.Username),
+                new Claim(ClaimTypes.Email, model.Email),
+                new Claim(ClaimTypes.Role, currentRole)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
+
+            var claimsPrincipal =
+                new ClaimsPrincipal(claimsIdentity);
+
+            var authenticationResult =
+                await HttpContext.AuthenticateAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme
+                );
+
+            var authenticationProperties =
+                authenticationResult.Properties ??
+                new AuthenticationProperties();
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                claimsPrincipal,
+                authenticationProperties
+            );
         }
     }
 }

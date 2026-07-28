@@ -5,6 +5,12 @@
     Layout = "_UserLayout";
 
     var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    var hasActiveFilters =
+        !string.IsNullOrWhiteSpace(Model.Search) ||
+        !string.IsNullOrWhiteSpace(Model.Country) ||
+        Model.FollowedOnly ||
+        Model.Sort != "name-asc";
 }
 
 @section Styles {
@@ -62,6 +68,147 @@
             font-weight: 800;
         }
 
+        .artist-filter-panel {
+            margin-top: 24px;
+            padding: 20px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .artist-filter-form {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 0.8fr) minmax(180px, 0.9fr) auto;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .filter-group {
+            min-width: 0;
+        }
+
+        .filter-label {
+            margin-bottom: 7px;
+            display: block;
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            color: #ffffff;
+            background-color: #0c110e;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+            .filter-input:focus,
+            .filter-select:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.10);
+            }
+
+            .filter-input::placeholder {
+                color: #69746d;
+            }
+
+            .filter-select option {
+                color: #ffffff;
+                background-color: #101612;
+            }
+
+        .filter-followed-wrapper {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .filter-checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .filter-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .filter-submit-button,
+        .filter-clear-button {
+            min-height: 42px;
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 11px;
+            font-weight: 850;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .filter-submit-button {
+            color: #061108;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+            .filter-submit-button:hover {
+                background-color: #39eb79;
+                transform: translateY(-1px);
+            }
+
+        .filter-clear-button {
+            color: #ffffff;
+            background-color: transparent;
+            border: 1px solid var(--border);
+        }
+
+            .filter-clear-button:hover {
+                color: var(--primary);
+                border-color: rgba(30, 215, 96, 0.32);
+            }
+
+        .filter-result-info {
+            margin-top: 17px;
+            padding-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+        }
+
+        .filter-result-count {
+            color: var(--primary);
+            font-weight: 850;
+        }
+
         .all-artists-grid {
             margin-top: 28px;
             display: grid;
@@ -78,10 +225,10 @@
             transition: 0.2s;
         }
 
-        .all-artist-card:hover {
-            background-color: var(--card-hover);
-            transform: translateY(-4px);
-        }
+            .all-artist-card:hover {
+                background-color: var(--card-hover);
+                transform: translateY(-4px);
+            }
 
         .all-artist-link {
             display: block;
@@ -122,6 +269,23 @@
             font-size: 11px;
         }
 
+        .all-artist-meta {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .artist-meta-badge {
+            padding: 5px 8px;
+            color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 9px;
+        }
+
         .follow-form {
             margin-top: 17px;
         }
@@ -135,20 +299,21 @@
             border-radius: 22px;
             font-size: 11px;
             font-weight: 850;
+            cursor: pointer;
             transition: 0.2s;
         }
 
-        .follow-button:hover {
-            color: #071008;
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
+            .follow-button:hover {
+                color: #071008;
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
 
-        .follow-button.followed {
-            color: #071008;
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
+            .follow-button.followed {
+                color: #071008;
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
 
         .empty-state {
             margin-top: 28px;
@@ -188,6 +353,12 @@
             text-decoration: none;
         }
 
+        @@media (max-width: 1050px) {
+            .artist-filter-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
         @@media (max-width: 800px) {
             .all-artists-content {
                 padding: 20px 16px;
@@ -202,6 +373,28 @@
                 width: 95px;
                 height: 95px;
                 font-size: 40px;
+            }
+
+            .filter-followed-wrapper,
+            .filter-result-info {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @@media (max-width: 560px) {
+            .artist-filter-form {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .filter-submit-button,
+            .filter-clear-button {
+                width: 100%;
             }
         }
     </style>
@@ -264,10 +457,164 @@
                 </p>
 
                 <p class="artists-hero-count">
-                    @Model.Artists.Count() sanatçı
+                    @Model.TotalArtistCount sanatçı
                 </p>
 
             </div>
+
+        </section>
+
+        <!-- DEĞİŞİKLİK:
+             Sanatçı arama, ülke, sıralama ve takip filtresi eklendi. -->
+        <section class="artist-filter-panel">
+
+            <form asp-controller="UserDashboard"
+                  asp-action="AllArtists"
+                  method="get">
+
+                <div class="artist-filter-form">
+
+                    <div class="filter-group">
+
+                        <label for="search"
+                               class="filter-label">
+                            Sanatçı ara
+                        </label>
+
+                        <input type="text"
+                               id="search"
+                               name="search"
+                               value="@Model.Search"
+                               class="filter-input"
+                               placeholder="Sanatçı adı yaz..." />
+
+                    </div>
+
+                    <div class="filter-group">
+
+                        <label for="country"
+                               class="filter-label">
+                            Ülke
+                        </label>
+
+                        <select id="country"
+                                name="country"
+                                class="filter-select">
+
+                            <option value="">
+                                Tüm ülkeler
+                            </option>
+
+                            @foreach (var countryName in Model.Countries)
+                            {
+                                if (Model.Country.Equals(countryName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <option value="@countryName" selected>
+                                        @countryName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@countryName">
+                                        @countryName
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="filter-group">
+
+                        <label for="sort"
+                               class="filter-label">
+                            Sırala
+                        </label>
+
+                        <select id="sort"
+                                name="sort"
+                                class="filter-select">
+
+                            <option value="name-asc"
+                                    selected="@(Model.Sort == "name-asc")">
+                                İsme göre A–Z
+                            </option>
+
+                            <option value="name-desc"
+                                    selected="@(Model.Sort == "name-desc")">
+                                İsme göre Z–A
+                            </option>
+
+                            <option value="year-newest"
+                                    selected="@(Model.Sort == "year-newest")">
+                                Çıkış yılı: Yeni–Eski
+                            </option>
+
+                            <option value="year-oldest"
+                                    selected="@(Model.Sort == "year-oldest")">
+                                Çıkış yılı: Eski–Yeni
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="filter-actions">
+
+                        <button type="submit"
+                                class="filter-submit-button">
+                            Filtrele
+                        </button>
+
+                        @if (hasActiveFilters)
+                        {
+                            <a asp-controller="UserDashboard"
+                               asp-action="AllArtists"
+                               class="filter-clear-button">
+                                Temizle
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="filter-followed-wrapper">
+
+                    <label class="filter-checkbox-label">
+
+                        <input type="checkbox"
+                               name="followedOnly"
+                               value="true"
+                               checked="@Model.FollowedOnly"
+                               class="filter-checkbox" />
+
+                        Yalnızca takip ettiklerimi göster
+
+                    </label>
+
+                </div>
+
+                <div class="filter-result-info">
+
+                    <span>
+                        Gösterilen sonuç:
+                        <strong class="filter-result-count">
+                            @Model.Artists.Count()
+                        </strong>
+                    </span>
+
+                    @if (hasActiveFilters)
+                    {
+                        <span>
+                            Filtreler aktif
+                        </span>
+                    }
+
+                </div>
+
+            </form>
 
         </section>
 
@@ -312,6 +659,24 @@
                                 Sanatçı
                             </p>
 
+                            <div class="all-artist-meta">
+
+                                @if (!string.IsNullOrWhiteSpace(artist.Country))
+                                {
+                                    <span class="artist-meta-badge">
+                                        @artist.Country
+                                    </span>
+                                }
+
+                                @if (artist.DebutYear.HasValue)
+                                {
+                                    <span class="artist-meta-badge">
+                                        Çıkış: @artist.DebutYear
+                                    </span>
+                                }
+
+                            </div>
+
                         </a>
 
                         <form asp-controller="UserDashboard"
@@ -351,19 +716,30 @@
                 </div>
 
                 <h3 class="empty-title">
-                    Henüz sanatçı bulunmuyor
+                    Sanatçı bulunamadı
                 </h3>
 
                 <p class="empty-description">
-                    Platforma sanatçı eklendiğinde bütün sanatçılar bu sayfada
-                    alfabetik olarak görüntülenecek.
+                    Seçtiğin filtrelere uygun sanatçı bulunamadı.
+                    Arama değerlerini değiştirerek tekrar deneyebilirsin.
                 </p>
 
-                <a asp-controller="UserDashboard"
-                   asp-action="Index"
-                   class="home-button">
-                    Ana Sayfaya Dön
-                </a>
+                @if (hasActiveFilters)
+                {
+                    <a asp-controller="UserDashboard"
+                       asp-action="AllArtists"
+                       class="home-button">
+                        Filtreleri Temizle
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="UserDashboard"
+                       asp-action="Index"
+                       class="home-button">
+                        Ana Sayfaya Dön
+                    </a>
+                }
 
             </section>
         }
