@@ -6,11 +6,6 @@ namespace MusicProject.Models.ViewModels
     {
         public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
-        [MaxLength(50, ErrorMessage = "Kullanıcı adı en fazla 50 karakter olabilir.")]
-        [Display(Name = "Kullanıcı adı")]
-        public string Username { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "E-posta adresi zorunludur.")]
         [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
         [MaxLength(100, ErrorMessage = "E-posta adresi en fazla 100 karakter olabilir.")]

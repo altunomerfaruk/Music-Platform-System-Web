@@ -51,9 +51,10 @@
 
     </form>
 
-    <script src="~/js/user-layout.js"
-            asp-append-version="true">
-    </script>
+    @* jQuery, kendisine bağımlı olan bütün scriptlerden ÖNCE yüklenmeli.
+       Scripts section'ı içinde _ValidationScriptsPartial render edildiğinde
+       jQuery'nin hazır olması gerekiyor. *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     @* DEĞİŞİKLİK:
        data-song-id bulunan bütün oynat butonlarını yöneten

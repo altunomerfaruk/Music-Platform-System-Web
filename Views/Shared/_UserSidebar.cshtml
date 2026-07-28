@@ -10,11 +10,13 @@
     var isLikedSongs = controller == "UserDashboard" && action == "LikedSongs";
     var isFollowedArtists = controller == "UserDashboard" && action == "FollowedArtists";
 
-    // DEĞİŞİKLİK:
-    // Son Dinlediklerim sayfası aktif olduğunda menü öğesinin
-    // active class alması için eklendi.
     var isListeningHistory = controller == "UserDashboard" &&
                              action == "ListeningHistory";
+
+    @* DEĞİŞİKLİK:
+       Hesap Ayarları sayfasının aktif menü kontrolü eklendi. *@
+    var isUserSettings = controller == "UserDashboard" &&
+                         action == "UserSettings";
 }
 
 <aside class="sidebar" id="sidebar">
@@ -67,9 +69,6 @@
 
             <li class="navigation-item">
 
-                @* DEĞİŞİKLİK:
-                   Geçici href="#" kaldırıldı.
-                   Artık AllSongs action'ına gider. *@
                 <a asp-controller="UserDashboard"
                    asp-action="AllSongs"
                    class="navigation-link @(isAllSongs ? "active" : string.Empty)">
@@ -86,9 +85,6 @@
 
             <li class="navigation-item">
 
-                @* DEĞİŞİKLİK:
-                   Geçici href="#" kaldırıldı.
-                   Artık AllArtists action'ına gider. *@
                 <a asp-controller="UserDashboard"
                    asp-action="AllArtists"
                    class="navigation-link @(isAllArtists ? "active" : string.Empty)">
@@ -169,6 +165,7 @@
             </li>
 
             <li class="navigation-item">
+
                 <a asp-controller="UserDashboard"
                    asp-action="ListeningHistory"
                    class="navigation-link @(isListeningHistory ? "active" : string.Empty)">
@@ -185,9 +182,12 @@
 
             <li class="navigation-item">
 
-                @* Hesap ayarları sayfası henüz yapılmadığı için şimdilik geçici. *@
-                <a href="#"
-                   class="navigation-link">
+                @* DEĞİŞİKLİK:
+                   Geçici href="#" kaldırıldı.
+                   Artık UserSettings action'ına gider. *@
+                <a asp-controller="UserDashboard"
+                   asp-action="UserSettings"
+                   class="navigation-link @(isUserSettings ? "active" : string.Empty)">
 
                     <span class="navigation-icon">
                         ⚙

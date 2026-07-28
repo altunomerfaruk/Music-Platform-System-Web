@@ -24,6 +24,10 @@
     <PackageReference Include="Microsoft.Graph" Version="6.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\lib\jquery-validation-unobtrusive\" />
+  </ItemGroup>
+
   <!--
     KORUMA: Visual Studio bazen yeni eklenen .cshtml dosyalarini yanlislikla
     <Compile Include="..."/> olarak projeye ekliyor. Bu durumda Razor/HTML/CSS
@@ -38,8 +42,7 @@
       <Compile Remove="@(_MisplacedRazorFiles)" />
       <Content Include="@(_MisplacedRazorFiles)" Condition="'@(_MisplacedRazorFiles)' != ''" />
     </ItemGroup>
-    <Warning Condition="'@(_MisplacedRazorFiles)' != ''"
-             Text="Su .cshtml dosyalari csproj icinde yanlislikla Compile olarak isaretlenmis ve otomatik duzeltildi: @(_MisplacedRazorFiles). Kalici cozum icin csproj'daki ilgili &lt;Compile Include&gt; satirlarini silin." />
+    <Warning Condition="'@(_MisplacedRazorFiles)' != ''" Text="Su .cshtml dosyalari csproj icinde yanlislikla Compile olarak isaretlenmis ve otomatik duzeltildi: @(_MisplacedRazorFiles). Kalici cozum icin csproj'daki ilgili &lt;Compile Include&gt; satirlarini silin." />
   </Target>
 
 </Project>

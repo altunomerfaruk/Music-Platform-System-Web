@@ -4,13 +4,13 @@ using MusicProject.Controllers.Base;
 using MusicProject.Models.ViewModels;
 using MusicProject.Services.Interface;
 using System.Security.Claims;
-
+using MusicProject.Models.Enums;
 namespace MusicProject.Controllers
 {
     [Authorize(Roles = "User,Artist")]
     public class UserDashboardController : UserBaseController
     {
-
+        private readonly IUserService _userService;
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
         private readonly IAlbumService _albumService;
@@ -23,7 +23,8 @@ namespace MusicProject.Controllers
             IAlbumService albumService,
             ILikedSongService likedSongService,
             IFollowedArtistService followedArtistService,
-            IListeningHistoryService listeningHistoryService)
+            IListeningHistoryService listeningHistoryService,
+            IUserService userService)
         {
             _songService = songService;
             _artistService = artistService;
@@ -31,6 +32,7 @@ namespace MusicProject.Controllers
             _likedSongService = likedSongService;
             _followedArtistService = followedArtistService;
             _listeningHistoryService = listeningHistoryService;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -382,6 +384,97 @@ namespace MusicProject.Controllers
                 artists,
                 albums
             });
+        }
+
+        [HttpGet]
+        public IActionResult UserSettings()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var model = _userService.GetUserSettings(userId);
+
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            FillLayoutData(model, userId);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UserSettings(UserSettingsViewModel model)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            model.UserId = userId;
+
+            if (!ModelState.IsValid)
+            {
+                FillLayoutData(model, userId);
+                return View(model);
+            }
+
+            var result = _userService.UpdateUserSettings(userId, model);
+
+            switch (result)
+            {
+                case UserSettingsResult.Success:
+                    TempData["SuccessMessage"] = "Bilgileriniz başarıyla güncellendi. " +
+                        "Değişikliklerin tamamını görmek için hesabınızdan çıkış yapıp tekrar giriş yapın.";
+
+                    return RedirectToAction(nameof(UserSettings));
+
+                case UserSettingsResult.UsernameAlreadyExists:
+                    ModelState.AddModelError(
+                        nameof(model.Username),
+                        "Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor."
+                    );
+                    break;
+
+                case UserSettingsResult.EmailAlreadyExists:
+                    ModelState.AddModelError(
+                        nameof(model.Email),
+                        "Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor."
+                    );
+                    break;
+
+                case UserSettingsResult.CurrentPasswordIncorrect:
+                    ModelState.AddModelError(
+                        nameof(model.CurrentPassword),
+                        "Mevcut şifreniz yanlış."
+                    );
+                    break;
+
+                case UserSettingsResult.NewPasswordRequired:
+                    ModelState.AddModelError(
+                        nameof(model.NewPassword),
+                        "Şifre değiştirmek için yeni şifrenizi girmelisiniz."
+                    );
+                    break;
+
+                case UserSettingsResult.UserNotFound:
+                    return NotFound();
+
+                default:
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Hesap bilgileri güncellenirken beklenmeyen bir hata oluştu."
+                    );
+                    break;
+            }
+
+            FillLayoutData(model, userId);
+
+            return View(model);
         }
         [HttpGet]
         public IActionResult ListeningHistory()

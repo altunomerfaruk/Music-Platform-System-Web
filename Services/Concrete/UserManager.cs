@@ -21,8 +21,6 @@ namespace MusicProject.Services.Concrete
 
             var user = _userRepository.GetByEmail(normalizedEmail);
 
-            // DEĞİŞİKLİK:
-            // Pasif kullanıcıların sisteme giriş yapması engellendi.
             if (user != null &&
                 user.IsActive &&
                 user.Password == password)
@@ -35,8 +33,6 @@ namespace MusicProject.Services.Concrete
 
         public bool Register(User user)
         {
-            // DEĞİŞİKLİK:
-            // Kullanıcı adı ve e-postadaki gereksiz boşluklar temizleniyor.
             user.Username = user.Username.Trim();
             user.Email = user.Email.Trim();
 
@@ -47,9 +43,6 @@ namespace MusicProject.Services.Concrete
                 return false;
             }
 
-            // DEĞİŞİKLİK:
-            // Önceden yalnızca e-posta kontrol ediliyordu.
-            // Artık aynı kullanıcı adıyla ikinci hesap da oluşturulamaz.
             var existingUsername = _userRepository.GetByUsername(user.Username);
 
             if (existingUsername != null)
@@ -62,9 +55,6 @@ namespace MusicProject.Services.Concrete
             return true;
         }
 
-        // DEĞİŞİKLİK:
-        // Entity doğrudan View'a gönderilmez.
-        // Yalnızca ayarlar ekranında kullanılacak alanlar ViewModel'e aktarılır.
         public UserSettingsViewModel? GetUserSettings(int userId)
         {
             var user = _userRepository.GetById(userId);
@@ -96,9 +86,6 @@ namespace MusicProject.Services.Concrete
             var normalizedUsername = model.Username.Trim();
             var normalizedEmail = model.Email.Trim();
 
-            // DEĞİŞİKLİK:
-            // Kullanıcı kendi mevcut kullanıcı adını kullanabilir.
-            // Yalnızca başka bir kullanıcıda varsa hata döner.
             var usernameExists = _userRepository.UsernameExists(
                 normalizedUsername,
                 userId
@@ -109,9 +96,6 @@ namespace MusicProject.Services.Concrete
                 return UserSettingsResult.UsernameAlreadyExists;
             }
 
-            // DEĞİŞİKLİK:
-            // Kullanıcı kendi mevcut e-postasını kullanabilir.
-            // Yalnızca başka bir kullanıcıda varsa hata döner.
             var emailExists = _userRepository.EmailExists(
                 normalizedEmail,
                 userId
@@ -129,9 +113,7 @@ namespace MusicProject.Services.Concrete
 
             if (wantsToChangePassword)
             {
-                // DEĞİŞİKLİK:
-                // Şifre alanlarından herhangi biri doldurulduysa
-                // mevcut şifrenin de girilmesi zorunludur.
+
                 if (string.IsNullOrWhiteSpace(model.CurrentPassword) ||
                     user.Password != model.CurrentPassword)
                 {
@@ -143,8 +125,6 @@ namespace MusicProject.Services.Concrete
                     return UserSettingsResult.NewPasswordRequired;
                 }
 
-                // ConfirmNewPassword eşleşme kontrolü ViewModel üzerindeki
-                // Compare doğrulaması tarafından yapılır.
                 user.Password = model.NewPassword;
             }
 
