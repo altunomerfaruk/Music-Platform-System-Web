@@ -2,6 +2,7 @@
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
+
 namespace MusicProject.Services.Concrete
 {
     public class SongManager : ISongService
@@ -51,6 +52,7 @@ namespace MusicProject.Services.Concrete
                 Genres = genres
             };
         }
+
         public IEnumerable<Song> GetAllSongs()
         {
             return _songRepository.GetAll();
@@ -59,29 +61,60 @@ namespace MusicProject.Services.Concrete
         public Song? GetSongById(int id)
         {
             return _songRepository.GetByID(id);
-
         }
 
         public void AddSong(Song song)
         {
-            bool isSongExists = _songRepository
-                .GetAll()
-                .Any(existingSong =>
-                    existingSong.Title.Equals(
-                        song.Title,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                );
+            ValidateTitle(song.Title);
 
-            if (isSongExists)
-            {
-                throw new InvalidOperationException(
-                    $"'{song.Title}' adında bir şarkı zaten sistemde kayıtlı. " +
-                    "Lütfen farklı bir isim giriniz."
-                );
-            }
+            song.Title = song.Title.Trim();
 
             _songRepository.Create(song);
+        }
+
+        public void AddSongWithRelations(
+            Song song,
+            int artistId,
+            IEnumerable<int> genreIds)
+        {
+            if (artistId <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Geçerli bir sanatçı profili bulunamadı.");
+            }
+
+            ValidateTitle(song.Title);
+
+            var normalizedTitle = song.Title.Trim();
+
+            var songExists =
+                _songRepository.ExistsByTitleAndArtist(
+                    normalizedTitle,
+                    artistId);
+
+            if (songExists)
+            {
+                throw new InvalidOperationException(
+                    $"'{normalizedTitle}' adında bir şarkı bu sanatçı hesabında zaten kayıtlı.");
+            }
+
+            var selectedGenreIds = genreIds
+                .Where(genreId => genreId > 0)
+                .Distinct()
+                .ToList();
+
+            if (selectedGenreIds.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Şarkı için en az bir müzik türü seçmelisiniz.");
+            }
+
+            song.Title = normalizedTitle;
+
+            _songRepository.CreateSongWithRelations(
+                song,
+                artistId,
+                selectedGenreIds);
         }
 
         public void UpdateSong(Song song)
@@ -103,9 +136,25 @@ namespace MusicProject.Services.Concrete
         {
             return _songRepository.GetSongsSortedByAlphabet();
         }
+
         public List<Song> GetPopularSongs()
         {
             return _songRepository.GetPopularSongs();
+        }
+
+        private static void ValidateTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new InvalidOperationException(
+                    "Şarkı adı boş bırakılamaz.");
+            }
+
+            if (title.Trim().Length > 100)
+            {
+                throw new InvalidOperationException(
+                    "Şarkı adı en fazla 100 karakter olabilir.");
+            }
         }
     }
 }

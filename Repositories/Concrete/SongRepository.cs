@@ -12,28 +12,22 @@ namespace MusicProject.Repositories.Concrete
         {
         }
 
+        public Song? GetByID(int id)
+        {
+            return _dbSet.Find(id);
+        }
+
         public IEnumerable<Song> GetSongsSortedByAlphabet()
         {
             return _dbSet
                 .AsNoTracking()
-
-                // DEĞİŞİKLİK:
-                // Albümle beraber albümün sanatçısı da yükleniyor.
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
-
-                // DEĞİŞİKLİK:
-                // Şarkıya doğrudan bağlı sanatçılar filtreleme için yükleniyor.
                 .Include(song => song.SongArtists)
                     .ThenInclude(songArtist => songArtist.Artist)
-
-                // DEĞİŞİKLİK:
-                // Tür filtresinin çalışabilmesi için şarkı-tür ilişkileri yükleniyor.
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
-
                 .Include(song => song.SongStat)
-
                 .OrderBy(song => song.Title)
                 .ThenByDescending(song => song.AlbumId)
                 .ToList();
@@ -44,20 +38,13 @@ namespace MusicProject.Repositories.Concrete
             return _dbSet
                 .AsNoTracking()
                 .Where(song => song.AlbumId == albumId)
-
-                // DEĞİŞİKLİK:
-                // Albüm şarkıları gösterilirken detay bilgilerinin de hazır gelmesi sağlandı.
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
-
                 .Include(song => song.SongArtists)
                     .ThenInclude(songArtist => songArtist.Artist)
-
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
-
                 .Include(song => song.SongStat)
-
                 .OrderBy(song => song.Title)
                 .ToList();
         }
@@ -69,15 +56,12 @@ namespace MusicProject.Repositories.Concrete
                 .Include(song => song.SongStat)
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
-
                 .Include(song => song.SongArtists)
                     .ThenInclude(songArtist => songArtist.Artist)
-
                 .OrderByDescending(song =>
                     song.SongStat != null
                         ? song.SongStat.PopularityScore
-                        : 0
-                )
+                        : 0)
                 .ThenBy(song => song.Title)
                 .Take(5)
                 .ToList();
@@ -108,6 +92,75 @@ namespace MusicProject.Repositories.Concrete
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
                 .FirstOrDefault(song => song.Id == songId);
+        }
+
+        public bool ExistsByTitleAndArtist(string title, int artistId)
+        {
+            var normalizedTitle = title.Trim();
+
+            return _context.Songs
+                .AsNoTracking()
+                .Any(song =>
+                    song.Title == normalizedTitle &&
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.ArtistId == artistId));
+        }
+
+        public void CreateSongWithRelations(
+            Song song,
+            int artistId,
+            IEnumerable<int> genreIds)
+        {
+            using var transaction =
+                _context.Database.BeginTransaction();
+
+            try
+            {
+                _context.Songs.Add(song);
+                _context.SaveChanges();
+
+                var songArtist = new SongArtist
+                {
+                    SongId = song.Id,
+                    ArtistId = artistId
+                };
+
+                _context.SongArtists.Add(songArtist);
+
+                var distinctGenreIds = genreIds
+                    .Where(genreId => genreId > 0)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var genreId in distinctGenreIds)
+                {
+                    var songGenre = new SongGenre
+                    {
+                        SongId = song.Id,
+                        GenreId = genreId
+                    };
+
+                    _context.SongGenres.Add(songGenre);
+                }
+
+                var songStat = new SongStat
+                {
+                    SongId = song.Id,
+                    TotalStreams = 0,
+                    TotalLikes = 0,
+                    PopularityScore = 0
+                };
+
+                _context.SongStats.Add(songStat);
+                _context.SaveChanges();
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 }
