@@ -464,8 +464,6 @@
 
         </section>
 
-        <!-- DEĞİŞİKLİK:
-             Sanatçı arama, ülke, sıralama ve takip filtresi eklendi. -->
         <section class="artist-filter-panel">
 
             <form asp-controller="UserDashboard"
@@ -536,25 +534,61 @@
                                 name="sort"
                                 class="filter-select">
 
-                            <option value="name-asc"
-                                    selected="@(Model.Sort == "name-asc")">
-                                İsme göre A–Z
-                            </option>
+                            @* DEĞİŞİKLİK:
+                               selected="False" oluşmaması için
+                               seçenekler koşullu olarak yazıldı. *@
 
-                            <option value="name-desc"
-                                    selected="@(Model.Sort == "name-desc")">
-                                İsme göre Z–A
-                            </option>
+                            @if (Model.Sort == "name-asc")
+                            {
+                                <option value="name-asc" selected>
+                                    İsme göre A–Z
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="name-asc">
+                                    İsme göre A–Z
+                                </option>
+                            }
 
-                            <option value="year-newest"
-                                    selected="@(Model.Sort == "year-newest")">
-                                Çıkış yılı: Yeni–Eski
-                            </option>
+                            @if (Model.Sort == "name-desc")
+                            {
+                                <option value="name-desc" selected>
+                                    İsme göre Z–A
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="name-desc">
+                                    İsme göre Z–A
+                                </option>
+                            }
 
-                            <option value="year-oldest"
-                                    selected="@(Model.Sort == "year-oldest")">
-                                Çıkış yılı: Eski–Yeni
-                            </option>
+                            @if (Model.Sort == "year-newest")
+                            {
+                                <option value="year-newest" selected>
+                                    Çıkış yılı: Yeni–Eski
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="year-newest">
+                                    Çıkış yılı: Yeni–Eski
+                                </option>
+                            }
+
+                            @if (Model.Sort == "year-oldest")
+                            {
+                                <option value="year-oldest" selected>
+                                    Çıkış yılı: Eski–Yeni
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="year-oldest">
+                                    Çıkış yılı: Eski–Yeni
+                                </option>
+                            }
 
                         </select>
 
@@ -584,11 +618,25 @@
 
                     <label class="filter-checkbox-label">
 
-                        <input type="checkbox"
-                               name="followedOnly"
-                               value="true"
-                               checked="@Model.FollowedOnly"
-                               class="filter-checkbox" />
+                        @* DEĞİŞİKLİK:
+                           checked="False" oluşmasını engellemek için
+                           checkbox koşullu yazıldı. *@
+
+                        @if (Model.FollowedOnly)
+                        {
+                            <input type="checkbox"
+                                   name="followedOnly"
+                                   value="true"
+                                   checked
+                                   class="filter-checkbox" />
+                        }
+                        else
+                        {
+                            <input type="checkbox"
+                                   name="followedOnly"
+                                   value="true"
+                                   class="filter-checkbox" />
+                        }
 
                         Yalnızca takip ettiklerimi göster
 

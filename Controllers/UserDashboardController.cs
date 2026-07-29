@@ -228,7 +228,6 @@ namespace MusicProject.Controllers
         }
 
         [HttpGet]
-        [HttpGet]
         public IActionResult AllArtists(string? search, string? country, string? sort, bool followedOnly = false)
         {
             if (!TryGetCurrentUserId(out var userId))
@@ -311,20 +310,120 @@ namespace MusicProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult AllSongs()
+        public IActionResult AllSongs(string? search,int? artistId,int? albumId,int? genreId,string? sort,bool likedOnly = false)
         {
             if (!TryGetCurrentUserId(out var userId))
             {
                 return RedirectToLogin();
             }
 
+            search = search?.Trim() ?? string.Empty;
+            sort = string.IsNullOrWhiteSpace(sort) ? "name-asc" : sort;
+
+            var allSongs = _songService
+                .GetSongsSortedByAlphabet()
+                .ToList();
+
+            var likedSongIds = _likedSongService
+                .GetActiveLikedSongIds(userId)
+                .ToHashSet();
+
+            IEnumerable<MusicProject.Models.Concrete.Song> filteredSongs = allSongs;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filteredSongs = filteredSongs.Where(song =>
+                    song.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    (song.Album != null &&
+                     song.Album.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (song.Album?.Artist != null &&
+                     song.Album.Artist.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.Artist.Name.Contains(
+                            search,
+                            StringComparison.OrdinalIgnoreCase
+                        )));
+            }
+
+            if (artistId.HasValue)
+            {
+                filteredSongs = filteredSongs.Where(song =>
+                    song.Album?.ArtistId == artistId.Value ||
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.ArtistId == artistId.Value));
+            }
+
+            if (albumId.HasValue)
+            {
+                filteredSongs = filteredSongs.Where(song =>
+                    song.AlbumId == albumId.Value);
+            }
+
+            if (genreId.HasValue)
+            {
+                filteredSongs = filteredSongs.Where(song =>
+                    song.SongGenres.Any(songGenre =>
+                        songGenre.GenreId == genreId.Value));
+            }
+
+            if (likedOnly)
+            {
+                filteredSongs = filteredSongs.Where(song =>
+                    likedSongIds.Contains(song.Id));
+            }
+
+            filteredSongs = sort switch
+            {
+                "name-desc" => filteredSongs
+                    .OrderByDescending(song => song.Title),
+
+                "streams-desc" => filteredSongs
+                    .OrderByDescending(song => song.SongStat?.TotalStreams ?? 0)
+                    .ThenBy(song => song.Title),
+
+                "streams-asc" => filteredSongs
+                    .OrderBy(song => song.SongStat?.TotalStreams ?? 0)
+                    .ThenBy(song => song.Title),
+
+                "newest" => filteredSongs
+                    .OrderByDescending(song => song.CreatedAt)
+                    .ThenBy(song => song.Title),
+
+                "oldest" => filteredSongs
+                    .OrderBy(song => song.CreatedAt)
+                    .ThenBy(song => song.Title),
+
+                _ => filteredSongs.OrderBy(song => song.Title)
+            };
+
             var model = new AllSongsViewModel
             {
-                Songs = _songService.GetSongsSortedByAlphabet(),
+                Songs = filteredSongs.ToList(),
+                LikedSongIds = likedSongIds,
 
-                LikedSongIds = _likedSongService
-                    .GetActiveLikedSongIds(userId)
-                    .ToHashSet()
+                Search = search,
+                ArtistId = artistId,
+                AlbumId = albumId,
+                GenreId = genreId,
+                Sort = sort,
+                LikedOnly = likedOnly,
+
+                Artists = _artistService
+                    .GetAllArtists()
+                    .OrderBy(artist => artist.Name)
+                    .ToList(),
+
+                Albums = _albumService
+                    .GetAllAlbums()
+                    .OrderBy(album => album.Name)
+                    .ToList(),
+
+                Genres = _genreService
+                    .GetAllGenres()
+                    .OrderBy(genre => genre.Name)
+                    .ToList(),
+
+                TotalSongCount = allSongs.Count
             };
 
             FillLayoutData(model, userId);

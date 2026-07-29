@@ -5,6 +5,20 @@
     Layout = "_UserLayout";
 
     var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    var selectedArtist = Model.ArtistId.HasValue
+        ? Model.Artists.FirstOrDefault(artist => artist.Id == Model.ArtistId.Value)
+        : null;
+
+    var selectedArtistName = selectedArtist?.Name ?? "Tüm sanatçılar";
+
+    var hasActiveFilters =
+        !string.IsNullOrWhiteSpace(Model.Search) ||
+        Model.ArtistId.HasValue ||
+        Model.AlbumId.HasValue ||
+        Model.GenreId.HasValue ||
+        Model.LikedOnly ||
+        Model.Sort != "name-asc";
 }
 
 @section Styles {
@@ -62,6 +76,288 @@
             font-weight: 800;
         }
 
+        .song-filter-panel {
+            margin-top: 24px;
+            padding: 20px;
+            position: relative;
+            z-index: 20;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .song-filter-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(210px, 1.4fr)
+                repeat(3, minmax(150px, 0.8fr))
+                minmax(180px, 0.9fr);
+            gap: 13px;
+            align-items: end;
+        }
+
+        .filter-group {
+            min-width: 0;
+        }
+
+        .filter-label {
+            margin-bottom: 7px;
+            display: block;
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            height: 44px;
+            padding: 0 13px;
+            color: #ffffff;
+            background-color: #0c110e;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.10);
+        }
+
+        .filter-input::placeholder {
+            color: #69746d;
+        }
+
+        .filter-select option {
+            color: #ffffff;
+            background-color: #101612;
+        }
+
+        /* DEĞİŞİKLİK:
+           Normal sanatçı select'i yerine aranabilir özel dropdown eklendi. */
+        .artist-search-wrapper {
+            position: relative;
+        }
+
+        .artist-select-button {
+            width: 100%;
+            height: 44px;
+            padding: 0 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: #ffffff;
+            background-color: #0c110e;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .artist-select-button:hover,
+        .artist-select-button.active {
+            border-color: var(--primary);
+        }
+
+        .artist-select-button.active {
+            box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.10);
+        }
+
+        .artist-selected-text {
+            min-width: 0;
+            overflow: hidden;
+            font-size: 13px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .artist-select-arrow {
+            flex-shrink: 0;
+            color: var(--text-secondary);
+            font-size: 15px;
+            transition: transform 0.2s;
+        }
+
+        .artist-select-button.active .artist-select-arrow {
+            color: var(--primary);
+            transform: rotate(180deg);
+        }
+
+        .artist-select-dropdown {
+            width: 100%;
+            min-width: 230px;
+            padding: 10px;
+            position: absolute;
+            top: calc(100% + 7px);
+            left: 0;
+            z-index: 300;
+            display: none;
+            background-color: #0c110e;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
+        }
+
+        .artist-select-dropdown.open {
+            display: block;
+        }
+
+        .artist-search-input {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            color: #ffffff;
+            background-color: #121914;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .artist-search-input::placeholder {
+            color: #69746d;
+        }
+
+        .artist-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
+        }
+
+        .artist-select-options {
+            max-height: 235px;
+            margin-top: 9px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .artist-select-option {
+            width: 100%;
+            padding: 10px 11px;
+            display: block;
+            overflow: hidden;
+            color: #ffffff;
+            background-color: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: 0.15s;
+        }
+
+        .artist-select-option:hover {
+            color: #071008;
+            background-color: var(--primary);
+        }
+
+        .artist-select-option.selected {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.09);
+        }
+
+        .artist-select-option.selected:hover {
+            color: #071008;
+            background-color: var(--primary);
+        }
+
+        .artist-select-empty {
+            margin: 12px 5px;
+            display: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .filter-bottom {
+            margin-top: 15px;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .filter-checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .filter-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .filter-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-result {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .filter-result strong {
+            color: var(--primary);
+        }
+
+        .filter-button,
+        .clear-filter-button {
+            min-height: 42px;
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 11px;
+            font-weight: 850;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .filter-button {
+            color: #061108;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .filter-button:hover {
+            background-color: #39eb79;
+            transform: translateY(-1px);
+        }
+
+        .clear-filter-button {
+            color: #ffffff;
+            background-color: transparent;
+            border: 1px solid var(--border);
+        }
+
+        .clear-filter-button:hover {
+            color: var(--primary);
+            border-color: rgba(30, 215, 96, 0.32);
+        }
+
         .songs-panel {
             margin-top: 28px;
             overflow: hidden;
@@ -75,37 +371,37 @@
             border-collapse: collapse;
         }
 
-            .songs-table th,
-            .songs-table td {
-                padding: 15px 18px;
-                border-bottom: 1px solid var(--border);
-                text-align: left;
-            }
+        .songs-table th,
+        .songs-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
 
-            .songs-table th {
-                color: #687169;
-                font-size: 10px;
-                font-weight: 850;
-                letter-spacing: 0.8px;
-                text-transform: uppercase;
-            }
+        .songs-table th {
+            color: #687169;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
 
-            .songs-table td {
-                color: #d8ded9;
-                font-size: 12px;
-            }
+        .songs-table td {
+            color: #d8ded9;
+            font-size: 12px;
+        }
 
-            .songs-table tbody tr {
-                transition: 0.2s;
-            }
+        .songs-table tbody tr {
+            transition: 0.2s;
+        }
 
-                .songs-table tbody tr:hover {
-                    background-color: var(--card-hover);
-                }
+        .songs-table tbody tr:hover {
+            background-color: var(--card-hover);
+        }
 
-                .songs-table tbody tr:last-child td {
-                    border-bottom: none;
-                }
+        .songs-table tbody tr:last-child td {
+            border-bottom: none;
+        }
 
         .song-cell {
             display: flex;
@@ -126,20 +422,23 @@
             font-size: 18px;
         }
 
-        .song-details-link {
-            display: inline-block;
+        .song-details-link,
+        .album-link,
+        .artist-link {
             color: inherit;
             text-decoration: none;
-        }
-
-        .song-title {
-            color: white;
-            font-size: 13px;
-            font-weight: 800;
             transition: 0.2s;
         }
 
-        .song-details-link:hover .song-title {
+        .song-title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .song-details-link:hover .song-title,
+        .album-link:hover,
+        .artist-link:hover {
             color: var(--primary);
         }
 
@@ -164,13 +463,14 @@
             border: none;
             border-radius: 50%;
             font-size: 12px;
+            cursor: pointer;
             transition: 0.2s;
         }
 
-            .play-button:hover {
-                background-color: var(--primary-hover);
-                transform: scale(1.07);
-            }
+        .play-button:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.07);
+        }
 
         .like-form {
             margin: 0;
@@ -181,14 +481,15 @@
             background: transparent;
             border: none;
             font-size: 20px;
+            cursor: pointer;
             transition: 0.2s;
         }
 
-            .like-button:hover,
-            .like-button.liked {
-                color: var(--primary);
-                transform: scale(1.10);
-            }
+        .like-button:hover,
+        .like-button.liked {
+            color: var(--primary);
+            transform: scale(1.10);
+        }
 
         .empty-state {
             margin-top: 28px;
@@ -225,6 +526,13 @@
             border-radius: 23px;
             font-size: 12px;
             font-weight: 850;
+            text-decoration: none;
+        }
+
+        @@media (max-width: 1150px) {
+            .song-filter-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
         }
 
         @@media (max-width: 800px) {
@@ -237,12 +545,42 @@
                 flex-direction: column;
             }
 
+            .song-filter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filter-bottom {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .artist-select-dropdown {
+                min-width: 100%;
+            }
+
             .songs-panel {
                 overflow-x: auto;
             }
 
             .songs-table {
-                min-width: 720px;
+                min-width: 850px;
+            }
+        }
+
+        @@media (max-width: 560px) {
+            .song-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-right {
+                width: 100%;
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .filter-button,
+            .clear-filter-button {
+                width: 100%;
             }
         }
     </style>
@@ -294,14 +632,336 @@
                 </h2>
 
                 <p class="songs-hero-description">
-                    Platformda yayınlanan bütün şarkıları alfabetik sırayla görüntüle.
+                    Platformda yayınlanan şarkıları sanatçı, albüm ve türe göre keşfet.
                 </p>
 
                 <p class="songs-hero-count">
-                    @Model.Songs.Count() şarkı
+                    @Model.TotalSongCount şarkı
                 </p>
 
             </div>
+
+        </section>
+
+        <section class="song-filter-panel">
+
+            <form asp-controller="UserDashboard"
+                  asp-action="AllSongs"
+                  method="get">
+
+                <div class="song-filter-grid">
+
+                    <div class="filter-group">
+
+                        <label for="search"
+                               class="filter-label">
+                            Şarkı ara
+                        </label>
+
+                        <input type="text"
+                               id="search"
+                               name="search"
+                               value="@Model.Search"
+                               class="filter-input"
+                               placeholder="Şarkı, albüm veya sanatçı..." />
+
+                    </div>
+
+                    @* DEĞİŞİKLİK:
+                       Normal sanatçı select'i kaldırıldı.
+                       Seçilen sanatçı Id'si hidden input ile gönderiliyor. *@
+                    <div class="filter-group artist-search-wrapper"
+                         id="artistSearchWrapper">
+
+                        <label for="artistSelectButton"
+                               class="filter-label">
+                            Sanatçı
+                        </label>
+
+                        <input type="hidden"
+                               id="artistId"
+                               name="artistId"
+                               value="@Model.ArtistId" />
+
+                        <button type="button"
+                                id="artistSelectButton"
+                                class="artist-select-button"
+                                aria-haspopup="listbox"
+                                aria-expanded="false">
+
+                            <span id="selectedArtistText"
+                                  class="artist-selected-text">
+                                @selectedArtistName
+                            </span>
+
+                            <span class="artist-select-arrow">
+                                ⌄
+                            </span>
+
+                        </button>
+
+                        <div id="artistSelectDropdown"
+                             class="artist-select-dropdown">
+
+                            <input type="text"
+                                   id="artistSearchInput"
+                                   class="artist-search-input"
+                                   placeholder="Sanatçı ara..."
+                                   autocomplete="off" />
+
+                            <div id="artistSelectOptions"
+                                 class="artist-select-options"
+                                 role="listbox">
+
+                                <button type="button"
+                                        class="artist-select-option @(Model.ArtistId.HasValue ? string.Empty : "selected")"
+                                        data-artist-id=""
+                                        data-artist-name="Tüm sanatçılar"
+                                        role="option">
+                                    Tüm sanatçılar
+                                </button>
+
+                                @foreach (var artist in Model.Artists)
+                                {
+                                    var artistOptionClass = Model.ArtistId == artist.Id
+                                        ? "artist-select-option selected"
+                                        : "artist-select-option";
+
+                                    <button type="button"
+                                            class="@artistOptionClass"
+                                            data-artist-id="@artist.Id"
+                                            data-artist-name="@artist.Name"
+                                            role="option">
+                                        @artist.Name
+                                    </button>
+                                }
+
+                                <p id="artistEmptyMessage"
+                                   class="artist-select-empty">
+                                    Sanatçı bulunamadı.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="filter-group">
+
+                        <label for="albumId"
+                               class="filter-label">
+                            Albüm
+                        </label>
+
+                        <select id="albumId"
+                                name="albumId"
+                                class="filter-select">
+
+                            <option value="">
+                                Tüm albümler
+                            </option>
+
+                            @foreach (var album in Model.Albums)
+                            {
+                                if (Model.AlbumId == album.Id)
+                                {
+                                    <option value="@album.Id" selected>
+                                        @album.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@album.Id">
+                                        @album.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="filter-group">
+
+                        <label for="genreId"
+                               class="filter-label">
+                            Tür
+                        </label>
+
+                        <select id="genreId"
+                                name="genreId"
+                                class="filter-select">
+
+                            <option value="">
+                                Tüm türler
+                            </option>
+
+                            @foreach (var genre in Model.Genres)
+                            {
+                                if (Model.GenreId == genre.Id)
+                                {
+                                    <option value="@genre.Id" selected>
+                                        @genre.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@genre.Id">
+                                        @genre.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="filter-group">
+
+                        <label for="sort"
+                               class="filter-label">
+                            Sırala
+                        </label>
+
+                        <select id="sort"
+                                name="sort"
+                                class="filter-select">
+
+                            @if (Model.Sort == "name-asc")
+                            {
+                                <option value="name-asc" selected>
+                                    İsme göre A–Z
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="name-asc">
+                                    İsme göre A–Z
+                                </option>
+                            }
+
+                            @if (Model.Sort == "name-desc")
+                            {
+                                <option value="name-desc" selected>
+                                    İsme göre Z–A
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="name-desc">
+                                    İsme göre Z–A
+                                </option>
+                            }
+
+                            @if (Model.Sort == "streams-desc")
+                            {
+                                <option value="streams-desc" selected>
+                                    En çok dinlenen
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="streams-desc">
+                                    En çok dinlenen
+                                </option>
+                            }
+
+                            @if (Model.Sort == "streams-asc")
+                            {
+                                <option value="streams-asc" selected>
+                                    En az dinlenen
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="streams-asc">
+                                    En az dinlenen
+                                </option>
+                            }
+
+                            @if (Model.Sort == "newest")
+                            {
+                                <option value="newest" selected>
+                                    En yeni eklenen
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="newest">
+                                    En yeni eklenen
+                                </option>
+                            }
+
+                            @if (Model.Sort == "oldest")
+                            {
+                                <option value="oldest" selected>
+                                    En eski eklenen
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="oldest">
+                                    En eski eklenen
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="filter-bottom">
+
+                    <label class="filter-checkbox-label">
+
+                        @if (Model.LikedOnly)
+                        {
+                            <input type="checkbox"
+                                   name="likedOnly"
+                                   value="true"
+                                   checked
+                                   class="filter-checkbox" />
+                        }
+                        else
+                        {
+                            <input type="checkbox"
+                                   name="likedOnly"
+                                   value="true"
+                                   class="filter-checkbox" />
+                        }
+
+                        Yalnızca beğendiğim şarkıları göster
+
+                    </label>
+
+                    <div class="filter-right">
+
+                        <span class="filter-result">
+                            Gösterilen:
+                            <strong>@Model.Songs.Count()</strong>
+                        </span>
+
+                        <button type="submit"
+                                class="filter-button">
+                            Filtrele
+                        </button>
+
+                        @if (hasActiveFilters)
+                        {
+                            <a asp-controller="UserDashboard"
+                               asp-action="AllSongs"
+                               class="clear-filter-button">
+                                Temizle
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+            </form>
 
         </section>
 
@@ -315,6 +975,7 @@
                         <tr>
                             <th>#</th>
                             <th>Şarkı</th>
+                            <th>Sanatçı</th>
                             <th>Albüm</th>
                             <th>Dinlenme</th>
                             <th>Oynat</th>
@@ -332,9 +993,14 @@
                         {
                             var isLiked = Model.LikedSongIds.Contains(song.Id);
 
-                            // DEĞİŞİKLİK:
-                            // Razor attribute'larında karmaşık ternary kullanmamak için
-                            // buton değerleri önceden hazırlanıyor.
+                            var artist = song.Album?.Artist ??
+                                         song.SongArtists
+                                             .Select(songArtist => songArtist.Artist)
+                                             .FirstOrDefault();
+
+                            var artistName = artist?.Name ?? "Sanatçı bilgisi yok";
+                            var albumName = song.Album?.Name ?? "Single";
+
                             var likeButtonClass = isLiked
                                 ? "like-button liked"
                                 : "like-button";
@@ -346,8 +1012,6 @@
                             var likeButtonIcon = isLiked
                                 ? "♥"
                                 : "♡";
-
-                            var playButtonTitle = $"{song.Title} şarkısını oynat";
 
                             <tr>
 
@@ -377,7 +1041,7 @@
                                             </a>
 
                                             <div class="song-album">
-                                                @(song.Album?.Name ?? "Single")
+                                                @albumName
                                             </div>
 
                                         </div>
@@ -387,7 +1051,39 @@
                                 </td>
 
                                 <td>
-                                    @(song.Album?.Name ?? "Single")
+
+                                    @if (artist != null)
+                                    {
+                                        <a asp-controller="UserDashboard"
+                                           asp-action="ArtistDetails"
+                                           asp-route-artistId="@artist.Id"
+                                           class="artist-link">
+                                            @artistName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @artistName
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (song.AlbumId.HasValue)
+                                    {
+                                        <a asp-controller="UserDashboard"
+                                           asp-action="AlbumDetails"
+                                           asp-route-albumId="@song.AlbumId"
+                                           class="album-link">
+                                            @albumName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @albumName
+                                    }
+
                                 </td>
 
                                 <td class="song-streams">
@@ -399,7 +1095,7 @@
                                     <button type="button"
                                             class="play-button"
                                             data-song-id="@song.Id"
-                                            title="@playButtonTitle">
+                                            title="@song.Title şarkısını oynat">
                                         ▶
                                     </button>
 
@@ -434,9 +1130,6 @@
 
                             </tr>
 
-                            // DEĞİŞİKLİK:
-                            // Zaten foreach C# bloğunda olduğumuz için
-                            // @{ songNumber++; } değil, doğrudan bu şekilde yazılır.
                             songNumber++;
                         }
 
@@ -455,19 +1148,30 @@
                 </div>
 
                 <h3 class="empty-title">
-                    Henüz şarkı bulunmuyor
+                    Şarkı bulunamadı
                 </h3>
 
                 <p class="empty-description">
-                    Platforma şarkı eklendiğinde bütün şarkılar bu sayfada
-                    alfabetik olarak listelenecek.
+                    Seçtiğin filtrelere uygun şarkı bulunamadı.
+                    Filtreleri değiştirerek tekrar deneyebilirsin.
                 </p>
 
-                <a asp-controller="UserDashboard"
-                   asp-action="Index"
-                   class="home-button">
-                    Ana Sayfaya Dön
-                </a>
+                @if (hasActiveFilters)
+                {
+                    <a asp-controller="UserDashboard"
+                       asp-action="AllSongs"
+                       class="home-button">
+                        Filtreleri Temizle
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="UserDashboard"
+                       asp-action="Index"
+                       class="home-button">
+                        Ana Sayfaya Dön
+                    </a>
+                }
 
             </section>
         }
@@ -475,3 +1179,148 @@
     </div>
 
 </main>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const artistWrapper = document.getElementById("artistSearchWrapper");
+            const artistSelectButton = document.getElementById("artistSelectButton");
+            const artistDropdown = document.getElementById("artistSelectDropdown");
+            const artistSearchInput = document.getElementById("artistSearchInput");
+            const artistIdInput = document.getElementById("artistId");
+            const selectedArtistText = document.getElementById("selectedArtistText");
+            const artistEmptyMessage = document.getElementById("artistEmptyMessage");
+
+            const artistOptions = Array.from(
+                document.querySelectorAll(".artist-select-option")
+            );
+
+            if (
+                !artistWrapper ||
+                !artistSelectButton ||
+                !artistDropdown ||
+                !artistSearchInput ||
+                !artistIdInput ||
+                !selectedArtistText ||
+                !artistEmptyMessage
+            ) {
+                return;
+            }
+
+            function normalizeText(value) {
+                return value
+                    .toLocaleLowerCase("tr-TR")
+                    .trim();
+            }
+
+            function closeArtistDropdown() {
+                artistDropdown.classList.remove("open");
+                artistSelectButton.classList.remove("active");
+                artistSelectButton.setAttribute("aria-expanded", "false");
+            }
+
+            function resetArtistSearch() {
+                artistSearchInput.value = "";
+                artistEmptyMessage.style.display = "none";
+
+                artistOptions.forEach(function (option) {
+                    option.style.display = "block";
+                });
+            }
+
+            function openArtistDropdown() {
+                resetArtistSearch();
+
+                artistDropdown.classList.add("open");
+                artistSelectButton.classList.add("active");
+                artistSelectButton.setAttribute("aria-expanded", "true");
+
+                window.setTimeout(function () {
+                    artistSearchInput.focus();
+                }, 0);
+            }
+
+            artistSelectButton.addEventListener("click", function () {
+                const isOpen = artistDropdown.classList.contains("open");
+
+                if (isOpen) {
+                    closeArtistDropdown();
+                    return;
+                }
+
+                openArtistDropdown();
+            });
+
+            artistSearchInput.addEventListener("input", function () {
+                const searchValue = normalizeText(artistSearchInput.value);
+                let visibleOptionCount = 0;
+
+                artistOptions.forEach(function (option) {
+                    const artistName = normalizeText(
+                        option.dataset.artistName || ""
+                    );
+
+                    const isMatch = artistName.includes(searchValue);
+
+                    option.style.display = isMatch ? "block" : "none";
+
+                    if (isMatch) {
+                        visibleOptionCount++;
+                    }
+                });
+
+                artistEmptyMessage.style.display =
+                    visibleOptionCount === 0
+                        ? "block"
+                        : "none";
+            });
+
+            artistOptions.forEach(function (option) {
+                option.addEventListener("click", function () {
+                    const selectedArtistId = option.dataset.artistId || "";
+                    const selectedName =
+                        option.dataset.artistName || "Tüm sanatçılar";
+
+                    artistIdInput.value = selectedArtistId;
+                    selectedArtistText.textContent = selectedName;
+
+                    artistOptions.forEach(function (otherOption) {
+                        otherOption.classList.remove("selected");
+                    });
+
+                    option.classList.add("selected");
+
+                    closeArtistDropdown();
+                });
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!artistWrapper.contains(event.target)) {
+                    closeArtistDropdown();
+                }
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    closeArtistDropdown();
+                    artistSelectButton.focus();
+                }
+            });
+
+            artistSearchInput.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter") {
+                    return;
+                }
+
+                const firstVisibleOption = artistOptions.find(function (option) {
+                    return option.style.display !== "none";
+                });
+
+                if (firstVisibleOption) {
+                    event.preventDefault();
+                    firstVisibleOption.click();
+                }
+            });
+        });
+    </script>
+}
