@@ -1,5 +1,6 @@
 ﻿using MusicProject.DTOs;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.ViewModels;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
@@ -50,7 +51,6 @@ namespace MusicProject.Services.Concrete
                 .Count(song => song.SongArtists.Any(songArtist => songArtist.ArtistId == artistId));
         }
 
-        // Sanatçı detay sayfası için gereken bütün bilgileri DTO'ya çevirir.
         public ArtistDetailsDto? GetArtistDetails(int artistId)
         {
             var artist = _artistRepository.GetArtistDetailsById(artistId);
@@ -71,8 +71,7 @@ namespace MusicProject.Services.Concrete
                     SongCount = album.Songs.Count
                 })
                 .ToList();
-            
-            // Şarkılar Albums üzerinden değil SongArtists üzerinden alınıyor.
+
             var songs = artist.SongArtists
                 .Select(songArtist => songArtist.Song)
                 .DistinctBy(song => song.Id)
@@ -80,8 +79,6 @@ namespace MusicProject.Services.Concrete
                 {
                     SongId = song.Id,
                     Title = song.Title,
-
-                    // Şarkının albümü yoksa ekranda "Single" gösterilir.
                     AlbumName = song.Album?.Name ?? "Single",
 
                     TotalStreams = song.SongStat?.TotalStreams ?? 0,
@@ -105,5 +102,73 @@ namespace MusicProject.Services.Concrete
                 Songs = songs
             };
         }
+
+        public ArtistDashboardViewModel? GetArtistDashboard(int userId)
+        {
+            if (userId <= 0)
+            {
+                return null;
+            }
+
+            var artist = _artistRepository.GetArtistDashboardByUserId(userId);
+
+            if (artist == null)
+            {
+                return null;
+            }
+
+            var songs = artist.SongArtists
+                .Select(songArtist => songArtist.Song)
+                .DistinctBy(song => song.Id)
+                .ToList();
+
+            var albumSongs = artist.Albums
+                .SelectMany(album => album.Songs)
+                .ToList();
+
+            songs = songs
+                .Concat(albumSongs)
+                .DistinctBy(song => song.Id)
+                .ToList();
+
+            var totalStreams = songs
+                .Sum(song => song.SongStat?.TotalStreams ?? 0);
+
+            var totalLikes = songs
+                .Sum(song => song.SongStat?.TotalLikes ?? 0);
+
+            var popularSongs = songs
+                .OrderByDescending(song => song.SongStat?.PopularityScore ?? 0)
+                .ThenByDescending(song => song.SongStat?.TotalStreams ?? 0)
+                .ThenBy(song => song.Title)
+                .Take(5)
+                .ToList();
+
+            var recentAlbums = artist.Albums
+                .OrderByDescending(album => album.ReleaseDate)
+                .Take(4)
+                .ToList();
+
+            var artistInitial = string.IsNullOrWhiteSpace(artist.Name)
+                ? "?"
+                : artist.Name.Substring(0, 1).ToUpper();
+
+            return new ArtistDashboardViewModel
+            {
+                Artist = artist,
+                PopularSongs = popularSongs,
+                RecentAlbums = recentAlbums,
+                TotalAlbums = artist.Albums.Count,
+                TotalSongs = songs.Count,
+                TotalStreams = totalStreams,
+                TotalLikes = totalLikes,
+                MonthlyListeners = artist.ArtistStat?.MonthlyListeners ?? 0,
+                TotalFollowers = artist.Followers
+                    .Count(follower => follower.IsActive),
+                ArtistInitial = artistInitial
+
+            };
+        }
+
     }
 }

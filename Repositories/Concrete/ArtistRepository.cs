@@ -38,6 +38,25 @@ namespace MusicProject.Repositories.Concrete
                 .Include(artist => artist.Followers)
                 .FirstOrDefault(artist => artist.Id == artistId);
         }
+        public Artist? GetArtistDashboardByUserId(int userId)
+        {
+            return _context.Artists
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(artist => artist.User)
+                .Include(artist => artist.ArtistStat)
+                .Include(artist => artist.Followers)
+                .Include(artist => artist.Albums)
+                    .ThenInclude(album => album.Songs)
+                        .ThenInclude(song => song.SongStat)
+                .Include(artist => artist.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Song)
+                        .ThenInclude(song => song.SongStat)
+                .Include(artist => artist.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Song)
+                        .ThenInclude(song => song.Album)
+                .FirstOrDefault(artist => artist.UserId == userId);
+        }
 
         public void Create(Artist entity)
         {

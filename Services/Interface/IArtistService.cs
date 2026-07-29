@@ -1,5 +1,6 @@
 ﻿using MusicProject.DTOs;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.ViewModels;
 
 namespace MusicProject.Services.Interface
 {
@@ -12,6 +13,8 @@ namespace MusicProject.Services.Interface
         void AddArtist(Artist artist);
 
         void UpdateArtist(Artist artist);
+
+        ArtistDashboardViewModel? GetArtistDashboard(int userId);
 
         void DeleteArtist(int id);
 

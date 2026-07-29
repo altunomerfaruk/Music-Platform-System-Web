@@ -1,0 +1,119 @@
+﻿@{
+    ViewData["Title"] = "Sanatçı Profili Bulunamadı";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - MusicProject</title>
+
+    <style>
+            :root {
+                --background: #080b09;
+                --card: #121713;
+                --border: rgba(255, 255, 255, 0.08);
+                --primary: #1ed760;
+                --text: #ffffff;
+                --text-secondary: #9da6a0;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                min-height: 100vh;
+                padding: 25px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text);
+                background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.13), transparent 32% ), var(--background);
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            .not-found-card {
+                width: 100%;
+                max-width: 560px;
+                padding: 42px;
+                text-align: center;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 22px;
+            }
+
+            .not-found-icon {
+                width: 78px;
+                height: 78px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #071008;
+                background-color: var(--primary);
+                border-radius: 22px;
+                font-size: 36px;
+                font-weight: 900;
+            }
+
+            .not-found-title {
+                margin-top: 25px;
+                font-size: 25px;
+            }
+
+            .not-found-description {
+                margin-top: 12px;
+                color: var(--text-secondary);
+                font-size: 14px;
+                line-height: 1.7;
+            }
+
+            .logout-link {
+                margin-top: 25px;
+                padding: 12px 20px;
+                display: inline-flex;
+                color: #071008;
+                background-color: var(--primary);
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 800;
+                text-decoration: none;
+            }
+    </style>
+</head>
+
+<body>
+
+    <main class="not-found-card">
+
+        <div class="not-found-icon">
+            ♪
+        </div>
+
+        <h1 class="not-found-title">
+            Sanatçı profili bulunamadı
+        </h1>
+
+        <p class="not-found-description">
+            Giriş yaptığın Artist hesabına bağlı bir sanatçı kaydı bulunmuyor.
+            Artist tablosundaki UserId alanının bu kullanıcı hesabına bağlanması
+            gerekiyor.
+        </p>
+
+        <a asp-controller="Auth"
+           asp-action="Logout"
+           class="logout-link">
+            Çıkış Yap
+        </a>
+
+    </main>
+
+</body>
+</html>

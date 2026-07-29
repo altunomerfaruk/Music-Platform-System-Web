@@ -11,5 +11,6 @@ namespace MusicProject.Repositories.Interface
         void Create(Artist entity);
         void Update(Artist entity);
         void Delete(int id);
+        Artist? GetArtistDashboardByUserId(int userId);
     }
 }

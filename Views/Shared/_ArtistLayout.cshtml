@@ -1,0 +1,533 @@
+﻿@model MusicProject.Models.ViewModels.ArtistLayoutViewModel
+
+@{
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Sanatçı Paneli";
+
+    var pageDescription =
+        ViewData["PageDescription"]?.ToString() ??
+        "Şarkılarını ve albümlerini buradan yönetebilirsin.";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@pageTitle - MusicProject</title>
+
+    <style>
+            :root {
+                --background: #080b09;
+                --sidebar: #0d110f;
+                --card: #121713;
+                --card-hover: #171e19;
+                --border: rgba(255, 255, 255, 0.08);
+                --primary: #1ed760;
+                --primary-hover: #25e66d;
+                --primary-dark: #18b950;
+                --text: #ffffff;
+                --text-secondary: #9da6a0;
+                --warning: #ffbd3d;
+                --danger: #ff5c5c;
+                --info: #55aaff;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                min-height: 100vh;
+                overflow-x: hidden;
+                color: var(--text);
+                background: radial-gradient( circle at 80% 0%, rgba(30, 215, 96, 0.11), transparent 27% ), var(--background);
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            button,
+            input,
+            select,
+            textarea {
+                font-family: inherit;
+            }
+
+            button {
+                cursor: pointer;
+            }
+
+            .artist-layout {
+                min-height: 100vh;
+                display: flex;
+            }
+
+            /* SIDEBAR */
+
+            .artist-sidebar {
+                width: 265px;
+                height: 100vh;
+                padding: 24px 17px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                background-color: rgba(13, 17, 15, 0.97);
+                border-right: 1px solid var(--border);
+                backdrop-filter: blur(16px);
+                transition: transform 0.25s ease;
+            }
+
+            .artist-brand {
+                padding: 0 12px 26px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .artist-brand-icon {
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #071009;
+                background-color: var(--primary);
+                border-radius: 14px;
+                font-size: 24px;
+                font-weight: 900;
+                box-shadow: 0 8px 25px rgba(30, 215, 96, 0.22);
+            }
+
+            .artist-brand-name {
+                display: block;
+                color: #ffffff;
+                font-size: 19px;
+                font-weight: 800;
+            }
+
+            .artist-brand-panel {
+                display: block;
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 12px;
+            }
+
+            .artist-navigation {
+                margin-top: 26px;
+                flex: 1;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            .artist-navigation-title {
+                margin: 0 13px 10px;
+                color: #687169;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 1.4px;
+                text-transform: uppercase;
+            }
+
+            .artist-account-title {
+                margin-top: 27px;
+            }
+
+            .artist-navigation-list {
+                list-style: none;
+            }
+
+            .artist-navigation-item {
+                margin-bottom: 6px;
+            }
+
+            .artist-navigation-link {
+                min-height: 48px;
+                padding: 0 14px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                color: var(--text-secondary);
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 700;
+                transition: 0.2s ease;
+            }
+
+                .artist-navigation-link:hover {
+                    color: #ffffff;
+                    background-color: rgba(255, 255, 255, 0.05);
+                }
+
+                .artist-navigation-link.active {
+                    color: #061108;
+                    background-color: var(--primary);
+                    box-shadow: 0 9px 28px rgba(30, 215, 96, 0.16);
+                }
+
+            .artist-navigation-icon {
+                width: 23px;
+                flex-shrink: 0;
+                text-align: center;
+                font-size: 18px;
+            }
+
+            .artist-navigation-badge {
+                min-width: 25px;
+                margin-left: auto;
+                padding: 4px 7px;
+                color: #ffffff;
+                background-color: rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .artist-navigation-link.active .artist-navigation-badge {
+                color: #ffffff;
+                background-color: rgba(0, 0, 0, 0.25);
+            }
+
+            .artist-sidebar-footer {
+                padding-top: 17px;
+                border-top: 1px solid var(--border);
+            }
+
+            .artist-profile-small {
+                padding: 11px;
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                background-color: rgba(255, 255, 255, 0.035);
+                border-radius: 13px;
+            }
+
+            .artist-avatar-small {
+                width: 39px;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #08110a;
+                background-color: var(--primary);
+                border-radius: 50%;
+                font-weight: 900;
+            }
+
+            .artist-profile-info {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .artist-name-small {
+                overflow: hidden;
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: 800;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .artist-role {
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 11px;
+            }
+
+            .artist-logout-button {
+                width: 34px;
+                height: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--text-secondary);
+                background-color: transparent;
+                border-radius: 9px;
+                transition: 0.2s;
+            }
+
+                .artist-logout-button:hover {
+                    color: var(--danger);
+                    background-color: rgba(255, 92, 92, 0.1);
+                }
+
+            /* MAIN */
+
+            .artist-main-content {
+                width: calc(100% - 265px);
+                min-height: 100vh;
+                margin-left: 265px;
+            }
+
+            .artist-topbar {
+                min-height: 78px;
+                padding: 16px 34px;
+                position: sticky;
+                top: 0;
+                z-index: 900;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                background-color: rgba(8, 11, 9, 0.83);
+                border-bottom: 1px solid var(--border);
+                backdrop-filter: blur(18px);
+            }
+
+            .artist-topbar-left {
+                min-width: 0;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .artist-menu-button {
+                width: 42px;
+                height: 42px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #ffffff;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 11px;
+                font-size: 20px;
+            }
+
+            .artist-page-heading {
+                min-width: 0;
+            }
+
+                .artist-page-heading h1 {
+                    overflow: hidden;
+                    color: #ffffff;
+                    font-size: 22px;
+                    font-weight: 850;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .artist-page-heading p {
+                    margin-top: 5px;
+                    overflow: hidden;
+                    color: var(--text-secondary);
+                    font-size: 13px;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+            .artist-topbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+            }
+
+            .artist-create-button {
+                min-height: 43px;
+                padding: 0 18px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #071008;
+                background-color: var(--primary);
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 800;
+                transition: 0.2s;
+            }
+
+                .artist-create-button:hover {
+                    background-color: var(--primary-hover);
+                    transform: translateY(-2px);
+                }
+
+            .artist-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 950;
+                display: none;
+                background-color: rgba(0, 0, 0, 0.65);
+            }
+
+            @@media (max-width: 900px) {
+                .artist-sidebar {
+                    transform: translateX(-100%);
+                }
+
+                    .artist-sidebar.open {
+                        transform: translateX(0);
+                    }
+
+                .artist-sidebar-overlay.open {
+                    display: block;
+                }
+
+                .artist-main-content {
+                    width: 100%;
+                    margin-left: 0;
+                }
+
+                .artist-menu-button {
+                    display: flex;
+                }
+            }
+
+            @@media (max-width: 700px) {
+                .artist-topbar {
+                    padding: 14px 17px;
+                }
+
+                .artist-page-heading p {
+                    display: none;
+                }
+
+                .artist-create-button {
+                    padding: 0 13px;
+                    font-size: 12px;
+                }
+            }
+
+            @@media (max-width: 480px) {
+                .artist-topbar-actions {
+                    display: none;
+                }
+            }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+
+</head>
+
+<body>
+
+    <div class="artist-layout">
+
+        <partial name="_ArtistSidebar"
+                 model="Model" />
+
+        <div class="artist-sidebar-overlay"
+             id="artistSidebarOverlay">
+        </div>
+
+        <main class="artist-main-content">
+
+            <header class="artist-topbar">
+
+                <div class="artist-topbar-left">
+
+                    <button type="button"
+                            class="artist-menu-button"
+                            id="artistMenuButton"
+                            aria-label="Menüyü aç">
+                        ☰
+                    </button>
+
+                    <div class="artist-page-heading">
+
+                        <h1>
+                            @pageTitle
+                        </h1>
+
+                        <p>
+                            @pageDescription
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="artist-topbar-actions">
+
+                    @* CreateSong action'ını oluşturduğumuzda bu bağlantı çalışacak. *@
+                    <a asp-controller="ArtistDashboard"
+                       asp-action="CreateSong"
+                       class="artist-create-button">
+                        + Yeni Şarkı
+                    </a>
+
+                </div>
+
+            </header>
+
+            @RenderBody()
+
+        </main>
+
+    </div>
+
+    <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const menuButton =
+                    document.getElementById("artistMenuButton");
+
+                const sidebar =
+                    document.getElementById("artistSidebar");
+
+                const sidebarOverlay =
+                    document.getElementById("artistSidebarOverlay");
+
+                if (!menuButton || !sidebar || !sidebarOverlay) {
+                    return;
+                }
+
+                function openSidebar() {
+                    sidebar.classList.add("open");
+                    sidebarOverlay.classList.add("open");
+                }
+
+                function closeSidebar() {
+                    sidebar.classList.remove("open");
+                    sidebarOverlay.classList.remove("open");
+                }
+
+                menuButton.addEventListener("click", function() {
+                    if (sidebar.classList.contains("open")) {
+                        closeSidebar();
+                        return;
+                    }
+
+                    openSidebar();
+                });
+
+                sidebarOverlay.addEventListener("click", closeSidebar);
+
+                document.addEventListener("keydown", function(event) {
+                    if (event.key === "Escape") {
+                        closeSidebar();
+                    }
+                });
+
+                window.addEventListener("resize", function() {
+                    if (window.innerWidth > 900) {
+                        closeSidebar();
+                    }
+                });
+            });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+
+</html>

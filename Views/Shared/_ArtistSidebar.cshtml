@@ -1,0 +1,242 @@
+﻿@model MusicProject.Models.ViewModels.ArtistLayoutViewModel
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var isDashboard =
+        controller == "ArtistDashboard" &&
+        action == "Index";
+
+    var isMySongs =
+        controller == "ArtistDashboard" &&
+        action == "MySongs";
+
+    var isMyAlbums =
+        controller == "ArtistDashboard" &&
+        action == "MyAlbums";
+
+    var isCreateSong =
+        controller == "ArtistDashboard" &&
+        action == "CreateSong";
+
+    var isCreateAlbum =
+        controller == "ArtistDashboard" &&
+        action == "CreateAlbum";
+
+    var isProfileSettings =
+        controller == "ArtistDashboard" &&
+        action == "ProfileSettings";
+
+    var artistName = string.IsNullOrWhiteSpace(Model.Artist?.Name)
+        ? "Sanatçı"
+        : Model.Artist.Name;
+
+    var accountName = string.IsNullOrWhiteSpace(Model.Artist?.User?.Username)
+        ? artistName
+        : Model.Artist.User.Username;
+
+    var artistInitial = string.IsNullOrWhiteSpace(Model.ArtistInitial)
+        ? "?"
+        : Model.ArtistInitial;
+}
+
+<aside class="artist-sidebar"
+       id="artistSidebar">
+
+    <a asp-controller="ArtistDashboard"
+       asp-action="Index"
+       class="artist-brand">
+
+        <div class="artist-brand-icon">
+            ♪
+        </div>
+
+        <div>
+
+            <span class="artist-brand-name">
+                MusicProject
+            </span>
+
+            <span class="artist-brand-panel">
+                Sanatçı paneli
+            </span>
+
+        </div>
+
+    </a>
+
+    <nav class="artist-navigation">
+
+        <p class="artist-navigation-title">
+            Sanatçı
+        </p>
+
+        <ul class="artist-navigation-list">
+
+            <li class="artist-navigation-item">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="Index"
+                   class="artist-navigation-link @(isDashboard ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ▦
+                    </span>
+
+                    Genel Bakış
+
+                </a>
+
+            </li>
+
+            <li class="artist-navigation-item">
+
+                @* MySongs action'ını oluşturduğumuzda bu bağlantı çalışacak. *@
+                <a asp-controller="ArtistDashboard"
+                   asp-action="MySongs"
+                   class="artist-navigation-link @(isMySongs ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ♫
+                    </span>
+
+                    Şarkılarım
+
+                    <span class="artist-navigation-badge">
+                        @Model.TotalSongs
+                    </span>
+
+                </a>
+
+            </li>
+
+            <li class="artist-navigation-item">
+
+                @* MyAlbums action'ını bir sonraki aşamada oluşturacağız. *@
+                <a asp-controller="ArtistDashboard"
+                   asp-action="MyAlbums"
+                   class="artist-navigation-link @(isMyAlbums ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ◉
+                    </span>
+
+                    Albümlerim
+
+                    <span class="artist-navigation-badge">
+                        @Model.TotalAlbums
+                    </span>
+
+                </a>
+
+            </li>
+
+            <li class="artist-navigation-item">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="CreateSong"
+                   class="artist-navigation-link @(isCreateSong ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ＋
+                    </span>
+
+                    Şarkı Yükle
+
+                </a>
+
+            </li>
+
+            <li class="artist-navigation-item">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="CreateAlbum"
+                   class="artist-navigation-link @(isCreateAlbum ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ⊕
+                    </span>
+
+                    Albüm Oluştur
+
+                </a>
+
+            </li>
+
+        </ul>
+
+        <p class="artist-navigation-title artist-account-title">
+            Hesap
+        </p>
+
+        <ul class="artist-navigation-list">
+
+            <li class="artist-navigation-item">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="ProfileSettings"
+                   class="artist-navigation-link @(isProfileSettings ? "active" : string.Empty)">
+
+                    <span class="artist-navigation-icon">
+                        ⚙
+                    </span>
+
+                    Profil Ayarları
+
+                </a>
+
+            </li>
+
+            <li class="artist-navigation-item">
+
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="artist-navigation-link">
+
+                    <span class="artist-navigation-icon">
+                        ↗
+                    </span>
+
+                    Siteyi Görüntüle
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+    <div class="artist-sidebar-footer">
+
+        <div class="artist-profile-small">
+
+            <div class="artist-avatar-small">
+                @artistInitial
+            </div>
+
+            <div class="artist-profile-info">
+
+                <div class="artist-name-small">
+                    @accountName
+                </div>
+
+                <div class="artist-role">
+                    Sanatçı
+                </div>
+
+            </div>
+
+            <a asp-controller="Auth"
+               asp-action="Logout"
+               class="artist-logout-button"
+               title="Çıkış Yap">
+                ↪
+            </a>
+
+        </div>
+
+    </div>
+
+</aside>

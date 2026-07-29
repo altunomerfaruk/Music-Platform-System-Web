@@ -67,9 +67,6 @@ namespace MusicProject.Repositories.Concrete
             return _context.Songs
                 .AsNoTracking()
                 .Include(song => song.SongStat)
-
-                // DEĞİŞİKLİK:
-                // Popüler şarkılar ana sayfasında sanatçı bilgisi de kullanılabilsin.
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
 
