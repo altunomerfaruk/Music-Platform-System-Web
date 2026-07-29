@@ -19,6 +19,63 @@ namespace MusicProject.Services.Concrete
             return _albumRepository.GetAllAlbums();
         }
 
+        public IEnumerable<Album> GetAlbumsByArtistId(int artistId)
+        {
+            if (artistId <= 0)
+            {
+                return new List<Album>();
+            }
+
+            return _albumRepository.GetAlbumsByArtistId(artistId);
+        }
+
+        public Album? GetArtistAlbumDetails(int albumId, int artistId)
+        {
+            if (albumId <= 0 || artistId <= 0)
+            {
+                return null;
+            }
+
+            return _albumRepository.GetArtistAlbumDetails(albumId, artistId);
+        }
+
+        public void AddAlbum(Album album)
+        {
+            if (string.IsNullOrWhiteSpace(album.Name))
+            {
+                throw new InvalidOperationException(
+                    "Albüm adı boş bırakılamaz."
+                );
+            }
+
+            var albumExists = _albumRepository
+                .GetAlbumsByArtistId(album.ArtistId)
+                .Any(existingAlbum =>
+                    existingAlbum.Name.Equals(
+                        album.Name,
+                        StringComparison.OrdinalIgnoreCase
+                    ));
+
+            if (albumExists)
+            {
+                throw new InvalidOperationException(
+                    $"'{album.Name}' adında bir albüm zaten mevcut."
+                );
+            }
+
+            _albumRepository.Create(album);
+        }
+
+        public void UpdateAlbum(Album album)
+        {
+            _albumRepository.Update(album);
+        }
+
+        public void DeleteAlbum(int albumId)
+        {
+            _albumRepository.Delete(albumId);
+        }
+
         public AlbumDetailsDto? GetAlbumDetails(int albumId)
         {
             var album = _albumRepository.GetAlbumDetailsById(albumId);
@@ -29,14 +86,16 @@ namespace MusicProject.Services.Concrete
             }
 
             var songs = album.Songs
-                .OrderByDescending(song => song.SongStat?.PopularityScore ?? 0)
+                .OrderByDescending(song =>
+                    song.SongStat?.PopularityScore ?? 0)
                 .Select(song => new AlbumSongDto
                 {
                     SongId = song.Id,
                     Title = song.Title,
                     TotalStreams = song.SongStat?.TotalStreams ?? 0,
                     TotalLikes = song.SongStat?.TotalLikes ?? 0,
-                    PopularityScore = song.SongStat?.PopularityScore ?? 0
+                    PopularityScore =
+                        song.SongStat?.PopularityScore ?? 0
                 })
                 .ToList();
 
@@ -44,7 +103,8 @@ namespace MusicProject.Services.Concrete
             {
                 AlbumId = album.Id,
                 Name = album.Name,
-                Description = album.Description ?? "Albüm açıklaması bulunmuyor.",
+                Description = album.Description ??
+                              "Albüm açıklaması bulunmuyor.",
                 CoverImageUrl = album.CoverImageUrl,
                 ReleaseDate = album.ReleaseDate,
                 ArtistId = album.ArtistId,

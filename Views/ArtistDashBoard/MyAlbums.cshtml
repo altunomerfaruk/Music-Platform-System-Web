@@ -1,0 +1,518 @@
+﻿@model MusicProject.Models.ViewModels.ArtistAlbumsViewModel
+
+@{
+    ViewData["Title"] = "Albümlerim";
+
+    ViewData["PageDescription"] =
+        "Albümlerini görüntüle ve yönet.";
+
+    Layout = "_ArtistLayout";
+}
+
+@section Styles {
+    <style>
+        .artist-albums-content {
+            padding: 32px 34px 50px;
+        }
+
+        .albums-hero {
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+            background:
+                linear-gradient(
+                    125deg,
+                    rgba(30, 215, 96, 0.20),
+                    rgba(18, 23, 19, 0.97) 65%
+                );
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 21px;
+        }
+
+        .albums-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .albums-hero-icon {
+            width: 92px;
+            height: 92px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 19px;
+            font-size: 40px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.30);
+        }
+
+        .albums-hero-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .albums-hero-title {
+            margin-top: 8px;
+            color: #ffffff;
+            font-size: clamp(27px, 4vw, 40px);
+        }
+
+        .albums-hero-description {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .create-album-button {
+            min-height: 44px;
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 850;
+            transition: 0.2s;
+        }
+
+        .create-album-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .album-stat-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .album-stat-card {
+            padding: 20px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .album-stat-number {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 900;
+        }
+
+        .album-stat-label {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .albums-section-header {
+            margin-top: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .albums-section-title {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 850;
+        }
+
+        .albums-section-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .albums-grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fill, minmax(230px, 1fr));
+            gap: 18px;
+        }
+
+        .album-card {
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            transition: 0.22s;
+        }
+
+        .album-card:hover {
+            background-color: var(--card-hover);
+            border-color: rgba(30, 215, 96, 0.25);
+            transform: translateY(-4px);
+        }
+
+        .album-card-cover {
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            background:
+                radial-gradient(
+                    circle at top right,
+                    rgba(30, 215, 96, 0.22),
+                    transparent 45%
+                ),
+                linear-gradient(
+                    135deg,
+                    #18241c,
+                    #0c110e
+                );
+            font-size: 55px;
+        }
+
+        .album-card-content {
+            padding: 18px;
+        }
+
+        .album-card-title {
+            overflow: hidden;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .album-card-date {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .album-card-description {
+            height: 38px;
+            margin-top: 11px;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .album-card-meta {
+            margin-top: 15px;
+            padding-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .album-card-song-count {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .album-card-streams {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .album-card-actions {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .album-detail-button,
+        .album-edit-button {
+            min-height: 37px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 800;
+            transition: 0.2s;
+        }
+
+        .album-detail-button {
+            color: #071008;
+            background-color: var(--primary);
+        }
+
+        .album-edit-button {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .album-detail-button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .album-edit-button:hover {
+            color: var(--primary);
+            border-color: rgba(30, 215, 96, 0.30);
+        }
+
+        .albums-empty {
+            margin-top: 20px;
+            padding: 70px 25px;
+            text-align: center;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .albums-empty-icon {
+            color: var(--primary);
+            font-size: 50px;
+        }
+
+        .albums-empty-title {
+            margin-top: 17px;
+            color: #ffffff;
+            font-size: 19px;
+        }
+
+        .albums-empty-description {
+            max-width: 440px;
+            margin: 9px auto 20px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @@media (max-width: 850px) {
+            .artist-albums-content {
+                padding: 22px 16px 40px;
+            }
+
+            .albums-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .album-stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 560px) {
+            .albums-hero-left {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .create-album-button {
+                width: 100%;
+            }
+
+            .albums-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="artist-albums-content">
+
+    <section class="albums-hero">
+
+        <div class="albums-hero-left">
+
+            <div class="albums-hero-icon">
+                ◉
+            </div>
+
+            <div>
+
+                <p class="albums-hero-label">
+                    Sanatçı kataloğu
+                </p>
+
+                <h2 class="albums-hero-title">
+                    Albümlerim
+                </h2>
+
+                <p class="albums-hero-description">
+                    Yayınladığın albümleri görüntüle,
+                    düzenle ve şarkılarını yönet.
+                </p>
+
+            </div>
+
+        </div>
+
+        <a asp-controller="ArtistDashboard"
+           asp-action="CreateAlbum"
+           class="create-album-button">
+            + Yeni Albüm
+        </a>
+
+    </section>
+
+    <section class="album-stat-grid">
+
+        <article class="album-stat-card">
+
+            <div class="album-stat-number">
+                @Model.Albums.Count()
+            </div>
+
+            <div class="album-stat-label">
+                Toplam albüm
+            </div>
+
+        </article>
+
+        <article class="album-stat-card">
+
+            <div class="album-stat-number">
+                @Model.TotalAlbumSongs
+            </div>
+
+            <div class="album-stat-label">
+                Albümlerdeki şarkılar
+            </div>
+
+        </article>
+
+        <article class="album-stat-card">
+
+            <div class="album-stat-number">
+                @Model.TotalAlbumStreams.ToString("N0")
+            </div>
+
+            <div class="album-stat-label">
+                Toplam albüm dinlenmesi
+            </div>
+
+        </article>
+
+    </section>
+
+    <div class="albums-section-header">
+
+        <div>
+
+            <h3 class="albums-section-title">
+                Yayınlanan albümler
+            </h3>
+
+            <p class="albums-section-description">
+                En yeni albüm ilk sırada gösterilir.
+            </p>
+
+        </div>
+
+    </div>
+
+    @if (Model.Albums.Any())
+    {
+        <section class="albums-grid">
+
+            @foreach (var album in Model.Albums)
+            {
+                var totalStreams = album.Songs
+                    .Sum(song =>
+                        song.SongStat?.TotalStreams ?? 0);
+
+                <article class="album-card">
+
+                    <div class="album-card-cover">
+                        ◉
+                    </div>
+
+                    <div class="album-card-content">
+
+                        <h4 class="album-card-title">
+                            @album.Name
+                        </h4>
+
+                        <p class="album-card-date">
+                            @album.ReleaseDate.ToString("dd.MM.yyyy")
+                        </p>
+
+                        <p class="album-card-description">
+                            @(string.IsNullOrWhiteSpace(album.Description)
+                                ? "Albüm açıklaması bulunmuyor."
+                                : album.Description)
+                        </p>
+
+                        <div class="album-card-meta">
+
+                            <span class="album-card-song-count">
+                                @album.Songs.Count şarkı
+                            </span>
+
+                            <span class="album-card-streams">
+                                @totalStreams.ToString("N0") dinlenme
+                            </span>
+
+                        </div>
+
+                        <div class="album-card-actions">
+
+                            <a asp-controller="ArtistDashboard"
+                               asp-action="AlbumDetails"
+                               asp-route-albumId="@album.Id"
+                               class="album-detail-button">
+                                Detay
+                            </a>
+
+                            <a asp-controller="ArtistDashboard"
+                               asp-action="EditAlbum"
+                               asp-route-albumId="@album.Id"
+                               class="album-edit-button">
+                                Düzenle
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            }
+
+        </section>
+    }
+    else
+    {
+        <section class="albums-empty">
+
+            <div class="albums-empty-icon">
+                ◉
+            </div>
+
+            <h3 class="albums-empty-title">
+                Henüz albümün bulunmuyor
+            </h3>
+
+            <p class="albums-empty-description">
+                İlk albümünü oluşturarak şarkılarını
+                tek bir koleksiyon altında yayınlayabilirsin.
+            </p>
+
+            <a asp-controller="ArtistDashboard"
+               asp-action="CreateAlbum"
+               class="create-album-button">
+                İlk Albümü Oluştur
+            </a>
+
+        </section>
+    }
+
+</div>

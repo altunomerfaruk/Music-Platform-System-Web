@@ -7,5 +7,15 @@ namespace MusicProject.Repositories.Interface
         Album? GetAlbumDetailsById(int albumId);
 
         IEnumerable<Album> GetAllAlbums();
+
+        IEnumerable<Album> GetAlbumsByArtistId(int artistId);
+
+        Album? GetArtistAlbumDetails(int albumId, int artistId);
+
+        void Create(Album album);
+
+        void Update(Album album);
+
+        void Delete(int albumId);
     }
 }
