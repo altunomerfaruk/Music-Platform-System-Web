@@ -16,6 +16,8 @@ namespace MusicProject.Repositories.Interface
 
         IEnumerable<Song> GetSongsSortedByAlphabet();
 
+        IEnumerable<Song> GetSongsByArtistId(int artistId);
+
         List<Song> GetSongsByAlbum(int albumId);
 
         List<Song> GetPopularSongs();
@@ -24,13 +26,16 @@ namespace MusicProject.Repositories.Interface
 
         Song? GetSongForListening(int songId);
 
-        // YENİ:
-        // Aynı sanatçıda aynı isimli şarkı bulunup bulunmadığını kontrol eder.
         bool ExistsByTitleAndArtist(string title, int artistId);
 
         void CreateSongWithRelations(
             Song song,
             int artistId,
             IEnumerable<int> genreIds);
+        Song? GetArtistSongForEdit(int songId, int artistId);
+
+        bool ExistsByTitleAndArtist(string title, int artistId, int excludedSongId);
+
+        void UpdateSongWithRelations(Song song, IEnumerable<int> genreIds);
     }
 }

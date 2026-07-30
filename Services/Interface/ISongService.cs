@@ -27,5 +27,9 @@ namespace MusicProject.Services.Interface
         IEnumerable<Song> GetSongsSortedByAlphabet();
 
         SongDetailsDto? GetSongDetails(int songId);
+
+        IEnumerable<Song> GetSongsByArtistId(int artistId);
+        Song? GetArtistSongForEdit(int songId, int artistId);
+        void UpdateArtistSong(Song song, int artistId, IEnumerable<int> genreIds);
     }
 }

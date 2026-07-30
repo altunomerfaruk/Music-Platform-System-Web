@@ -14,6 +14,81 @@ namespace MusicProject.Services.Concrete
             _songRepository = songRepository;
         }
 
+        public IEnumerable<Song> GetSongsByArtistId(int artistId)
+        {
+            if (artistId <= 0)
+            {
+                return new List<Song>();
+            }
+
+            return _songRepository.GetSongsByArtistId(artistId);
+        }
+        public Song? GetArtistSongForEdit(int songId, int artistId)
+        {
+            if (songId <= 0 || artistId <= 0)
+            {
+                return null;
+            }
+            return _songRepository.GetArtistSongForEdit(songId, artistId);
+        }
+        public void UpdateArtistSong(Song song, int artistId, IEnumerable<int> genreIds)
+        {
+            if (song.Id <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Güncellenecek şarkı bulunamadı.");
+            }
+
+            if (artistId <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Geçerli bir sanatçı profili bulunamadı.");
+            }
+
+            ValidateTitle(song.Title);
+
+            var artistSong = _songRepository
+                .GetArtistSongForEdit(song.Id, artistId);
+
+            if (artistSong == null)
+            {
+                throw new InvalidOperationException(
+                    "Bu şarkıyı düzenleme yetkiniz bulunmuyor.");
+            }
+
+            var normalizedTitle = song.Title.Trim();
+
+            var sameTitleExists = _songRepository
+                .ExistsByTitleAndArtist(
+                    normalizedTitle,
+                    artistId,
+                    song.Id);
+
+            if (sameTitleExists)
+            {
+                throw new InvalidOperationException(
+                    $"'{normalizedTitle}' adında başka bir şarkınız zaten bulunuyor.");
+            }
+
+            var selectedGenreIds = genreIds
+                .Where(genreId => genreId > 0)
+                .Distinct()
+                .ToList();
+
+            if (selectedGenreIds.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Şarkı için en az bir müzik türü seçmelisiniz.");
+            }
+
+            artistSong.Title = normalizedTitle;
+            artistSong.AlbumId = song.AlbumId;
+            artistSong.LabelId = song.LabelId;
+
+            _songRepository.UpdateSongWithRelations(
+                artistSong,
+                selectedGenreIds);
+        }
         public SongDetailsDto? GetSongDetails(int songId)
         {
             var song = _songRepository.GetSongDetailsById(songId);
@@ -72,10 +147,7 @@ namespace MusicProject.Services.Concrete
             _songRepository.Create(song);
         }
 
-        public void AddSongWithRelations(
-            Song song,
-            int artistId,
-            IEnumerable<int> genreIds)
+        public void AddSongWithRelations(Song song,int artistId,IEnumerable<int> genreIds)
         {
             if (artistId <= 0)
             {

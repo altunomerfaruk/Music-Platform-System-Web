@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AspNetCoreGeneratedDocument;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicProject.Models.Concrete;
@@ -47,6 +48,36 @@ namespace MusicProject.Controllers
         }
 
         [HttpGet]
+        public IActionResult MySongs()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+        
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            { return View("ArtistProfileNotFound"); }
+
+            var songs = _songService.GetSongsByArtistId(dashboard.Artist.Id).ToList();
+
+            var model = new ArtistSongsViewModel
+            {
+                Artist = dashboard.Artist,
+                ArtistInitial = dashboard.ArtistInitial,
+                TotalAlbums = dashboard.TotalAlbums,
+                TotalSongs = dashboard.TotalSongs,
+                Songs = songs,
+                TotalStreams = songs.Sum(song => song.SongStat?.TotalStreams ?? 0),
+                TotalLikes = songs.Sum(song => song.SongStat?.TotalLikes ?? 0)
+            };
+
+            return View(model);
+
+        }
+
+            [HttpGet]
         public IActionResult MyAlbums()
         {
             if (!TryGetCurrentUserId(out var userId))
@@ -112,6 +143,135 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult EditSong(int songId)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            var song = _songService.GetArtistSongForEdit(
+                songId,
+                dashboard.Artist.Id);
+
+            if (song == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Şarkı bulunamadı veya bu şarkıyı düzenleme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MySongs));
+            }
+
+            var model = new EditSongViewModel
+            {
+                SongId = song.Id,
+                Title = song.Title,
+                AlbumId = song.AlbumId,
+                LabelId = song.LabelId,
+
+                SelectedGenreIds = song.SongGenres
+                    .Select(songGenre => songGenre.GenreId)
+                    .ToList()
+            };
+
+            FillArtistLayoutData(model, dashboard);
+
+            FillEditSongOptions(
+                model,
+                dashboard.Artist.Id);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditSong(EditSongViewModel model)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            model.SelectedGenreIds ??= new List<int>();
+
+            FillArtistLayoutData(model, dashboard);
+
+            FillEditSongOptions(
+                model,
+                dashboard.Artist.Id);
+
+            if (model.SelectedGenreIds.Count == 0)
+            {
+                ModelState.AddModelError(
+                    nameof(model.SelectedGenreIds),
+                    "En az bir müzik türü seçmelisiniz.");
+            }
+
+            if (model.AlbumId.HasValue)
+            {
+                var selectedAlbum =
+                    _albumService.GetArtistAlbumDetails(
+                        model.AlbumId.Value,
+                        dashboard.Artist.Id);
+
+                if (selectedAlbum == null)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.AlbumId),
+                        "Seçilen albüm size ait değil veya bulunamadı.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var song = new Song
+            {
+                Id = model.SongId,
+                Title = model.Title,
+                AlbumId = model.AlbumId,
+                LabelId = model.LabelId
+            };
+
+            try
+            {
+                _songService.UpdateArtistSong(
+                    song,
+                    dashboard.Artist.Id,
+                    model.SelectedGenreIds);
+
+                TempData["SuccessMessage"] =
+                    $"'{model.Title.Trim()}' şarkısı başarıyla güncellendi.";
+
+                return RedirectToAction(nameof(MySongs));
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Title),
+                    exception.Message);
+
+                return View(model);
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateAlbum(CreateAlbumViewModel model)
@@ -167,8 +327,7 @@ namespace MusicProject.Controllers
             return RedirectToAction(nameof(MyAlbums));
         }
 
-        // YENİ:
-        // Şarkı ekleme formu için sanatçının albümleri ve bütün türler hazırlanır.
+
         [HttpGet]
         public IActionResult CreateSong()
         {
@@ -192,8 +351,6 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
-        // YENİ:
-        // ArtistId formdan alınmaz; giriş yapan sanatçının profilinden belirlenir.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateSong(CreateSongViewModel model)
@@ -265,13 +422,10 @@ namespace MusicProject.Controllers
             TempData["SuccessMessage"] =
                 $"'{song.Title}' şarkısı başarıyla eklendi.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(MySongs));
         }
 
-        private void FillCreateSongOptions(
-            CreateSongViewModel model,
-            int artistId)
-        {
+        private void FillCreateSongOptions(CreateSongViewModel model,int artistId){
             model.AlbumOptions = _albumService
                 .GetAlbumsByArtistId(artistId)
                 .Select(album => new SelectListItem
@@ -306,14 +460,43 @@ namespace MusicProject.Controllers
             return RedirectToAction("Login", "Auth");
         }
 
-        private static void FillArtistLayoutData(
-            ArtistLayoutViewModel model,
-            ArtistDashboardViewModel dashboard)
+        private static void FillArtistLayoutData(ArtistLayoutViewModel model,ArtistDashboardViewModel dashboard)
         {
             model.Artist = dashboard.Artist;
             model.ArtistInitial = dashboard.ArtistInitial;
             model.TotalAlbums = dashboard.TotalAlbums;
             model.TotalSongs = dashboard.TotalSongs;
+        }
+
+        private void FillEditSongOptions(EditSongViewModel model,int artistId)
+        {
+            var albums = _albumService
+                .GetAlbumsByArtistId(artistId)
+                .OrderBy(album => album.Name)
+                .ToList();
+
+            var genres = _genreService
+                .GetAllGenres()
+                .OrderBy(genre => genre.Name)
+                .ToList();
+
+            model.AlbumOptions = albums
+                .Select(album => new SelectListItem
+                {
+                    Value = album.Id.ToString(),
+                    Text = album.Name,
+                    Selected = model.AlbumId == album.Id
+                })
+                .ToList();
+
+            model.GenreOptions = genres
+                .Select(genre => new SelectListItem
+                {
+                    Value = genre.Id.ToString(),
+                    Text = genre.Name,
+                    Selected = model.SelectedGenreIds?.Contains(genre.Id) == true
+                })
+                .ToList();
         }
     }
 }
