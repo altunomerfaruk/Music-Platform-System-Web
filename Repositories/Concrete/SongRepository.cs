@@ -86,7 +86,7 @@ namespace MusicProject.Repositories.Concrete
                     .Where(sg => sg.SongId == song.Id)
                     .ToList();
                 _context.SongGenres.RemoveRange(oldSongGenres);
-                
+
                 var distinctGenreIds = genreIds
                     .Where(genreId => genreId > 0)
                     .Distinct()
@@ -185,7 +185,7 @@ namespace MusicProject.Repositories.Concrete
                         songArtist.ArtistId == artistId));
         }
 
-        public void CreateSongWithRelations(Song song,int artistId,IEnumerable<int> genreIds)
+        public void CreateSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds)
         {
             using var transaction =
                 _context.Database.BeginTransaction();
@@ -237,6 +237,13 @@ namespace MusicProject.Repositories.Concrete
                 transaction.Rollback();
                 throw;
             }
+        }
+
+        public void SoftDeleteSong(Song song)
+        {
+            song.IsDeleted = true;
+            _context.Songs.Update(song);
+            _context.SaveChanges();
         }
     }
 }

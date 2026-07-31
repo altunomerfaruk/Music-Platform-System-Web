@@ -1,5 +1,4 @@
-﻿using AspNetCoreGeneratedDocument;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicProject.Models.Concrete;
@@ -157,15 +156,12 @@ namespace MusicProject.Controllers
             {
                 return View("ArtistProfileNotFound");
             }
-
-            var song = _songService.GetArtistSongForEdit(
-                songId,
-                dashboard.Artist.Id);
+ 
+            var song = _songService.GetArtistSongForEdit(songId,dashboard.Artist.Id);
 
             if (song == null)
             {
-                TempData["ErrorMessage"] =
-                    "Şarkı bulunamadı veya bu şarkıyı düzenleme yetkiniz yok.";
+                TempData["ErrorMessage"] ="Şarkı bulunamadı veya bu şarkıyı düzenleme yetkiniz yok.";
 
                 return RedirectToAction(nameof(MySongs));
             }
@@ -425,6 +421,33 @@ namespace MusicProject.Controllers
             return RedirectToAction(nameof(MySongs));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteSong(int songId)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            try
+            {
+                _songService.DeleteArtistSong(songId, dashboard.Artist.Id);
+                TempData["SuccessMessage"] = "Şarkı başarıyla silindi.";
+            }
+            catch (InvalidOperationException exception)
+            {
+                TempData["ErrorMessage"] = exception.Message;
+            }
+
+            return RedirectToAction(nameof(MySongs));
+        }
         private void FillCreateSongOptions(CreateSongViewModel model,int artistId){
             model.AlbumOptions = _albumService
                 .GetAlbumsByArtistId(artistId)
@@ -498,5 +521,8 @@ namespace MusicProject.Controllers
                 })
                 .ToList();
         }
+
+
+
     }
 }

@@ -37,5 +37,7 @@ namespace MusicProject.Repositories.Interface
         bool ExistsByTitleAndArtist(string title, int artistId, int excludedSongId);
 
         void UpdateSongWithRelations(Song song, IEnumerable<int> genreIds);
+
+        void SoftDeleteSong(Song song);
     }
 }

@@ -2,10 +2,7 @@
 
 @{
     ViewData["Title"] = "Şarkılarım";
-
-    ViewData["PageDescription"] =
-        "Yayınladığın şarkıları görüntüle ve yönet.";
-
+    ViewData["PageDescription"] = "Yayınladığın şarkıları görüntüle ve yönet.";
     Layout = "_ArtistLayout";
 }
 
@@ -21,12 +18,11 @@
             align-items: center;
             justify-content: space-between;
             gap: 25px;
-            background:
-                linear-gradient(
-                    125deg,
-                    rgba(30, 215, 96, 0.20),
-                    rgba(18, 23, 19, 0.97) 65%
-                );
+            background: linear-gradient(
+                125deg,
+                rgba(30, 215, 96, 0.20),
+                rgba(18, 23, 19, 0.97) 65%
+            );
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -84,12 +80,33 @@
             border-radius: 12px;
             font-size: 12px;
             font-weight: 850;
+            text-decoration: none;
             transition: 0.2s;
         }
 
         .create-song-button:hover {
             background-color: var(--primary-hover);
             transform: translateY(-2px);
+        }
+
+        .success-message,
+        .error-message {
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 11px;
+            font-size: 12px;
+        }
+
+        .success-message {
+            color: #a9f6c2;
+            background-color: rgba(30, 215, 96, 0.08);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+        }
+
+        .error-message {
+            color: #ffaaaa;
+            background-color: rgba(255, 74, 74, 0.08);
+            border: 1px solid rgba(255, 74, 74, 0.22);
         }
 
         .song-stat-grid {
@@ -207,12 +224,11 @@
             justify-content: center;
             flex-shrink: 0;
             color: var(--primary);
-            background:
-                linear-gradient(
-                    135deg,
-                    #1d3324,
-                    #0c110e
-                );
+            background: linear-gradient(
+                135deg,
+                #1d3324,
+                #0c110e
+            );
             border-radius: 11px;
             font-size: 18px;
         }
@@ -278,6 +294,10 @@
             gap: 7px;
         }
 
+        .delete-song-form {
+            margin: 0;
+        }
+
         .song-action-button {
             min-height: 34px;
             padding: 0 11px;
@@ -288,8 +308,11 @@
             background-color: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
             border-radius: 8px;
+            font-family: inherit;
             font-size: 10px;
             font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
             transition: 0.2s;
         }
 
@@ -301,8 +324,8 @@
 
         .song-action-button.danger:hover {
             color: #ffffff;
-            background-color: var(--danger);
-            border-color: var(--danger);
+            background-color: #e5484d;
+            border-color: #e5484d;
         }
 
         .songs-empty {
@@ -331,16 +354,6 @@
             color: var(--text-secondary);
             font-size: 12px;
             line-height: 1.7;
-        }
-
-        .success-message {
-            margin-bottom: 20px;
-            padding: 14px 16px;
-            color: #a9f6c2;
-            background-color: rgba(30, 215, 96, 0.08);
-            border: 1px solid rgba(30, 215, 96, 0.20);
-            border-radius: 11px;
-            font-size: 12px;
         }
 
         @@media (max-width: 850px) {
@@ -384,6 +397,13 @@
         </div>
     }
 
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="error-message">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     <section class="songs-hero">
 
         <div class="songs-hero-left">
@@ -393,7 +413,6 @@
             </div>
 
             <div>
-
                 <p class="songs-hero-label">
                     Sanatçı kataloğu
                 </p>
@@ -406,7 +425,6 @@
                     Yayınladığın şarkıları, albüm bağlantılarını,
                     türlerini ve performanslarını görüntüle.
                 </p>
-
             </div>
 
         </div>
@@ -422,7 +440,6 @@
     <section class="song-stat-grid">
 
         <article class="song-stat-card">
-
             <div class="song-stat-number">
                 @Model.Songs.Count()
             </div>
@@ -430,11 +447,9 @@
             <div class="song-stat-label">
                 Toplam şarkı
             </div>
-
         </article>
 
         <article class="song-stat-card">
-
             <div class="song-stat-number">
                 @Model.TotalStreams.ToString("N0")
             </div>
@@ -442,11 +457,9 @@
             <div class="song-stat-label">
                 Toplam dinlenme
             </div>
-
         </article>
 
         <article class="song-stat-card">
-
             <div class="song-stat-number">
                 @Model.TotalLikes.ToString("N0")
             </div>
@@ -454,7 +467,6 @@
             <div class="song-stat-label">
                 Toplam beğeni
             </div>
-
         </article>
 
     </section>
@@ -464,7 +476,6 @@
         <div class="songs-section-header">
 
             <div>
-
                 <h3 class="songs-section-title">
                     Yayınlanan şarkılar
                 </h3>
@@ -472,7 +483,6 @@
                 <p class="songs-section-description">
                     En son eklenen şarkı ilk sırada gösterilir.
                 </p>
-
             </div>
 
         </div>
@@ -503,15 +513,9 @@
                             @foreach (var song in Model.Songs)
                             {
                                 var albumName = song.Album?.Name ?? "Single";
-
-                                var totalStreams =
-                                    song.SongStat?.TotalStreams ?? 0;
-
-                                var totalLikes =
-                                    song.SongStat?.TotalLikes ?? 0;
-
-                                var popularityScore =
-                                    song.SongStat?.PopularityScore ?? 0;
+                                var totalStreams = song.SongStat?.TotalStreams ?? 0;
+                                var totalLikes = song.SongStat?.TotalLikes ?? 0;
+                                var popularityScore = song.SongStat?.PopularityScore ?? 0;
 
                                 var genreNames = song.SongGenres
                                     .Where(songGenre => songGenre.Genre != null)
@@ -523,7 +527,6 @@
                                 <tr>
 
                                     <td>
-
                                         <div class="song-cell">
 
                                             <div class="song-cover">
@@ -543,7 +546,6 @@
                                             </div>
 
                                         </div>
-
                                     </td>
 
                                     <td>
@@ -551,7 +553,6 @@
                                     </td>
 
                                     <td>
-
                                         @if (genreNames.Any())
                                         {
                                             <div class="genre-list">
@@ -571,7 +572,6 @@
                                                 Tür bilgisi yok
                                             </span>
                                         }
-
                                     </td>
 
                                     <td>
@@ -587,19 +587,14 @@
                                     </td>
 
                                     <td>
-
                                         <span class="song-status">
                                             Yayında
                                         </span>
-
                                     </td>
 
                                     <td>
-
                                         <div class="song-actions">
 
-                                            @* YENİ:
-                                               EditSong action'ı oluşturulduğunda çalışacak. *@
                                             <a asp-controller="ArtistDashboard"
                                                asp-action="EditSong"
                                                asp-route-songId="@song.Id"
@@ -607,17 +602,27 @@
                                                 Düzenle
                                             </a>
 
-                                            @* YENİ:
-                                               DeleteSong POST işlemi sonraki adımda eklenecek. *@
-                                            <button type="button"
-                                                    class="song-action-button danger"
-                                                    disabled
-                                                    title="Silme işlemi sonraki adımda hazırlanacak.">
-                                                Sil
-                                            </button>
+                                            @* YENİ: Sil butonu DeleteSong POST metoduna songId gönderir. *@
+                                            <form asp-controller="ArtistDashboard"
+                                                  asp-action="DeleteSong"
+                                                  method="post"
+                                                  class="delete-song-form"
+                                                  onsubmit="return confirm('Bu şarkıyı silmek istediğine emin misin?');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="songId"
+                                                       value="@song.Id" />
+
+                                                <button type="submit"
+                                                        class="song-action-button danger">
+                                                    Sil
+                                                </button>
+
+                                            </form>
 
                                         </div>
-
                                     </td>
 
                                 </tr>

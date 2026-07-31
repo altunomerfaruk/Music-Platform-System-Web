@@ -228,5 +228,24 @@ namespace MusicProject.Services.Concrete
                     "Şarkı adı en fazla 100 karakter olabilir.");
             }
         }
+
+
+
+        public void DeleteArtistSong (int songId, int artistId)
+        {
+            if (songId <= 0 || artistId <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Geçerli bir şarkı veya sanatçı bulunamadı.");
+            }
+            var artistSong = _songRepository
+                .GetArtistSongForEdit(songId, artistId);
+            if (artistSong == null)
+            {
+                throw new InvalidOperationException(
+                    "Bu şarkıyı silme yetkiniz bulunmuyor.");
+            }
+            _songRepository.Delete(songId);
+        }
     }
 }
