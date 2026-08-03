@@ -21,5 +21,7 @@ namespace MusicProject.Services.Interface
         int GetTotalSongCount(int artistId);
 
         ArtistDetailsDto? GetArtistDetails(int artistId);
+
+        bool UpdateArtistProfile(int userId, string name, string? country, int? debutYear);
     }
 }

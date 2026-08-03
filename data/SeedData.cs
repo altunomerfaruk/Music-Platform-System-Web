@@ -6,6 +6,7 @@ namespace MusicProject.data
     {
         public static void Initialize(AppDbContext context)
         {
+            AddGenres(context);
             AddAtlas(context);
             AddElifKaya(context);
             AddMavi(context);
@@ -13,8 +14,50 @@ namespace MusicProject.data
             context.SaveChanges();
         }
 
+        private static void AddGenres(AppDbContext context)
+        {
+            var genreNames = new[]
+            {
+        "Pop",
+        "Rock",
+        "Rap",
+        "Hip Hop",
+        "R&B",
+        "Jazz",
+        "Blues",
+        "Elektronik",
+        "Alternatif",
+        "Indie",
+        "Metal",
+        "Klasik",
+        "Arabesk",
+        "Türk Halk Müziği",
+        "Türk Sanat Müziği"
+    };
+
+            var existingGenreNames = context.Genres
+                .Select(genre => genre.Name)
+                .ToList();
+
+            var newGenres = genreNames
+                .Where(genreName => !existingGenreNames.Contains(genreName))
+                .Select(genreName => new Genre
+                {
+                    Name = genreName
+                })
+                .ToList();
+
+            if (newGenres.Count > 0)
+            {
+                context.Genres.AddRange(newGenres);
+            }
+        }
+
+
+
         private static void AddAtlas(AppDbContext context)
         {
+
             // DEĞİŞİKLİK:
             // Atlas daha önce eklendiyse tekrar eklenmesini engelliyoruz.
             if (context.Artists.Any(

@@ -26,9 +26,7 @@ namespace MusicProject.Repositories.Interface
             int id,
             params Expression<Func<T, object>>[] includes
         )
-        // DEĞİŞİKLİK:
-        // public T GetByID yerine public T? GetByID yapıldı.
-        // Çünkü kayıt bulunamazsa FirstOrDefault null dönebilir.
+
         {
             IQueryable<T> query = _dbSet;
 

@@ -80,5 +80,22 @@ namespace MusicProject.Repositories.Concrete
                 _context.SaveChanges();
             }
         }
+        public bool UpdateProfileByUserId(int userId, string name, string? country, int? debutYear)
+        {
+            var artist = _context.Artists
+                .FirstOrDefault(artist => artist.UserId == userId);
+
+            if (artist == null)
+            {
+                return false;
+            }
+            artist.Name = name;
+            artist.Country = country;
+            artist.DebutYear = debutYear;
+
+            _context.SaveChanges();
+
+            return true;
+        }
     }
 }

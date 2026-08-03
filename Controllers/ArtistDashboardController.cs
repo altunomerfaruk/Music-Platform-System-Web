@@ -363,6 +363,8 @@ namespace MusicProject.Controllers
                 return View("ArtistProfileNotFound");
             }
 
+            model.SelectedGenreIds ??= new List<int>();
+
             FillArtistLayoutData(model, dashboard);
             FillCreateSongOptions(model, dashboard.Artist.Id);
 
@@ -520,6 +522,81 @@ namespace MusicProject.Controllers
                     Selected = model.SelectedGenreIds?.Contains(genre.Id) == true
                 })
                 .ToList();
+        }
+
+        [HttpGet]
+        public IActionResult ProfileSettings()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            var model = new ArtistProfileSettingsViewModel
+            {
+                Name = dashboard.Artist.Name,
+                Country = dashboard.Artist.Country,
+                DebutYear = dashboard.Artist.DebutYear
+            };
+
+            FillArtistLayoutData(model, dashboard);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ProfileSettings(ArtistProfileSettingsViewModel model)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            FillArtistLayoutData(model, dashboard);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                var updated = _artistService.UpdateArtistProfile(userId,model.Name,model.Country,model.DebutYear);
+
+                if (!updated)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Sanatçı profili bulunamadığı için güncelleme yapılamadı.");
+
+                    return View(model);
+                }
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(nameof(model.Name), exception.Message);
+
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Sanatçı profiliniz başarıyla güncellendi.";
+
+            return RedirectToAction(nameof(ProfileSettings));
         }
 
 

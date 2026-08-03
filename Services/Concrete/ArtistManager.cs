@@ -17,8 +17,6 @@ namespace MusicProject.Services.Concrete
             _songRepository = songRepository;
         }
 
-        // --- TEMEL CRUD İŞLEMLERİ ---
-
         public IEnumerable<Artist> GetAllArtists()
         {
             return _artistRepository.GetAll();
@@ -37,6 +35,32 @@ namespace MusicProject.Services.Concrete
         public void UpdateArtist(Artist artist)
         {
             _artistRepository.Update(artist);
+        }
+
+
+        public bool UpdateArtistProfile(int userId, string name, string? country, int? debutYear)
+        {
+            if (userId <= 0)
+            {
+                return false;
+            }
+
+            var trimmedName = name.Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmedName))
+            {
+                throw new InvalidOperationException("Sanatçı adı boş bırakılamaz.");
+            }
+
+            var trimmedCountry = string.IsNullOrWhiteSpace(country)
+                ? null
+                : country.Trim();
+
+            return _artistRepository.UpdateProfileByUserId(
+                userId,
+                trimmedName,
+                trimmedCountry,
+                debutYear);
         }
 
         public void DeleteArtist(int id)
@@ -116,7 +140,6 @@ namespace MusicProject.Services.Concrete
             {
                 return null;
             }
-
             var songs = artist.SongArtists
                 .Select(songArtist => songArtist.Song)
                 .DistinctBy(song => song.Id)

@@ -1,0 +1,254 @@
+﻿@model MusicProject.Models.ViewModels.ArtistProfileSettingsViewModel
+
+@{
+    ViewData["Title"] = "Profil Ayarları";
+    Layout = "~/Views/Shared/_ArtistLayout.cshtml";
+}
+
+<style>
+    .profile-settings-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px;
+    }
+
+    .profile-settings-header {
+        margin-bottom: 28px;
+    }
+
+    .profile-settings-title {
+        margin: 0 0 8px;
+        font-size: 30px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .profile-settings-description {
+        margin: 0;
+        color: #a7a7b3;
+        line-height: 1.6;
+    }
+
+    .profile-settings-card {
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .profile-settings-message {
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        border-radius: 12px;
+    }
+
+    .profile-settings-message.success {
+        border: 1px solid rgba(46, 204, 113, 0.35);
+        background: rgba(46, 204, 113, 0.12);
+        color: #87e6ae;
+    }
+
+    .profile-settings-message.error {
+        border: 1px solid rgba(231, 76, 60, 0.35);
+        background: rgba(231, 76, 60, 0.12);
+        color: #ff9e94;
+    }
+
+    .profile-settings-group {
+        margin-bottom: 22px;
+    }
+
+    .profile-settings-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .profile-settings-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 13px 15px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 11px;
+        outline: none;
+        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
+        font-size: 15px;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .profile-settings-input:focus {
+        border-color: #8c5cff;
+        background: rgba(255, 255, 255, 0.09);
+    }
+
+    .profile-settings-input::placeholder {
+        color: #777783;
+    }
+
+    .profile-settings-validation {
+        display: block;
+        margin-top: 7px;
+        color: #ff8176;
+        font-size: 13px;
+    }
+
+    .profile-settings-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 28px;
+    }
+
+    .profile-settings-cancel,
+    .profile-settings-save {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 130px;
+        padding: 12px 18px;
+        border-radius: 11px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .profile-settings-cancel {
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        background: transparent;
+        color: #d5d5dc;
+    }
+
+    .profile-settings-save {
+        border: none;
+        background: #8c5cff;
+        color: #ffffff;
+    }
+
+    .profile-settings-save:hover {
+        background: #7545e8;
+    }
+
+    @@media (max-width: 700px) {
+        .profile-settings-page {
+            padding: 20px;
+        }
+
+        .profile-settings-card {
+            padding: 20px;
+        }
+
+        .profile-settings-actions {
+            flex-direction: column-reverse;
+        }
+
+        .profile-settings-cancel,
+        .profile-settings-save {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="profile-settings-page">
+
+    <div class="profile-settings-header">
+        <h1 class="profile-settings-title">
+            Profil Ayarları
+        </h1>
+
+        <p class="profile-settings-description">
+            Dinleyicilerin göreceği sanatçı bilgilerini buradan güncelleyebilirsin.
+        </p>
+    </div>
+
+    <div class="profile-settings-card">
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="profile-settings-message success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div asp-validation-summary="ModelOnly"
+             class="profile-settings-message error">
+        </div>
+
+        <form asp-controller="ArtistDashboard"
+              asp-action="ProfileSettings"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="profile-settings-group">
+                <label asp-for="Name"
+                       class="profile-settings-label">
+                </label>
+
+                <input asp-for="Name"
+                       class="profile-settings-input"
+                       placeholder="Sanatçı adını yaz" />
+
+                <span asp-validation-for="Name"
+                      class="profile-settings-validation">
+                </span>
+            </div>
+
+            <div class="profile-settings-group">
+                <label asp-for="Country"
+                       class="profile-settings-label">
+                </label>
+
+                <input asp-for="Country"
+                       class="profile-settings-input"
+                       placeholder="Örneğin: Türkiye" />
+
+                <span asp-validation-for="Country"
+                      class="profile-settings-validation">
+                </span>
+            </div>
+
+            <div class="profile-settings-group">
+                <label asp-for="DebutYear"
+                       class="profile-settings-label">
+                </label>
+
+                <input asp-for="DebutYear"
+                       type="number"
+                       min="1900"
+                       max="2100"
+                       class="profile-settings-input"
+                       placeholder="Örneğin: 2020" />
+
+                <span asp-validation-for="DebutYear"
+                      class="profile-settings-validation">
+                </span>
+            </div>
+
+            <div class="profile-settings-actions">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="Index"
+                   class="profile-settings-cancel">
+                    Vazgeç
+                </a>
+
+                <button type="submit"
+                        class="profile-settings-save">
+                    Değişiklikleri Kaydet
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

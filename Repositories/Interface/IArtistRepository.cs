@@ -1,6 +1,4 @@
 ﻿using MusicProject.Models.Concrete;
-using System.Collections.Generic;
-
 namespace MusicProject.Repositories.Interface
 {
     public interface IArtistRepository
@@ -12,5 +10,7 @@ namespace MusicProject.Repositories.Interface
         void Update(Artist entity);
         void Delete(int id);
         Artist? GetArtistDashboardByUserId(int userId);
+        bool UpdateProfileByUserId(int userId, string name, string? country, int? debutYear);
+
     }
 }
