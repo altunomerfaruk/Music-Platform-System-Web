@@ -1,4 +1,4 @@
-﻿using MusicProject.DTOs;
+﻿using MusicProject.Contracts.Responses;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;

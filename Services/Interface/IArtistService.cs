@@ -1,6 +1,6 @@
-﻿using MusicProject.DTOs;
+﻿using MusicProject.Contracts.Responses;
 using MusicProject.Models.Concrete;
-using MusicProject.Models.ViewModels;
+using MusicProject.ViewModels.ArtistDashboard;
 
 namespace MusicProject.Services.Interface
 {

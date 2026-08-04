@@ -1,4 +1,4 @@
-﻿using MusicProject.DTOs;
+﻿using MusicProject.Contracts.Responses;
 
 namespace MusicProject.Services.Interface
 {

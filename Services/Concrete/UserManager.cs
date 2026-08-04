@@ -1,6 +1,6 @@
 ﻿using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
-using MusicProject.Models.ViewModels;
+using MusicProject.ViewModels.UserDashboard;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 

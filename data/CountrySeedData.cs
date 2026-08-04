@@ -1,7 +1,7 @@
 ﻿using MusicProject.Models.Concrete;
 using System.Globalization;
 
-namespace MusicProject.data
+namespace MusicProject.Data
 {
     public static class CountrySeedData
     {

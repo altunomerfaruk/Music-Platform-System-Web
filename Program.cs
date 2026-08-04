@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using MusicProject.data;
+using MusicProject.Data;
 using MusicProject.Repositories.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Concrete;

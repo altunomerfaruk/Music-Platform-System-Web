@@ -1,6 +1,6 @@
 ﻿using MusicProject.Models.Concrete;
 
-namespace MusicProject.data
+namespace MusicProject.Data
 {
     public static class SeedData
     {

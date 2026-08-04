@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.data;
+using MusicProject.Data;
 using MusicProject.Models.Core;
 using System.Linq.Expressions;
 

@@ -2,7 +2,7 @@
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
 
-namespace MusicProject.data
+namespace MusicProject.Data
 {
     public class AppDbContext : DbContext
     {

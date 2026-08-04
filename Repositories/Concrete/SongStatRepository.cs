@@ -1,4 +1,4 @@
-﻿using MusicProject.data;
+﻿using MusicProject.Data;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 
