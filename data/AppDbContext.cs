@@ -10,6 +10,7 @@ namespace MusicProject.data
             : base(options)
         {
         }
+
         public DbSet<Genre> Genres { get; set; }
 
         public DbSet<LikedSong> LikedSongs { get; set; }
@@ -74,7 +75,6 @@ namespace MusicProject.data
             modelBuilder.Entity<Country>()
                 .HasIndex(country => country.IsoCode)
                 .IsUnique();
-
 
             modelBuilder.Entity<FollowedArtist>()
                 .HasOne(followedArtist => followedArtist.User)
