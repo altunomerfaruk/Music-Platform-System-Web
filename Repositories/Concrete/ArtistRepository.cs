@@ -16,17 +16,26 @@ namespace MusicProject.Repositories.Concrete
 
         public IEnumerable<Artist> GetAll()
         {
-            return _context.Artists.ToList();
+            return _context.Artists
+                .AsNoTracking()
+                .Include(artist => artist.CountryEntity)
+                .ToList();
         }
 
         public Artist? GetByID(int id)
         {
-            return _context.Artists.Find(id);
+            return _context.Artists
+                .AsNoTracking()
+                .Include(artist => artist.CountryEntity)
+                .FirstOrDefault(artist => artist.Id == id);
         }
+
         public Artist? GetArtistDetailsById(int artistId)
         {
             return _context.Artists
                 .AsNoTracking()
+                .AsSplitQuery()
+                .Include(artist => artist.CountryEntity)
                 .Include(artist => artist.Albums)
                     .ThenInclude(album => album.Songs)
                 .Include(artist => artist.SongArtists)
@@ -38,12 +47,14 @@ namespace MusicProject.Repositories.Concrete
                 .Include(artist => artist.Followers)
                 .FirstOrDefault(artist => artist.Id == artistId);
         }
+
         public Artist? GetArtistDashboardByUserId(int userId)
         {
             return _context.Artists
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Include(artist => artist.User)
+                .Include(artist => artist.CountryEntity)
                 .Include(artist => artist.ArtistStat)
                 .Include(artist => artist.Followers)
                 .Include(artist => artist.Albums)
@@ -74,13 +85,20 @@ namespace MusicProject.Repositories.Concrete
         {
             var artist = _context.Artists.Find(id);
 
-            if (artist != null)
+            if (artist == null)
             {
-                _context.Artists.Remove(artist);
-                _context.SaveChanges();
+                return;
             }
+
+            _context.Artists.Remove(artist);
+            _context.SaveChanges();
         }
-        public bool UpdateProfileByUserId(int userId, string name, string? country, int? debutYear)
+
+        public bool UpdateProfileByUserId(
+            int userId,
+            string name,
+            int? countryId,
+            int? debutYear)
         {
             var artist = _context.Artists
                 .FirstOrDefault(artist => artist.UserId == userId);
@@ -89,8 +107,9 @@ namespace MusicProject.Repositories.Concrete
             {
                 return false;
             }
+
             artist.Name = name;
-            artist.Country = country;
+            artist.CountryId = countryId;
             artist.DebutYear = debutYear;
 
             _context.SaveChanges();

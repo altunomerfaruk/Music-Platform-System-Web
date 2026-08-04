@@ -46,6 +46,79 @@ namespace MusicProject.Controllers
             return View(dashboard);
         }
 
+        // Yeni: Profil ayarları sayfasını açar.
+        [HttpGet]
+        public IActionResult ProfileSettings()
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            var model = new ArtistProfileSettingsViewModel
+            {
+                Name = dashboard.Artist.Name,
+                Country = dashboard.Artist.Country,
+                DebutYear = dashboard.Artist.DebutYear
+            };
+
+            FillArtistLayoutData(model, dashboard);
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ProfileSettings(ArtistProfileSettingsViewModel model)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            FillArtistLayoutData(model, dashboard);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var updated = _artistService.UpdateArtistProfile(
+                userId,
+                model.Name,
+                model.Country,
+                model.DebutYear);
+
+            if (!updated)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Sanatçı profili güncellenemedi.");
+
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] =
+                "Sanatçı profiliniz başarıyla güncellendi.";
+
+            return RedirectToAction(nameof(ProfileSettings));
+        }
+
         [HttpGet]
         public IActionResult MySongs()
         {
@@ -53,13 +126,17 @@ namespace MusicProject.Controllers
             {
                 return RedirectToLogin();
             }
-        
+
             var dashboard = _artistService.GetArtistDashboard(userId);
 
             if (dashboard == null)
-            { return View("ArtistProfileNotFound"); }
+            {
+                return View("ArtistProfileNotFound");
+            }
 
-            var songs = _songService.GetSongsByArtistId(dashboard.Artist.Id).ToList();
+            var songs = _songService
+                .GetSongsByArtistId(dashboard.Artist.Id)
+                .ToList();
 
             var model = new ArtistSongsViewModel
             {
@@ -73,10 +150,9 @@ namespace MusicProject.Controllers
             };
 
             return View(model);
-
         }
 
-            [HttpGet]
+        [HttpGet]
         public IActionResult MyAlbums()
         {
             if (!TryGetCurrentUserId(out var userId))
@@ -102,10 +178,7 @@ namespace MusicProject.Controllers
                 TotalAlbums = dashboard.TotalAlbums,
                 TotalSongs = dashboard.TotalSongs,
                 Albums = albums,
-
-                TotalAlbumSongs = albums
-                    .Sum(album => album.Songs.Count),
-
+                TotalAlbumSongs = albums.Sum(album => album.Songs.Count),
                 TotalAlbumStreams = albums
                     .SelectMany(album => album.Songs)
                     .DistinctBy(song => song.Id)
@@ -140,132 +213,6 @@ namespace MusicProject.Controllers
             };
 
             return View(model);
-        }
-
-        [HttpGet]
-        public IActionResult EditSong(int songId)
-        {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return RedirectToLogin();
-            }
-
-            var dashboard = _artistService.GetArtistDashboard(userId);
-
-            if (dashboard == null)
-            {
-                return View("ArtistProfileNotFound");
-            }
- 
-            var song = _songService.GetArtistSongForEdit(songId,dashboard.Artist.Id);
-
-            if (song == null)
-            {
-                TempData["ErrorMessage"] ="Şarkı bulunamadı veya bu şarkıyı düzenleme yetkiniz yok.";
-
-                return RedirectToAction(nameof(MySongs));
-            }
-
-            var model = new EditSongViewModel
-            {
-                SongId = song.Id,
-                Title = song.Title,
-                AlbumId = song.AlbumId,
-                LabelId = song.LabelId,
-
-                SelectedGenreIds = song.SongGenres
-                    .Select(songGenre => songGenre.GenreId)
-                    .ToList()
-            };
-
-            FillArtistLayoutData(model, dashboard);
-
-            FillEditSongOptions(
-                model,
-                dashboard.Artist.Id);
-
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult EditSong(EditSongViewModel model)
-        {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return RedirectToLogin();
-            }
-
-            var dashboard = _artistService.GetArtistDashboard(userId);
-
-            if (dashboard == null)
-            {
-                return View("ArtistProfileNotFound");
-            }
-
-            model.SelectedGenreIds ??= new List<int>();
-
-            FillArtistLayoutData(model, dashboard);
-
-            FillEditSongOptions(
-                model,
-                dashboard.Artist.Id);
-
-            if (model.SelectedGenreIds.Count == 0)
-            {
-                ModelState.AddModelError(
-                    nameof(model.SelectedGenreIds),
-                    "En az bir müzik türü seçmelisiniz.");
-            }
-
-            if (model.AlbumId.HasValue)
-            {
-                var selectedAlbum =
-                    _albumService.GetArtistAlbumDetails(
-                        model.AlbumId.Value,
-                        dashboard.Artist.Id);
-
-                if (selectedAlbum == null)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.AlbumId),
-                        "Seçilen albüm size ait değil veya bulunamadı.");
-                }
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var song = new Song
-            {
-                Id = model.SongId,
-                Title = model.Title,
-                AlbumId = model.AlbumId,
-                LabelId = model.LabelId
-            };
-
-            try
-            {
-                _songService.UpdateArtistSong(
-                    song,
-                    dashboard.Artist.Id,
-                    model.SelectedGenreIds);
-
-                TempData["SuccessMessage"] =
-                    $"'{model.Title.Trim()}' şarkısı başarıyla güncellendi.";
-
-                return RedirectToAction(nameof(MySongs));
-            }
-            catch (InvalidOperationException exception)
-            {
-                ModelState.AddModelError(
-                    nameof(model.Title),
-                    exception.Message);
-
-                return View(model);
-            }
         }
 
         [HttpPost]
@@ -323,6 +270,126 @@ namespace MusicProject.Controllers
             return RedirectToAction(nameof(MyAlbums));
         }
 
+        [HttpGet]
+        public IActionResult EditSong(int songId)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            var song = _songService.GetArtistSongForEdit(
+                songId,
+                dashboard.Artist.Id);
+
+            if (song == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Şarkı bulunamadı veya bu şarkıyı düzenleme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MySongs));
+            }
+
+            var model = new EditSongViewModel
+            {
+                SongId = song.Id,
+                Title = song.Title,
+                AlbumId = song.AlbumId,
+                LabelId = song.LabelId,
+                SelectedGenreIds = song.SongGenres
+                    .Select(songGenre => songGenre.GenreId)
+                    .ToList()
+            };
+
+            FillArtistLayoutData(model, dashboard);
+            FillEditSongOptions(model, dashboard.Artist.Id);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditSong(EditSongViewModel model)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return RedirectToLogin();
+            }
+
+            var dashboard = _artistService.GetArtistDashboard(userId);
+
+            if (dashboard == null)
+            {
+                return View("ArtistProfileNotFound");
+            }
+
+            model.SelectedGenreIds ??= new List<int>();
+
+            FillArtistLayoutData(model, dashboard);
+            FillEditSongOptions(model, dashboard.Artist.Id);
+
+            if (model.SelectedGenreIds.Count == 0)
+            {
+                ModelState.AddModelError(
+                    nameof(model.SelectedGenreIds),
+                    "En az bir müzik türü seçmelisiniz.");
+            }
+
+            if (model.AlbumId.HasValue)
+            {
+                var selectedAlbum = _albumService.GetArtistAlbumDetails(
+                    model.AlbumId.Value,
+                    dashboard.Artist.Id);
+
+                if (selectedAlbum == null)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.AlbumId),
+                        "Seçilen albüm size ait değil veya bulunamadı.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var song = new Song
+            {
+                Id = model.SongId,
+                Title = model.Title,
+                AlbumId = model.AlbumId,
+                LabelId = model.LabelId
+            };
+
+            try
+            {
+                _songService.UpdateArtistSong(
+                    song,
+                    dashboard.Artist.Id,
+                    model.SelectedGenreIds);
+
+                TempData["SuccessMessage"] =
+                    $"'{model.Title.Trim()}' şarkısı başarıyla güncellendi.";
+
+                return RedirectToAction(nameof(MySongs));
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Title),
+                    exception.Message);
+
+                return View(model);
+            }
+        }
 
         [HttpGet]
         public IActionResult CreateSong()
@@ -363,6 +430,7 @@ namespace MusicProject.Controllers
                 return View("ArtistProfileNotFound");
             }
 
+            // Yeni: Tür seçimi formdan hiç gelmezse null hatasını engeller.
             model.SelectedGenreIds ??= new List<int>();
 
             FillArtistLayoutData(model, dashboard);
@@ -431,6 +499,7 @@ namespace MusicProject.Controllers
             {
                 return RedirectToLogin();
             }
+
             var dashboard = _artistService.GetArtistDashboard(userId);
 
             if (dashboard == null)
@@ -440,8 +509,12 @@ namespace MusicProject.Controllers
 
             try
             {
-                _songService.DeleteArtistSong(songId, dashboard.Artist.Id);
-                TempData["SuccessMessage"] = "Şarkı başarıyla silindi.";
+                _songService.DeleteArtistSong(
+                    songId,
+                    dashboard.Artist.Id);
+
+                TempData["SuccessMessage"] =
+                    "Şarkı başarıyla silindi.";
             }
             catch (InvalidOperationException exception)
             {
@@ -450,7 +523,9 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MySongs));
         }
-        private void FillCreateSongOptions(CreateSongViewModel model,int artistId){
+
+        private void FillCreateSongOptions(CreateSongViewModel model, int artistId)
+        {
             model.AlbumOptions = _albumService
                 .GetAlbumsByArtistId(artistId)
                 .Select(album => new SelectListItem
@@ -485,7 +560,9 @@ namespace MusicProject.Controllers
             return RedirectToAction("Login", "Auth");
         }
 
-        private static void FillArtistLayoutData(ArtistLayoutViewModel model,ArtistDashboardViewModel dashboard)
+        private static void FillArtistLayoutData(
+            ArtistLayoutViewModel model,
+            ArtistDashboardViewModel dashboard)
         {
             model.Artist = dashboard.Artist;
             model.ArtistInitial = dashboard.ArtistInitial;
@@ -493,7 +570,7 @@ namespace MusicProject.Controllers
             model.TotalSongs = dashboard.TotalSongs;
         }
 
-        private void FillEditSongOptions(EditSongViewModel model,int artistId)
+        private void FillEditSongOptions(EditSongViewModel model, int artistId)
         {
             var albums = _albumService
                 .GetAlbumsByArtistId(artistId)
@@ -523,83 +600,5 @@ namespace MusicProject.Controllers
                 })
                 .ToList();
         }
-
-        [HttpGet]
-        public IActionResult ProfileSettings()
-        {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return RedirectToLogin();
-            }
-
-            var dashboard = _artistService.GetArtistDashboard(userId);
-
-            if (dashboard == null)
-            {
-                return View("ArtistProfileNotFound");
-            }
-
-            var model = new ArtistProfileSettingsViewModel
-            {
-                Name = dashboard.Artist.Name,
-                Country = dashboard.Artist.Country,
-                DebutYear = dashboard.Artist.DebutYear
-            };
-
-            FillArtistLayoutData(model, dashboard);
-
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ProfileSettings(ArtistProfileSettingsViewModel model)
-        {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return RedirectToLogin();
-            }
-
-            var dashboard = _artistService.GetArtistDashboard(userId);
-
-            if (dashboard == null)
-            {
-                return View("ArtistProfileNotFound");
-            }
-
-            FillArtistLayoutData(model, dashboard);
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            try
-            {
-                var updated = _artistService.UpdateArtistProfile(userId,model.Name,model.Country,model.DebutYear);
-
-                if (!updated)
-                {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        "Sanatçı profili bulunamadığı için güncelleme yapılamadı.");
-
-                    return View(model);
-                }
-            }
-            catch (InvalidOperationException exception)
-            {
-                ModelState.AddModelError(nameof(model.Name), exception.Message);
-
-                return View(model);
-            }
-
-            TempData["SuccessMessage"] = "Sanatçı profiliniz başarıyla güncellendi.";
-
-            return RedirectToAction(nameof(ProfileSettings));
-        }
-
-
-
     }
 }

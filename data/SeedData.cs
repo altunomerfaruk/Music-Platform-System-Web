@@ -6,6 +6,9 @@ namespace MusicProject.data
     {
         public static void Initialize(AppDbContext context)
         {
+            // Yeni: Countries tablosundaki ülke kayıtlarını oluşturur.
+            CountrySeedData.AddCountries(context);
+
             AddGenres(context);
             AddAtlas(context);
             AddElifKaya(context);
@@ -18,26 +21,26 @@ namespace MusicProject.data
         {
             var genreNames = new[]
             {
-        "Pop",
-        "Rock",
-        "Rap",
-        "Hip Hop",
-        "R&B",
-        "Jazz",
-        "Blues",
-        "Elektronik",
-        "Alternatif",
-        "Indie",
-        "Metal",
-        "Klasik",
-        "Arabesk",
-        "Türk Halk Müziği",
-        "Türk Sanat Müziği"
-    };
+                "Pop",
+                "Rock",
+                "Rap",
+                "Hip Hop",
+                "R&B",
+                "Jazz",
+                "Blues",
+                "Elektronik",
+                "Alternatif",
+                "Indie",
+                "Metal",
+                "Klasik",
+                "Arabesk",
+                "Türk Halk Müziği",
+                "Türk Sanat Müziği"
+            };
 
             var existingGenreNames = context.Genres
                 .Select(genre => genre.Name)
-                .ToList();
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             var newGenres = genreNames
                 .Where(genreName => !existingGenreNames.Contains(genreName))
@@ -53,15 +56,9 @@ namespace MusicProject.data
             }
         }
 
-
-
         private static void AddAtlas(AppDbContext context)
         {
-
-            // DEĞİŞİKLİK:
-            // Atlas daha önce eklendiyse tekrar eklenmesini engelliyoruz.
-            if (context.Artists.Any(
-                    artist => artist.Name == "Atlas"))
+            if (context.Artists.Any(artist => artist.Name == "Atlas"))
             {
                 return;
             }
@@ -69,7 +66,10 @@ namespace MusicProject.data
             var artist = new Artist
             {
                 Name = "Atlas",
+
+                // Geçici olarak eski metin alanı korunuyor.
                 Country = "Türkiye",
+
                 DebutYear = 2018,
                 UserId = null,
 
@@ -78,12 +78,9 @@ namespace MusicProject.data
                     new Album
                     {
                         Name = "Şehir Işıkları",
-
                         Description =
                             "Şehir hayatını ve gece atmosferini anlatan alternatif albüm.",
-
-                        ReleaseDate =
-                            new DateTime(2024, 4, 12),
+                        ReleaseDate = new DateTime(2024, 4, 12),
 
                         Songs = new List<Song>
                         {
@@ -120,8 +117,7 @@ namespace MusicProject.data
 
         private static void AddElifKaya(AppDbContext context)
         {
-            if (context.Artists.Any(
-                    artist => artist.Name == "Elif Kaya"))
+            if (context.Artists.Any(artist => artist.Name == "Elif Kaya"))
             {
                 return;
             }
@@ -129,7 +125,10 @@ namespace MusicProject.data
             var artist = new Artist
             {
                 Name = "Elif Kaya",
+
+                // Geçici olarak eski metin alanı korunuyor.
                 Country = "Türkiye",
+
                 DebutYear = 2020,
                 UserId = null,
 
@@ -138,12 +137,9 @@ namespace MusicProject.data
                     new Album
                     {
                         Name = "Gece Yolculuğu",
-
                         Description =
                             "Gece yolculuklarından ilham alan modern pop albümü.",
-
-                        ReleaseDate =
-                            new DateTime(2025, 2, 20),
+                        ReleaseDate = new DateTime(2025, 2, 20),
 
                         Songs = new List<Song>
                         {
@@ -180,10 +176,7 @@ namespace MusicProject.data
 
         private static void AddMavi(AppDbContext context)
         {
-            // DEĞİŞİKLİK:
-            // Mavi daha önce eklendiyse tekrar eklenmesini engelliyoruz.
-            if (context.Artists.Any(
-                    artist => artist.Name == "Mavi"))
+            if (context.Artists.Any(artist => artist.Name == "Mavi"))
             {
                 return;
             }
@@ -191,7 +184,10 @@ namespace MusicProject.data
             var artist = new Artist
             {
                 Name = "Mavi",
+
+                // Geçici olarak eski metin alanı korunuyor.
                 Country = "Türkiye",
+
                 DebutYear = 2019,
                 UserId = null,
 
@@ -200,12 +196,9 @@ namespace MusicProject.data
                     new Album
                     {
                         Name = "Gecenin İçinden",
-
                         Description =
                             "Indie ve elektronik müzik etkileri taşıyan albüm.",
-
-                        ReleaseDate =
-                            new DateTime(2023, 9, 8),
+                        ReleaseDate = new DateTime(2023, 9, 8),
 
                         Songs = new List<Song>
                         {

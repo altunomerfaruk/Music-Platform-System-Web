@@ -12,8 +12,17 @@ namespace MusicProject.Models.Concrete
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
+        // Geçici olarak korunuyor:
+        // Projedeki mevcut controller, service ve view dosyaları bunu string olarak kullanıyor.
         [MaxLength(100)]
         public string? Country { get; set; }
+
+        // Yeni: Countries tablosuna bağlanacak foreign key.
+        public int? CountryId { get; set; }
+
+        // Yeni: Country string alanıyla isim çakışmasını önlemek için CountryEntity kullanılıyor.
+        [ForeignKey(nameof(CountryId))]
+        public virtual Country? CountryEntity { get; set; }
 
         public int? DebutYear { get; set; }
 
@@ -30,10 +39,7 @@ namespace MusicProject.Models.Concrete
 
         public virtual ArtistStat? ArtistStat { get; set; }
 
-        public virtual ICollection<FollowedArtist> Followers
-        {
-            get;
-            set;
-        } = new List<FollowedArtist>();
+        public virtual ICollection<FollowedArtist> Followers { get; set; }
+            = new List<FollowedArtist>();
     }
 }

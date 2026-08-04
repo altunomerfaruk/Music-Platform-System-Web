@@ -10,7 +10,6 @@ namespace MusicProject.data
             : base(options)
         {
         }
-
         public DbSet<Genre> Genres { get; set; }
 
         public DbSet<LikedSong> LikedSongs { get; set; }
@@ -39,6 +38,8 @@ namespace MusicProject.data
 
         public DbSet<ListeningHistory> ListeningHistories { get; set; }
 
+        public DbSet<Country> Countries { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -64,11 +65,22 @@ namespace MusicProject.data
                 .HasForeignKey<Artist>(artist => artist.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Artist>()
+                .HasOne(artist => artist.CountryEntity)
+                .WithMany(country => country.Artists)
+                .HasForeignKey(artist => artist.CountryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Country>()
+                .HasIndex(country => country.IsoCode)
+                .IsUnique();
+
+
             modelBuilder.Entity<FollowedArtist>()
-               .HasOne(followedArtist => followedArtist.User)
-               .WithMany(user => user.FollowedArtists)
-               .HasForeignKey(followedArtist => followedArtist.UserId)
-               .OnDelete(DeleteBehavior.NoAction);
+                .HasOne(followedArtist => followedArtist.User)
+                .WithMany(user => user.FollowedArtists)
+                .HasForeignKey(followedArtist => followedArtist.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<FollowedArtist>()
                 .HasOne(followedArtist => followedArtist.Artist)
@@ -76,13 +88,11 @@ namespace MusicProject.data
                 .HasForeignKey(followedArtist => followedArtist.ArtistId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-
             modelBuilder.Entity<Song>()
                 .HasOne(song => song.SongStat)
                 .WithOne(songStat => songStat.Song)
                 .HasForeignKey<SongStat>(songStat => songStat.SongId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             modelBuilder.Entity<ListeningHistory>()
                 .HasOne(listeningHistory => listeningHistory.User)

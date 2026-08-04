@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.Models.ViewModels
 {
@@ -9,12 +11,14 @@ namespace MusicProject.Models.ViewModels
         [Display(Name = "Sanatçı Adı")]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(100, ErrorMessage = "Ülke adı en fazla 100 karakter olabilir.")]
         [Display(Name = "Ülke")]
-        public string? Country { get; set; }
+        public int? CountryId { get; set; }
 
         [Range(1900, 2100, ErrorMessage = "Geçerli bir çıkış yılı giriniz.")]
         [Display(Name = "Çıkış Yılı")]
         public int? DebutYear { get; set; }
+
+        [ValidateNever]
+        public List<SelectListItem> CountryOptions { get; set; } = new();
     }
 }

@@ -32,9 +32,8 @@
         ? "Sanatçı"
         : Model.Artist.Name;
 
-    var accountName = string.IsNullOrWhiteSpace(Model.Artist?.User?.Username)
-        ? artistName
-        : Model.Artist.User.Username;
+    // Değiştirildi: Alt hesap alanında User.Username yerine sanatçı adı gösteriliyor.
+    var accountName = artistName;
 
     var artistInitial = string.IsNullOrWhiteSpace(Model.ArtistInitial)
         ? "?"
@@ -53,7 +52,6 @@
         </div>
 
         <div>
-
             <span class="artist-brand-name">
                 MusicProject
             </span>
@@ -61,7 +59,6 @@
             <span class="artist-brand-panel">
                 Sanatçı paneli
             </span>
-
         </div>
 
     </a>

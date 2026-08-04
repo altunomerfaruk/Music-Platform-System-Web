@@ -22,6 +22,10 @@ namespace MusicProject.Services.Interface
 
         ArtistDetailsDto? GetArtistDetails(int artistId);
 
-        bool UpdateArtistProfile(int userId, string name, string? country, int? debutYear);
+        bool UpdateArtistProfile(
+            int userId,
+            string name,
+            int? countryId,
+            int? debutYear);
     }
 }

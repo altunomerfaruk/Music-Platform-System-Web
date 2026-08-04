@@ -67,6 +67,8 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 
+builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+
 // ==========================================
 // SERVICE KAYITLARI
 // ==========================================
@@ -107,7 +109,7 @@ builder.Services.AddScoped<IListeningHistoryRepository, ListeningHistoryReposito
 builder.Services.AddScoped<IListeningHistoryService, ListeningHistoryManager>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IGenreService, GenreManager>();
-
+builder.Services.AddScoped<ICountryService, CountryManager>();
 
 
 
