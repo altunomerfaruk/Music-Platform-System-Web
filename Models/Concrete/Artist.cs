@@ -12,9 +12,6 @@ namespace MusicProject.Models.Concrete
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(100)]
-        public string? Country { get; set; }
-
         public int? CountryId { get; set; }
 
         [ForeignKey(nameof(CountryId))]
