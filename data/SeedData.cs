@@ -4,17 +4,111 @@ namespace MusicProject.Data
 {
     public static class SeedData
     {
+        // Seed sanatçılarının ülkesi. Countries tablosundan IsoCode ile bulunur.
+        private const string DefaultCountryIsoCode = "TR";
+
         public static void Initialize(AppDbContext context)
         {
             // Yeni: Countries tablosundaki ülke kayıtlarını oluşturur.
             CountrySeedData.AddCountries(context);
 
+            var defaultCountryId = GetCountryIdByIsoCode(
+                context,
+                DefaultCountryIsoCode);
+
             AddGenres(context);
-            AddAtlas(context);
-            AddElifKaya(context);
-            AddMavi(context);
+            AddAtlas(context, defaultCountryId);
+            AddElifKaya(context, defaultCountryId);
+            AddMavi(context, defaultCountryId);
 
             context.SaveChanges();
+
+            // Eski kayitlarin string ulke bilgisini FK'ya tasir.
+            BackfillArtistCountryIds(context);
+        }
+
+        /// <summary>
+        /// GECICI: Artist.Country (eski string alan) dolu ama CountryId bos olan
+        /// kayitlari Countries tablosuyla eslestirir.
+        /// Country kolonu kaldirildiginda bu metot da silinecek.
+        /// </summary>
+        private static void BackfillArtistCountryIds(AppDbContext context)
+        {
+            var artistsToFix = context.Artists
+                .Where(artist =>
+                    artist.CountryId == null &&
+                    artist.Country != null)
+                .ToList();
+
+            if (artistsToFix.Count == 0)
+            {
+                return;
+            }
+
+            var countries = context.Countries.ToList();
+
+            var idsByName = countries
+                .GroupBy(country => country.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.First().Id,
+                    StringComparer.OrdinalIgnoreCase);
+
+            var idsByIso = countries
+                .GroupBy(country => country.IsoCode, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.First().Id,
+                    StringComparer.OrdinalIgnoreCase);
+
+            // Ulke adlari sunucunun kultur ayarina gore degisebildigi icin
+            // bilinen yazimlar ISO koduna baglaniyor.
+            var isoAliases = new Dictionary<string, string>(
+                StringComparer.OrdinalIgnoreCase)
+            {
+                ["Türkiye"] = "TR",
+                ["Turkiye"] = "TR",
+                ["Turkey"] = "TR"
+            };
+
+            var hasChanges = false;
+
+            foreach (var artist in artistsToFix)
+            {
+                var countryName = artist.Country!.Trim();
+
+                if (countryName.Length == 0)
+                {
+                    continue;
+                }
+
+                if (idsByName.TryGetValue(countryName, out var countryId) ||
+                    (isoAliases.TryGetValue(countryName, out var isoCode) &&
+                     idsByIso.TryGetValue(isoCode, out countryId)))
+                {
+                    artist.CountryId = countryId;
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges)
+            {
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Ülkeyi ISO koduna gore bulur. Ad yerine ISO kullaniliyor cunku
+        /// ulke adlari sunucunun kultur ayarina gore degisebiliyor.
+        /// </summary>
+        private static int? GetCountryIdByIsoCode(
+            AppDbContext context,
+            string isoCode)
+        {
+            return context.Countries
+                .Where(country => country.IsoCode == isoCode)
+                .Select(country => (int?)country.Id)
+                .FirstOrDefault();
         }
 
         private static void AddGenres(AppDbContext context)
@@ -56,7 +150,7 @@ namespace MusicProject.Data
             }
         }
 
-        private static void AddAtlas(AppDbContext context)
+        private static void AddAtlas(AppDbContext context, int? countryId)
         {
             if (context.Artists.Any(artist => artist.Name == "Atlas"))
             {
@@ -67,8 +161,8 @@ namespace MusicProject.Data
             {
                 Name = "Atlas",
 
-                // Geçici olarak eski metin alanı korunuyor.
-                Country = "Türkiye",
+                // Ülke artık Countries tablosuna FK ile bağlı.
+                CountryId = countryId,
 
                 DebutYear = 2018,
                 UserId = null,
@@ -115,7 +209,7 @@ namespace MusicProject.Data
             context.Artists.Add(artist);
         }
 
-        private static void AddElifKaya(AppDbContext context)
+        private static void AddElifKaya(AppDbContext context, int? countryId)
         {
             if (context.Artists.Any(artist => artist.Name == "Elif Kaya"))
             {
@@ -126,8 +220,8 @@ namespace MusicProject.Data
             {
                 Name = "Elif Kaya",
 
-                // Geçici olarak eski metin alanı korunuyor.
-                Country = "Türkiye",
+                // Ülke artık Countries tablosuna FK ile bağlı.
+                CountryId = countryId,
 
                 DebutYear = 2020,
                 UserId = null,
@@ -174,7 +268,7 @@ namespace MusicProject.Data
             context.Artists.Add(artist);
         }
 
-        private static void AddMavi(AppDbContext context)
+        private static void AddMavi(AppDbContext context, int? countryId)
         {
             if (context.Artists.Any(artist => artist.Name == "Mavi"))
             {
@@ -185,8 +279,8 @@ namespace MusicProject.Data
             {
                 Name = "Mavi",
 
-                // Geçici olarak eski metin alanı korunuyor.
-                Country = "Türkiye",
+                // Ülke artık Countries tablosuna FK ile bağlı.
+                CountryId = countryId,
 
                 DebutYear = 2019,
                 UserId = null,

@@ -12,9 +12,11 @@
         ? "Sanatçı"
         : Model.Artist.Name;
 
-    var countryText = string.IsNullOrWhiteSpace(Model.Artist.Country)
+    var countryName = Model.Artist.CountryEntity?.Name;
+
+    var countryText = string.IsNullOrWhiteSpace(countryName)
         ? "Ülke bilgisi yok"
-        : Model.Artist.Country;
+        : countryName;
 
     var debutText = Model.Artist.DebutYear.HasValue
         ? Model.Artist.DebutYear.Value.ToString()

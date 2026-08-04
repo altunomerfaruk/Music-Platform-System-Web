@@ -61,7 +61,9 @@ namespace MusicProject.Services.Concrete
             {
                 ArtistId = followedArtist.ArtistId,
                 Name = followedArtist.Artist.Name,
-                Country = followedArtist.Artist.Country ?? "Ülke bilgisi yok",
+                // Ülke adı artık Countries tablosundan okunuyor.
+                Country = followedArtist.Artist.CountryEntity?.Name
+                    ?? "Ülke bilgisi yok",
                 DebutYear = followedArtist.Artist.DebutYear,
                 FollowedAt = followedArtist.FollowedAt,
 

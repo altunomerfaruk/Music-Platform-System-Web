@@ -44,6 +44,7 @@ namespace MusicProject.Repositories.Concrete
                     followedArtist.IsActive
                 )
                 .Include(followedArtist => followedArtist.Artist)
+                    .ThenInclude(artist => artist.CountryEntity)
                 .OrderByDescending(followedArtist => followedArtist.FollowedAt)
                 .ToList();
         }

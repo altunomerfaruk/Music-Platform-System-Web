@@ -91,8 +91,9 @@ namespace MusicProject.Controllers
                 .ToHashSet();
 
             var countries = allArtists
-                .Where(artist => !string.IsNullOrWhiteSpace(artist.Country))
-                .Select(artist => artist.Country!)
+                .Select(artist => artist.CountryEntity?.Name)
+                .Where(countryName => !string.IsNullOrWhiteSpace(countryName))
+                .Select(countryName => countryName!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(countryName => countryName)
                 .ToList();
@@ -158,8 +159,10 @@ namespace MusicProject.Controllers
             if (!string.IsNullOrWhiteSpace(country))
             {
                 artists = artists.Where(artist =>
-                    !string.IsNullOrWhiteSpace(artist.Country) &&
-                    artist.Country.Equals(country, StringComparison.OrdinalIgnoreCase));
+                    artist.CountryEntity != null &&
+                    artist.CountryEntity.Name.Equals(
+                        country,
+                        StringComparison.OrdinalIgnoreCase));
             }
 
             if (followedOnly)

@@ -43,8 +43,10 @@ namespace MusicProject.Controllers
                     .GetAllArtists()
                     .Where(artist =>
                         artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                        (!string.IsNullOrWhiteSpace(artist.Country) &&
-                         artist.Country.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                        (artist.CountryEntity != null &&
+                         artist.CountryEntity.Name.Contains(
+                             query,
+                             StringComparison.OrdinalIgnoreCase)))
                     .OrderBy(artist => artist.Name)
                     .ToList();
 

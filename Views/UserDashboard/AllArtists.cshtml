@@ -709,10 +709,10 @@
 
                             <div class="all-artist-meta">
 
-                                @if (!string.IsNullOrWhiteSpace(artist.Country))
+                                @if (!string.IsNullOrWhiteSpace(artist.CountryEntity?.Name))
                                 {
                                     <span class="artist-meta-badge">
-                                        @artist.Country
+                                        @artist.CountryEntity!.Name
                                     </span>
                                 }
 
