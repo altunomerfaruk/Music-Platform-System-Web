@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MusicProject.Models.Concrete;
+﻿using MusicProject.Models.Concrete;
 
 namespace MusicProject.Repositories.Interface
 {

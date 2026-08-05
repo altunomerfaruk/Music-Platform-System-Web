@@ -38,7 +38,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 25px;
-            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.97) 65% );
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.97) 65%);
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -177,7 +177,7 @@
             justify-content: center;
             overflow: hidden;
             color: var(--primary);
-            background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.22), transparent 45% ), linear-gradient( 135deg, #18241c, #0c110e );
+            background: radial-gradient(circle at top right, rgba(30, 215, 96, 0.22), transparent 45%), linear-gradient(135deg, #18241c, #0c110e);
             font-size: 55px;
         }
 
@@ -542,7 +542,7 @@
                                   asp-action="DeleteAlbum"
                                   method="post"
                                   class="album-delete-form"
-                                  onsubmit="return confirmAlbumDelete('@album.Name', @hasSongs.ToString().ToLowerInvariant());">
+                                  data-album-name="@album.Name">
 
                                 @Html.AntiForgeryToken()
 
@@ -599,16 +599,23 @@
 
 @section Scripts {
     <script>
-        function confirmAlbumDelete(albumName, hasSongs) {
-            if (hasSongs) {
-                alert("Bu albümde şarkılar bulunduğu için albüm silinemez.");
-                return false;
-            }
+        document.addEventListener("DOMContentLoaded", function() {
+            const deleteForms = document.querySelectorAll(".album-delete-form");
 
-            return confirm(
-                "'" + albumName + "' albümünü silmek istediğine emin misin? " +
-                "Bu işlem geri alınamaz."
-            );
-        }
+            deleteForms.forEach(function(form) {
+                form.addEventListener("submit", function(event) {
+                    const albumName = form.dataset.albumName || "Bu albüm";
+
+                    const confirmed = confirm(
+                        "'" + albumName + "' albümünü silmek istediğine emin misin? " +
+                        "Bu işlem geri alınamaz."
+                    );
+
+                    if (!confirmed) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        });
     </script>
 }

@@ -35,14 +35,29 @@ namespace MusicProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateSong()
+        public IActionResult CreateSong(int? albumId)
         {
             if (!TryGetDashboard(out var dashboard, out _, out var error))
             {
                 return error!;
             }
 
-            var model = new CreateSongViewModel();
+            if (albumId.HasValue)
+            {
+                var selectedAlbum = _albumService.GetArtistAlbumDetails(albumId.Value, dashboard.Artist.Id);
+
+                if (selectedAlbum == null)
+                {
+                    TempData["ErrorMessage"] = "Albüm bulunamadı veya bu albüme şarkı ekleme yetkiniz yok.";
+
+                    return RedirectToAction(nameof(MyAlbums));
+                }
+            }
+
+            var model = new CreateSongViewModel
+            {
+                AlbumId = albumId
+            };
 
             FillArtistLayoutData(model, dashboard);
             FillCreateSongOptions(model, dashboard.Artist.Id);
@@ -98,8 +113,12 @@ namespace MusicProject.Controllers
                 return View(model);
             }
 
-            TempData["SuccessMessage"] =
-                $"'{song.Title}' şarkısı başarıyla eklendi.";
+            TempData["SuccessMessage"] = $"'{song.Title}' şarkısı başarıyla eklendi.";
+
+            if (song.AlbumId.HasValue)
+            {
+                return RedirectToAction(nameof(AlbumDetails), new { albumId = song.AlbumId.Value });
+            }
 
             return RedirectToAction(nameof(MySongs));
         }

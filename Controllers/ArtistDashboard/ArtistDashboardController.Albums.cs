@@ -14,9 +14,7 @@ namespace MusicProject.Controllers
                 return error!;
             }
 
-            var albums = _albumService
-                .GetAlbumsByArtistId(dashboard.Artist.Id)
-                .ToList();
+            var albums = _albumService.GetAlbumsByArtistId(dashboard.Artist.Id).ToList();
 
             var model = new ArtistAlbumsViewModel
             {
@@ -30,6 +28,39 @@ namespace MusicProject.Controllers
                     .SelectMany(album => album.Songs)
                     .DistinctBy(song => song.Id)
                     .Sum(song => song.SongStat?.TotalStreams ?? 0)
+            };
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult AlbumDetails(int albumId)
+        {
+            if (!TryGetDashboard(out var dashboard, out _, out var error))
+            {
+                return error!;
+            }
+
+            var album = _albumService.GetArtistAlbumDetails(albumId, dashboard.Artist.Id);
+
+            if (album == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Albüm bulunamadı veya bu albümü görüntüleme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MyAlbums));
+            }
+
+            var model = new ArtistAlbumDetailsViewModel
+            {
+                Artist = dashboard.Artist,
+                ArtistInitial = dashboard.ArtistInitial,
+                TotalAlbums = dashboard.TotalAlbums,
+                TotalSongs = dashboard.TotalSongs,
+                Album = album,
+                SongCount = album.Songs.Count,
+                TotalStreams = album.Songs.Sum(song => song.SongStat?.TotalStreams ?? 0),
+                TotalLikes = album.Songs.Sum(song => song.SongStat?.TotalLikes ?? 0)
             };
 
             return View(model);
@@ -179,6 +210,7 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MyAlbums));
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteAlbum(int albumId)
@@ -209,7 +241,5 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MyAlbums));
         }
-
     }
 }
-
