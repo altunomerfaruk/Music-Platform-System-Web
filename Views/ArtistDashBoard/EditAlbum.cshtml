@@ -1,0 +1,473 @@
+﻿@model MusicProject.ViewModels.ArtistDashboard.EditAlbumViewModel
+
+@{
+    ViewData["Title"] = "Albümü Düzenle";
+    ViewData["PageDescription"] = "Albüm bilgilerini ve kapak görselini güncelle.";
+    Layout = "_ArtistLayout";
+}
+
+@section Styles {
+    <style>
+        .edit-album-content {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 32px 34px 50px;
+        }
+
+        .edit-album-header {
+            padding: 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background:
+                linear-gradient(
+                    125deg,
+                    rgba(30, 215, 96, 0.18),
+                    rgba(18, 23, 19, 0.97) 65%
+                );
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 21px;
+        }
+
+        .edit-album-header-icon {
+            width: 82px;
+            height: 82px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 18px;
+            font-size: 37px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.28);
+        }
+
+        .edit-album-header-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .edit-album-header-title {
+            margin-top: 7px;
+            color: #ffffff;
+            font-size: clamp(25px, 4vw, 36px);
+        }
+
+        .edit-album-header-description {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .edit-album-card {
+            margin-top: 22px;
+            padding: 28px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+        }
+
+        .edit-album-validation-summary {
+            margin-bottom: 22px;
+            padding: 14px 16px;
+            color: #ff9b9b;
+            background-color: rgba(255, 92, 92, 0.09);
+            border: 1px solid rgba(255, 92, 92, 0.22);
+            border-radius: 11px;
+            font-size: 13px;
+        }
+
+        .validation-summary-valid {
+            display: none;
+        }
+
+        .edit-album-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 21px;
+        }
+
+        .edit-album-group {
+            margin-bottom: 21px;
+        }
+
+        .edit-album-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .edit-album-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .edit-album-input,
+        .edit-album-textarea {
+            width: 100%;
+            padding: 13px 15px;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.045);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .edit-album-input:focus,
+        .edit-album-textarea:focus {
+            background-color: rgba(255, 255, 255, 0.065);
+            border-color: rgba(30, 215, 96, 0.65);
+            box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
+        }
+
+        .edit-album-input::placeholder,
+        .edit-album-textarea::placeholder {
+            color: #687169;
+        }
+
+        .edit-album-textarea {
+            min-height: 135px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .edit-album-hint {
+            display: block;
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .edit-album-validation {
+            display: block;
+            margin-top: 7px;
+            color: #ff8585;
+            font-size: 12px;
+        }
+
+        .edit-album-preview {
+            margin-top: 7px;
+            padding: 14px;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            background-color: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .edit-album-preview.visible {
+            display: flex;
+        }
+
+        .edit-album-preview-image {
+            width: 75px;
+            height: 75px;
+            flex-shrink: 0;
+            object-fit: cover;
+            background-color: #0c110e;
+            border-radius: 10px;
+        }
+
+        .edit-album-preview-title {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .edit-album-preview-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .edit-album-actions {
+            margin-top: 9px;
+            padding-top: 23px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 11px;
+            border-top: 1px solid var(--border);
+        }
+
+        .edit-album-cancel,
+        .edit-album-save {
+            min-height: 43px;
+            padding: 0 19px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 12px;
+            font-weight: 800;
+            transition: 0.2s;
+        }
+
+        .edit-album-cancel {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .edit-album-cancel:hover {
+            color: var(--primary);
+            border-color: rgba(30, 215, 96, 0.35);
+        }
+
+        .edit-album-save {
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+        }
+
+        .edit-album-save:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        @@media (max-width: 750px) {
+            .edit-album-content {
+                padding: 22px 16px 40px;
+            }
+
+            .edit-album-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .edit-album-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .edit-album-group.full-width {
+                grid-column: auto;
+            }
+        }
+
+        @@media (max-width: 520px) {
+            .edit-album-card {
+                padding: 20px;
+            }
+
+            .edit-album-actions {
+                flex-direction: column-reverse;
+            }
+
+            .edit-album-cancel,
+            .edit-album-save {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+<div class="edit-album-content">
+
+    <section class="edit-album-header">
+
+        <div class="edit-album-header-icon">
+            ◉
+        </div>
+
+        <div>
+            <p class="edit-album-header-label">
+                Albüm yönetimi
+            </p>
+
+            <h2 class="edit-album-header-title">
+                Albümü Düzenle
+            </h2>
+
+            <p class="edit-album-header-description">
+                Albüm adını, açıklamasını, yayın tarihini ve kapak görselini güncelleyebilirsin.
+            </p>
+        </div>
+
+    </section>
+
+    <section class="edit-album-card">
+
+        <div asp-validation-summary="ModelOnly"
+             class="edit-album-validation-summary">
+        </div>
+
+        <form asp-controller="ArtistDashboard"
+              asp-action="EditAlbum"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <input asp-for="AlbumId" type="hidden" />
+
+            <div class="edit-album-grid">
+
+                <div class="edit-album-group">
+
+                    <label asp-for="Name"
+                           class="edit-album-label">
+                        Albüm Adı
+                    </label>
+
+                    <input asp-for="Name"
+                           class="edit-album-input"
+                           placeholder="Albüm adını yaz" />
+
+                    <span asp-validation-for="Name"
+                          class="edit-album-validation">
+                    </span>
+
+                </div>
+
+                <div class="edit-album-group">
+
+                    <label asp-for="ReleaseDate"
+                           class="edit-album-label">
+                        Yayın Tarihi
+                    </label>
+
+                    <input asp-for="ReleaseDate"
+                           type="date"
+                           class="edit-album-input" />
+
+                    <span asp-validation-for="ReleaseDate"
+                          class="edit-album-validation">
+                    </span>
+
+                </div>
+
+                <div class="edit-album-group full-width">
+
+                    <label asp-for="Description"
+                           class="edit-album-label">
+                        Açıklama
+                    </label>
+
+                    <textarea asp-for="Description"
+                              class="edit-album-textarea"
+                              placeholder="Albüm hakkında kısa bir açıklama yaz"></textarea>
+
+                    <span class="edit-album-hint">
+                        En fazla 1000 karakter yazabilirsin.
+                    </span>
+
+                    <span asp-validation-for="Description"
+                          class="edit-album-validation">
+                    </span>
+
+                </div>
+
+                <div class="edit-album-group full-width">
+
+                    <label asp-for="CoverImageUrl"
+                           class="edit-album-label">
+                        Kapak Görseli Adresi
+                    </label>
+
+                    <input asp-for="CoverImageUrl"
+                           class="edit-album-input"
+                           id="coverImageUrlInput"
+                           placeholder="https://ornek.com/album-kapagi.jpg" />
+
+                    <span class="edit-album-hint">
+                        Albüm kapağı için doğrudan bir görsel bağlantısı girebilirsin.
+                    </span>
+
+                    <span asp-validation-for="CoverImageUrl"
+                          class="edit-album-validation">
+                    </span>
+
+                    <div class="edit-album-preview"
+                         id="coverImagePreview">
+
+                        <img src=""
+                             alt="Albüm kapak önizlemesi"
+                             class="edit-album-preview-image"
+                             id="coverImagePreviewImage" />
+
+                        <div>
+                            <p class="edit-album-preview-title">
+                                Kapak görseli önizlemesi
+                            </p>
+
+                            <p class="edit-album-preview-description">
+                                Bağlantı geçerliyse seçtiğin görsel burada gösterilir.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="edit-album-actions">
+
+                <a asp-controller="ArtistDashboard"
+                   asp-action="MyAlbums"
+                   class="edit-album-cancel">
+                    Vazgeç
+                </a>
+
+                <button type="submit"
+                        class="edit-album-save">
+                    Değişiklikleri Kaydet
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const coverInput =
+                document.getElementById("coverImageUrlInput");
+
+            const preview =
+                document.getElementById("coverImagePreview");
+
+            const previewImage =
+                document.getElementById("coverImagePreviewImage");
+
+            if (!coverInput || !preview || !previewImage) {
+                return;
+            }
+
+            function updatePreview() {
+                const imageUrl = coverInput.value.trim();
+
+                if (!imageUrl) {
+                    preview.classList.remove("visible");
+                    previewImage.removeAttribute("src");
+                    return;
+                }
+
+                previewImage.src = imageUrl;
+                preview.classList.add("visible");
+            }
+
+            previewImage.addEventListener("error", function () {
+                preview.classList.remove("visible");
+            });
+
+            coverInput.addEventListener("input", updatePreview);
+
+            updatePreview();
+        });
+    </script>
+}

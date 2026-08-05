@@ -1,4 +1,5 @@
-﻿using MusicProject.Models.Concrete;
+﻿using Microsoft.EntityFrameworkCore;
+using MusicProject.Models.Concrete;
 
 namespace MusicProject.Repositories.Interface
 {
@@ -14,8 +15,15 @@ namespace MusicProject.Repositories.Interface
 
         void Create(Album album);
 
-        void Update(Album album);
+        bool UpdateArtistAlbum(
+            int albumId,
+            int artistId,
+            string name,
+            string? description,
+            string? coverImageUrl,
+            DateTime releaseDate);
 
-        void Delete(int albumId);
+        bool DeleteArtistAlbum(int albumId, int artistId);
+        
     }
 }

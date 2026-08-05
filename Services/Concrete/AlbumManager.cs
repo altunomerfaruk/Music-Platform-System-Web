@@ -66,14 +66,50 @@ namespace MusicProject.Services.Concrete
             _albumRepository.Create(album);
         }
 
-        public void UpdateAlbum(Album album)
+        public bool UpdateArtistAlbum(int albumId,int artistId,string name,string? description,string? coverImageUrl,DateTime releaseDate)
         {
-            _albumRepository.Update(album);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new InvalidOperationException(
+                    "Albüm adı boş bırakılamaz.");
+            }
+
+            var trimmedName = name.Trim();
+
+            var duplicateAlbumExists = _albumRepository
+                .GetAlbumsByArtistId(artistId)
+                .Any(album =>
+                    album.Id != albumId &&
+                    album.Name.Equals(
+                        trimmedName,
+                        StringComparison.OrdinalIgnoreCase));
+
+            if (duplicateAlbumExists)
+            {
+                throw new InvalidOperationException(
+                    $"'{trimmedName}' adında başka bir albüm zaten mevcut.");
+            }
+
+            var trimmedDescription = string.IsNullOrWhiteSpace(description)
+                ? null
+                : description.Trim();
+
+            var trimmedCoverImageUrl = string.IsNullOrWhiteSpace(coverImageUrl)
+                ? null
+                : coverImageUrl.Trim();
+
+            return _albumRepository.UpdateArtistAlbum(
+                albumId,
+                artistId,
+                trimmedName,
+                trimmedDescription,
+                trimmedCoverImageUrl,
+                releaseDate);
         }
 
-        public void DeleteAlbum(int albumId)
+        public bool DeleteArtistAlbum(int albumId, int artistId)
         {
-            _albumRepository.Delete(albumId);
+            return _albumRepository.DeleteArtistAlbum(albumId, artistId);
         }
 
         public AlbumDetailsDto? GetAlbumDetails(int albumId)

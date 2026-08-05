@@ -4,7 +4,6 @@ using MusicProject.ViewModels.ArtistDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Sanatcinin kendi albumleri: listeleme ve olusturma.
     public partial class ArtistDashboardController
     {
         [HttpGet]
@@ -101,5 +100,116 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MyAlbums));
         }
+
+        [HttpGet]
+        public IActionResult EditAlbum(int albumId)
+        {
+            if (!TryGetDashboard(out var dashboard, out _, out var error))
+            {
+                return error!;
+            }
+
+            var album = _albumService.GetArtistAlbumDetails(albumId, dashboard.Artist.Id);
+
+            if (album == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Albüm bulunamadı veya bu albümü düzenleme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MyAlbums));
+            }
+
+            var model = new EditAlbumViewModel
+            {
+                AlbumId = album.Id,
+                Name = album.Name,
+                Description = album.Description,
+                CoverImageUrl = album.CoverImageUrl,
+                ReleaseDate = album.ReleaseDate
+            };
+
+            FillArtistLayoutData(model, dashboard);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditAlbum(EditAlbumViewModel model)
+        {
+            if (!TryGetDashboard(out var dashboard, out _, out var error))
+            {
+                return error!;
+            }
+
+            FillArtistLayoutData(model, dashboard);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                var updated = _albumService.UpdateArtistAlbum(
+                    model.AlbumId,
+                    dashboard.Artist.Id,
+                    model.Name,
+                    model.Description,
+                    model.CoverImageUrl,
+                    model.ReleaseDate);
+
+                if (!updated)
+                {
+                    TempData["ErrorMessage"] =
+                        "Albüm bulunamadı veya bu albümü düzenleme yetkiniz yok.";
+
+                    return RedirectToAction(nameof(MyAlbums));
+                }
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(nameof(model.Name), exception.Message);
+
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] =
+                $"'{model.Name.Trim()}' albümü başarıyla güncellendi.";
+
+            return RedirectToAction(nameof(MyAlbums));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteAlbum(int albumId)
+        {
+            if (!TryGetDashboard(out var dashboard, out _, out var error))
+            {
+                return error!;
+            }
+
+            try
+            {
+                var deleted = _albumService.DeleteArtistAlbum(albumId, dashboard.Artist.Id);
+
+                if (!deleted)
+                {
+                    TempData["ErrorMessage"] =
+                        "Albüm bulunamadı veya bu albümü silme yetkiniz yok.";
+
+                    return RedirectToAction(nameof(MyAlbums));
+                }
+
+                TempData["SuccessMessage"] = "Albüm başarıyla silindi.";
+            }
+            catch (InvalidOperationException exception)
+            {
+                TempData["ErrorMessage"] = exception.Message;
+            }
+
+            return RedirectToAction(nameof(MyAlbums));
+        }
+
     }
 }
+

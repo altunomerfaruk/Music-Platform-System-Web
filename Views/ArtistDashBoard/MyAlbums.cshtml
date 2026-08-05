@@ -2,10 +2,7 @@
 
 @{
     ViewData["Title"] = "Albümlerim";
-
-    ViewData["PageDescription"] =
-        "Albümlerini görüntüle ve yönet.";
-
+    ViewData["PageDescription"] = "Albümlerini görüntüle ve yönet.";
     Layout = "_ArtistLayout";
 }
 
@@ -15,18 +12,33 @@
             padding: 32px 34px 50px;
         }
 
+        .albums-message {
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+            .albums-message.success {
+                color: #8becae;
+                background-color: rgba(30, 215, 96, 0.10);
+                border: 1px solid rgba(30, 215, 96, 0.25);
+            }
+
+            .albums-message.error {
+                color: #ff9b9b;
+                background-color: rgba(255, 92, 92, 0.10);
+                border: 1px solid rgba(255, 92, 92, 0.25);
+            }
+
         .albums-hero {
             padding: 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 25px;
-            background:
-                linear-gradient(
-                    125deg,
-                    rgba(30, 215, 96, 0.20),
-                    rgba(18, 23, 19, 0.97) 65%
-                );
+            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.97) 65% );
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -86,10 +98,10 @@
             transition: 0.2s;
         }
 
-        .create-album-button:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-        }
+            .create-album-button:hover {
+                background-color: var(--primary-hover);
+                transform: translateY(-2px);
+            }
 
         .album-stat-grid {
             margin-top: 22px;
@@ -140,8 +152,7 @@
         .albums-grid {
             margin-top: 18px;
             display: grid;
-            grid-template-columns:
-                repeat(auto-fill, minmax(230px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
             gap: 18px;
         }
 
@@ -153,30 +164,27 @@
             transition: 0.22s;
         }
 
-        .album-card:hover {
-            background-color: var(--card-hover);
-            border-color: rgba(30, 215, 96, 0.25);
-            transform: translateY(-4px);
-        }
+            .album-card:hover {
+                background-color: var(--card-hover);
+                border-color: rgba(30, 215, 96, 0.25);
+                transform: translateY(-4px);
+            }
 
         .album-card-cover {
             height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
             color: var(--primary);
-            background:
-                radial-gradient(
-                    circle at top right,
-                    rgba(30, 215, 96, 0.22),
-                    transparent 45%
-                ),
-                linear-gradient(
-                    135deg,
-                    #18241c,
-                    #0c110e
-                );
+            background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.22), transparent 45% ), linear-gradient( 135deg, #18241c, #0c110e );
             font-size: 55px;
+        }
+
+        .album-card-cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .album-card-content {
@@ -231,13 +239,16 @@
         .album-card-actions {
             margin-top: 14px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
         }
 
         .album-detail-button,
-        .album-edit-button {
+        .album-edit-button,
+        .album-delete-button {
+            width: 100%;
             min-height: 37px;
+            padding: 0 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -252,20 +263,44 @@
             background-color: var(--primary);
         }
 
+            .album-detail-button:hover {
+                background-color: var(--primary-hover);
+            }
+
         .album-edit-button {
             color: #ffffff;
             background-color: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
         }
 
-        .album-detail-button:hover {
-            background-color: var(--primary-hover);
+            .album-edit-button:hover {
+                color: var(--primary);
+                border-color: rgba(30, 215, 96, 0.30);
+            }
+
+        .album-delete-form {
+            margin: 0;
         }
 
-        .album-edit-button:hover {
-            color: var(--primary);
-            border-color: rgba(30, 215, 96, 0.30);
+        .album-delete-button {
+            color: #ff8e8e;
+            background-color: rgba(255, 92, 92, 0.07);
+            border: 1px solid rgba(255, 92, 92, 0.24);
+            cursor: pointer;
         }
+
+            .album-delete-button:hover {
+                color: #ffffff;
+                background-color: rgba(255, 92, 92, 0.22);
+                border-color: rgba(255, 92, 92, 0.48);
+            }
+
+            .album-delete-button:disabled {
+                color: #777f79;
+                background-color: rgba(255, 255, 255, 0.025);
+                border-color: var(--border);
+                cursor: not-allowed;
+            }
 
         .albums-empty {
             margin-top: 20px;
@@ -329,6 +364,20 @@
 
 <div class="artist-albums-content">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="albums-message success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="albums-message error">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     <section class="albums-hero">
 
         <div class="albums-hero-left">
@@ -348,8 +397,7 @@
                 </h2>
 
                 <p class="albums-hero-description">
-                    Yayınladığın albümleri görüntüle,
-                    düzenle ve şarkılarını yönet.
+                    Yayınladığın albümleri görüntüle, düzenle ve şarkılarını yönet.
                 </p>
 
             </div>
@@ -426,14 +474,24 @@
 
             @foreach (var album in Model.Albums)
             {
-                var totalStreams = album.Songs
-                    .Sum(song =>
-                        song.SongStat?.TotalStreams ?? 0);
+                var totalStreams = album.Songs.Sum(song => song.SongStat?.TotalStreams ?? 0);
+                var hasSongs = album.Songs.Any();
 
                 <article class="album-card">
 
                     <div class="album-card-cover">
-                        ◉
+
+                        @if (!string.IsNullOrWhiteSpace(album.CoverImageUrl))
+                        {
+                            <img src="@album.CoverImageUrl"
+                                 alt="@album.Name albüm kapağı"
+                                 class="album-card-cover-image" />
+                        }
+                        else
+                        {
+                            <span>◉</span>
+                        }
+
                     </div>
 
                     <div class="album-card-content">
@@ -480,6 +538,29 @@
                                 Düzenle
                             </a>
 
+                            <form asp-controller="ArtistDashboard"
+                                  asp-action="DeleteAlbum"
+                                  method="post"
+                                  class="album-delete-form"
+                                  onsubmit="return confirmAlbumDelete('@album.Name', @hasSongs.ToString().ToLowerInvariant());">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="albumId"
+                                       value="@album.Id" />
+
+                                <button type="submit"
+                                        class="album-delete-button"
+                                        disabled="@hasSongs"
+                                        title="@(hasSongs
+                                                                                ? "İçinde şarkı bulunan albümler silinemez."
+                                                                                : "Albümü sil")">
+                                    Sil
+                                </button>
+
+                            </form>
+
                         </div>
 
                     </div>
@@ -502,8 +583,7 @@
             </h3>
 
             <p class="albums-empty-description">
-                İlk albümünü oluşturarak şarkılarını
-                tek bir koleksiyon altında yayınlayabilirsin.
+                İlk albümünü oluşturarak şarkılarını tek bir koleksiyon altında yayınlayabilirsin.
             </p>
 
             <a asp-controller="ArtistDashboard"
@@ -516,3 +596,19 @@
     }
 
 </div>
+
+@section Scripts {
+    <script>
+        function confirmAlbumDelete(albumName, hasSongs) {
+            if (hasSongs) {
+                alert("Bu albümde şarkılar bulunduğu için albüm silinemez.");
+                return false;
+            }
+
+            return confirm(
+                "'" + albumName + "' albümünü silmek istediğine emin misin? " +
+                "Bu işlem geri alınamaz."
+            );
+        }
+    </script>
+}

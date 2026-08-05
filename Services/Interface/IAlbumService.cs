@@ -14,8 +14,14 @@ namespace MusicProject.Services.Interface
 
         void AddAlbum(Album album);
 
-        void UpdateAlbum(Album album);
+        bool UpdateArtistAlbum(
+           int albumId,
+           int artistId,
+           string name,
+           string? description,
+           string? coverImageUrl,
+           DateTime releaseDate);
 
-        void DeleteAlbum(int albumId);
+        bool DeleteArtistAlbum(int albumId, int artistId);
     }
 }

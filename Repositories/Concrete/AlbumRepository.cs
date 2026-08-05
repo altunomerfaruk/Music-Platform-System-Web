@@ -56,29 +56,51 @@ namespace MusicProject.Repositories.Concrete
                     album.ArtistId == artistId);
         }
 
+
+        public bool UpdateArtistAlbum(int albumId,int artistId,string name,string? description,string? coverImageUrl,DateTime releaseDate)
+        { 
+            var album = _context.Albums.FirstOrDefault(a => a.Id == albumId && a.ArtistId == artistId);
+            if (album == null)
+            {
+                return false;
+            }
+
+            album.Name = name;
+            album.Description = description;
+            album.CoverImageUrl = coverImageUrl;
+            album.ReleaseDate = releaseDate;
+
+            _context.SaveChanges();
+            return true;
+        }
+
         public void Create(Album album)
         {
             _context.Albums.Add(album);
             _context.SaveChanges();
         }
 
-        public void Update(Album album)
+        public bool DeleteArtistAlbum(int albumId, int artistId)
         {
-            _context.Albums.Update(album);
-            _context.SaveChanges();
-        }
-
-        public void Delete(int albumId)
-        {
-            var album = _context.Albums.Find(albumId);
+            var album = _context.Albums
+                .Include(album => album.Songs)
+                .FirstOrDefault(album => album.Id == albumId && album.ArtistId == artistId);
 
             if (album == null)
             {
-                return;
+                return false;
+            }
+
+            if (album.Songs.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "Bu albümde şarkılar bulunduğu için albüm silinemez. Önce albümdeki şarkıları başka bir albüme taşımalı veya albüm bağlantılarını kaldırmalısınız.");
             }
 
             _context.Albums.Remove(album);
             _context.SaveChanges();
+
+            return true;
         }
     }
 }
