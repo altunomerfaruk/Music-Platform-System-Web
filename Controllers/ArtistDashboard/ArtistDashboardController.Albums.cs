@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicProject.Models.Concrete;
 using MusicProject.ViewModels.ArtistDashboard;
-
+using MusicProject.Models.Enums;
 namespace MusicProject.Controllers
 {
     public partial class ArtistDashboardController
@@ -97,8 +97,32 @@ namespace MusicProject.Controllers
 
             FillArtistLayoutData(model, dashboard);
 
+            if (model.PublicationStatus == PublicationStatus.Archived)
+            {
+                ModelState.AddModelError(
+                    nameof(model.PublicationStatus),
+                    "Yeni bir albüm arşivlenmiş durumda oluşturulamaz.");
+            }
+
             if (!ModelState.IsValid)
             {
+                return View(model);
+            }
+
+            DateTime? scheduledPublishAtUtc;
+
+            try
+            {
+                scheduledPublishAtUtc = _publicationService.ValidateAndConvertToUtc(
+                    model.PublicationStatus,
+                    model.ScheduledPublishAtLocal);
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(
+                    nameof(model.ScheduledPublishAtLocal),
+                    exception.Message);
+
                 return View(model);
             }
 
@@ -112,6 +136,11 @@ namespace MusicProject.Controllers
                     ? null
                     : model.CoverImageUrl.Trim(),
                 ReleaseDate = model.ReleaseDate,
+                PublicationStatus = model.PublicationStatus,
+                ScheduledPublishAtUtc = scheduledPublishAtUtc,
+                PublishedAtUtc = model.PublicationStatus == PublicationStatus.Published
+                    ? DateTime.UtcNow
+                    : null,
                 ArtistId = dashboard.Artist.Id
             };
 
@@ -126,8 +155,7 @@ namespace MusicProject.Controllers
                 return View(model);
             }
 
-            TempData["SuccessMessage"] =
-                $"'{album.Name}' albümü başarıyla oluşturuldu.";
+            TempData["SuccessMessage"] = GetAlbumCreationMessage(album);
 
             return RedirectToAction(nameof(MyAlbums));
         }
@@ -240,6 +268,25 @@ namespace MusicProject.Controllers
             }
 
             return RedirectToAction(nameof(MyAlbums));
+        }
+        private string GetAlbumCreationMessage(Album album)
+        {
+            return album.PublicationStatus switch
+            {
+                PublicationStatus.Draft =>
+                    $"'{album.Name}' albümü taslak olarak kaydedildi.",
+
+                PublicationStatus.Scheduled when album.ScheduledPublishAtUtc.HasValue =>
+                    $"'{album.Name}' albümü " +
+                    $"{_publicationService.ConvertUtcToTurkeyTime(album.ScheduledPublishAtUtc.Value):dd.MM.yyyy HH:mm} " +
+                    "tarihine planlandı.",
+
+                PublicationStatus.Published =>
+                    $"'{album.Name}' albümü yayınlandı.",
+
+                _ =>
+                    $"'{album.Name}' albümü başarıyla oluşturuldu."
+            };
         }
     }
 }

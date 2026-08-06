@@ -1,4 +1,5 @@
 ﻿using MusicProject.Models.Core;
+using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,10 +15,16 @@ namespace MusicProject.Models.Concrete
 
         public int? LabelId { get; set; }
 
-        [ForeignKey("AlbumId")]
+        public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
+
+        public DateTime? ScheduledPublishAtUtc { get; set; }
+
+        public DateTime? PublishedAtUtc { get; set; }
+
+        [ForeignKey(nameof(AlbumId))]
         public virtual Album? Album { get; set; }
 
-        [ForeignKey("LabelId")]
+        [ForeignKey(nameof(LabelId))]
         public virtual RecordLabel? Label { get; set; }
 
         public virtual SongStat? SongStat { get; set; }
@@ -30,6 +37,7 @@ namespace MusicProject.Models.Concrete
 
         public virtual ICollection<LikedSong> LikedSongs { get; set; }
             = new List<LikedSong>();
+
         public virtual ICollection<ListeningHistory> ListeningHistories { get; set; }
             = new List<ListeningHistory>();
     }

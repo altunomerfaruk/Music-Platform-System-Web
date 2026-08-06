@@ -1,4 +1,5 @@
 ﻿using MusicProject.Models.Core;
+using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,13 +20,18 @@ namespace MusicProject.Models.Concrete
         [DataType(DataType.Date)]
         public DateTime ReleaseDate { get; set; } = DateTime.UtcNow;
 
+        public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
+
+        public DateTime? ScheduledPublishAtUtc { get; set; }
+
+        public DateTime? PublishedAtUtc { get; set; }
+
         public int ArtistId { get; set; }
-        
+
         [ForeignKey(nameof(ArtistId))]
         public virtual Artist Artist { get; set; } = null!;
 
         public virtual ICollection<Song> Songs { get; set; }
             = [];
-
     }
 }

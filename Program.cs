@@ -56,6 +56,7 @@ builder.Services.AddScoped<
     LikedSongRepository
 >();
 
+
 builder.Services.AddScoped<
     ISongStatRepository,
     SongStatRepository
@@ -104,7 +105,7 @@ builder.Services.AddScoped<
 >();
 
 builder.Services.AddScoped<IAlbumService, AlbumManager>();
-
+builder.Services.AddScoped<IPublicationService, PublicationManager>();
 builder.Services.AddScoped<IListeningHistoryRepository, ListeningHistoryRepository>();
 builder.Services.AddScoped<IListeningHistoryService, ListeningHistoryManager>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();

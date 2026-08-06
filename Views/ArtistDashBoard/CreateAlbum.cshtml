@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Yeni Albüm";
-    ViewData["PageDescription"] = "Yeni bir albüm oluştur ve kataloğuna ekle.";
+    ViewData["PageDescription"] = "Yeni bir albüm oluştur ve yayın sürecini yönet.";
     Layout = "_ArtistLayout";
 }
 
@@ -39,6 +39,7 @@
         }
 
         .create-album-header-label {
+            margin: 0;
             color: var(--primary);
             font-size: 11px;
             font-weight: 850;
@@ -47,13 +48,13 @@
         }
 
         .create-album-header-title {
-            margin-top: 7px;
+            margin: 7px 0 0;
             color: #ffffff;
             font-size: clamp(25px, 4vw, 36px);
         }
 
         .create-album-header-description {
-            margin-top: 8px;
+            margin: 8px 0 0;
             color: var(--text-secondary);
             font-size: 13px;
             line-height: 1.6;
@@ -88,7 +89,7 @@
         }
 
         .create-album-group {
-            margin-bottom: 21px;
+            margin-bottom: 3px;
         }
 
             .create-album-group.full-width {
@@ -104,6 +105,7 @@
         }
 
         .create-album-input,
+        .create-album-select,
         .create-album-textarea {
             width: 100%;
             padding: 13px 15px;
@@ -116,17 +118,27 @@
             transition: 0.2s;
         }
 
+        .create-album-select {
+            cursor: pointer;
+        }
+
+            .create-album-select option {
+                color: #ffffff;
+                background-color: #151a17;
+            }
+
             .create-album-input:focus,
+            .create-album-select:focus,
             .create-album-textarea:focus {
                 background-color: rgba(255, 255, 255, 0.065);
                 border-color: rgba(30, 215, 96, 0.65);
                 box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
             }
 
-            .create-album-input::placeholder,
-            .create-album-textarea::placeholder {
-                color: #687169;
-            }
+        .create-album-input::placeholder,
+        .create-album-textarea::placeholder {
+            color: #687169;
+        }
 
         .create-album-textarea {
             min-height: 135px;
@@ -148,6 +160,57 @@
             color: #ff8585;
             font-size: 12px;
         }
+
+        .publication-section {
+            grid-column: 1 / -1;
+            padding: 21px;
+            background-color: rgba(30, 215, 96, 0.035);
+            border: 1px solid rgba(30, 215, 96, 0.14);
+            border-radius: 14px;
+        }
+
+        .publication-section-title {
+            margin: 0 0 5px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .publication-section-description {
+            margin: 0 0 19px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .publication-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .scheduled-publish-group {
+            display: none;
+        }
+
+            .scheduled-publish-group.visible {
+                display: block;
+            }
+
+        .publication-info {
+            grid-column: 1 / -1;
+            padding: 13px 15px;
+            color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+            .publication-info strong {
+                color: var(--primary);
+            }
 
         .create-album-preview {
             margin-top: 10px;
@@ -174,19 +237,20 @@
         }
 
         .create-album-preview-title {
+            margin: 0;
             color: #ffffff;
             font-size: 12px;
             font-weight: 750;
         }
 
         .create-album-preview-description {
-            margin-top: 5px;
+            margin: 5px 0 0;
             color: var(--text-secondary);
             font-size: 11px;
         }
 
         .create-album-actions {
-            margin-top: 9px;
+            margin-top: 24px;
             padding-top: 23px;
             display: flex;
             justify-content: flex-end;
@@ -204,6 +268,7 @@
             border-radius: 11px;
             font-size: 12px;
             font-weight: 800;
+            text-decoration: none;
             transition: 0.2s;
         }
 
@@ -240,11 +305,14 @@
                 flex-direction: column;
             }
 
-            .create-album-grid {
+            .create-album-grid,
+            .publication-grid {
                 grid-template-columns: 1fr;
             }
 
-            .create-album-group.full-width {
+            .create-album-group.full-width,
+            .publication-section,
+            .publication-info {
                 grid-column: auto;
             }
         }
@@ -284,7 +352,8 @@
             </h2>
 
             <p class="create-album-header-description">
-                Albüm bilgilerini girerek sanatçı kataloğuna yeni bir albüm ekleyebilirsin.
+                Albüm bilgilerini doldurabilir, taslak kaydedebilir, hemen yayınlayabilir
+                veya cuma günü için planlayabilirsin.
             </p>
         </div>
 
@@ -292,15 +361,15 @@
 
     <section class="create-album-card">
 
-        <div asp-validation-summary="ModelOnly"
-             class="create-album-validation-summary">
-        </div>
-
         <form asp-controller="ArtistDashboard"
               asp-action="CreateAlbum"
               method="post">
 
             @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="create-album-validation-summary">
+            </div>
 
             <div class="create-album-grid">
 
@@ -325,12 +394,16 @@
 
                     <label asp-for="ReleaseDate"
                            class="create-album-label">
-                        Yayın Tarihi
+                        Resmî Yayın Tarihi
                     </label>
 
                     <input asp-for="ReleaseDate"
                            type="date"
                            class="create-album-input" />
+
+                    <span class="create-album-hint">
+                        Albümün müzik dünyasındaki resmî yayın tarihidir.
+                    </span>
 
                     <span asp-validation-for="ReleaseDate"
                           class="create-album-validation">
@@ -367,12 +440,12 @@
                     </label>
 
                     <input asp-for="CoverImageUrl"
-                           class="create-album-input"
                            id="coverImageUrlInput"
+                           class="create-album-input"
                            placeholder="https://ornek.com/album-kapagi.jpg" />
 
                     <span class="create-album-hint">
-                        Doğrudan açılabilen bir görsel bağlantısı kullanmalısın. Bu alan isteğe bağlıdır.
+                        Doğrudan açılabilen bir görsel bağlantısı kullanmalısın.
                     </span>
 
                     <span asp-validation-for="CoverImageUrl"
@@ -382,10 +455,9 @@
                     <div class="create-album-preview"
                          id="coverImagePreview">
 
-                        <img src=""
-                             alt="Albüm kapak önizlemesi"
+                        <img id="coverImagePreviewImage"
                              class="create-album-preview-image"
-                             id="coverImagePreviewImage" />
+                             alt="Albüm kapak önizlemesi" />
 
                         <div>
                             <p class="create-album-preview-title">
@@ -401,6 +473,80 @@
 
                 </div>
 
+                <section class="publication-section">
+
+                    <h3 class="publication-section-title">
+                        Yayın Ayarları
+                    </h3>
+
+                    <p class="publication-section-description">
+                        Albümün kullanıcılar tarafından ne zaman görülebileceğini seç.
+                    </p>
+
+                    <div class="publication-grid">
+
+                        <div class="create-album-group">
+
+                            <label asp-for="PublicationStatus"
+                                   class="create-album-label">
+                                Yayın Durumu
+                            </label>
+
+                            <select asp-for="PublicationStatus"
+                                    id="publicationStatusSelect"
+                                    class="create-album-select">
+
+                                <option value="1">
+                                    Taslak olarak kaydet
+                                </option>
+
+                                <option value="2">
+                                    Cuma günü için planla
+                                </option>
+
+                                <option value="3">
+                                    Hemen yayınla
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="PublicationStatus"
+                                  class="create-album-validation">
+                            </span>
+
+                        </div>
+
+                        <div id="scheduledPublishGroup"
+                             class="create-album-group scheduled-publish-group">
+
+                            <label asp-for="ScheduledPublishAtLocal"
+                                   class="create-album-label">
+                                Planlanan Yayın Zamanı
+                            </label>
+
+                            <input asp-for="ScheduledPublishAtLocal"
+                                   id="scheduledPublishInput"
+                                   type="datetime-local"
+                                   class="create-album-input" />
+
+                            <span class="create-album-hint">
+                                Türkiye saatine göre gelecekteki bir cuma günü seçmelisin.
+                            </span>
+
+                            <span asp-validation-for="ScheduledPublishAtLocal"
+                                  class="create-album-validation">
+                            </span>
+
+                        </div>
+
+                        <div id="publicationInfo"
+                             class="publication-info">
+                        </div>
+
+                    </div>
+
+                </section>
+
             </div>
 
             <div class="create-album-actions">
@@ -412,8 +558,9 @@
                 </a>
 
                 <button type="submit"
+                        id="createAlbumButton"
                         class="create-album-save">
-                    Albümü Oluştur
+                    Taslak Olarak Kaydet
                 </button>
 
             </div>
@@ -429,15 +576,75 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const coverInput = document.getElementById("coverImageUrlInput");
-            const preview = document.getElementById("coverImagePreview");
-            const previewImage = document.getElementById("coverImagePreviewImage");
+            const publicationStatusSelect =
+                document.getElementById("publicationStatusSelect");
 
-            if (!coverInput || !preview || !previewImage) {
-                return;
+            const scheduledPublishGroup =
+                document.getElementById("scheduledPublishGroup");
+
+            const scheduledPublishInput =
+                document.getElementById("scheduledPublishInput");
+
+            const publicationInfo =
+                document.getElementById("publicationInfo");
+
+            const createAlbumButton =
+                document.getElementById("createAlbumButton");
+
+            const coverInput =
+                document.getElementById("coverImageUrlInput");
+
+            const preview =
+                document.getElementById("coverImagePreview");
+
+            const previewImage =
+                document.getElementById("coverImagePreviewImage");
+
+            function updatePublicationFields() {
+                if (!publicationStatusSelect ||
+                    !scheduledPublishGroup ||
+                    !scheduledPublishInput ||
+                    !publicationInfo ||
+                    !createAlbumButton) {
+                    return;
+                }
+
+                const selectedStatus = publicationStatusSelect.value;
+
+                if (selectedStatus === "2") {
+                    scheduledPublishGroup.classList.add("visible");
+                    scheduledPublishInput.required = true;
+
+                    publicationInfo.innerHTML =
+                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte otomatik olarak yayına alınacaktır.";
+
+                    createAlbumButton.textContent = "Albümü Planla";
+                    return;
+                }
+
+                scheduledPublishGroup.classList.remove("visible");
+                scheduledPublishInput.required = false;
+                scheduledPublishInput.value = "";
+
+                if (selectedStatus === "3") {
+                    publicationInfo.innerHTML =
+                        "<strong>Hemen yayınla:</strong> Albüm oluşturulduğu anda kullanıcılar tarafından görülebilir.";
+
+                    createAlbumButton.textContent = "Albümü Yayınla";
+                    return;
+                }
+
+                publicationInfo.innerHTML =
+                    "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
+
+                createAlbumButton.textContent = "Taslak Olarak Kaydet";
             }
 
-            function updatePreview() {
+            function updateCoverPreview() {
+                if (!coverInput || !preview || !previewImage) {
+                    return;
+                }
+
                 const imageUrl = coverInput.value.trim();
 
                 if (!imageUrl) {
@@ -450,13 +657,26 @@
                 preview.classList.add("visible");
             }
 
-            previewImage.addEventListener("error", function() {
-                preview.classList.remove("visible");
-            });
+            if (publicationStatusSelect) {
+                publicationStatusSelect.addEventListener(
+                    "change",
+                    updatePublicationFields);
+            }
 
-            coverInput.addEventListener("input", updatePreview);
+            if (coverInput) {
+                coverInput.addEventListener(
+                    "input",
+                    updateCoverPreview);
+            }
 
-            updatePreview();
+            if (previewImage) {
+                previewImage.addEventListener("error", function() {
+                    preview.classList.remove("visible");
+                });
+            }
+
+            updatePublicationFields();
+            updateCoverPreview();
         });
     </script>
 }

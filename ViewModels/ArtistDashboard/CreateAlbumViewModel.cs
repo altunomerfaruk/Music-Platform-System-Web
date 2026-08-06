@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MusicProject.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.ViewModels.ArtistDashboard
 {
@@ -18,5 +19,11 @@ namespace MusicProject.ViewModels.ArtistDashboard
         [Required(ErrorMessage = "Yayın tarihi zorunludur.")]
         [DataType(DataType.Date)]
         public DateTime ReleaseDate { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Yayın durumu seçilmelidir.")]
+        public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
+
+        [Display(Name = "Planlanan yayın zamanı")]
+        public DateTime? ScheduledPublishAtLocal { get; set; }
     }
 }

@@ -6,13 +6,6 @@ using MusicProject.ViewModels.ArtistDashboard;
 
 namespace MusicProject.Controllers
 {
-    /// <summary>
-    /// Sanatci panelindeki tum sayfalar.
-    /// Sinif partial'dir; aksiyonlar konu bazli dosyalara ayrilmistir:
-    ///   ArtistDashboardController.Songs.cs
-    ///   ArtistDashboardController.Albums.cs
-    ///   ArtistDashboardController.Profile.cs
-    /// </summary>
     [Authorize(Roles = "Artist")]
     public partial class ArtistDashboardController : DashboardControllerBase
     {
@@ -23,19 +16,17 @@ namespace MusicProject.Controllers
         private readonly ISongService _songService;
         private readonly IGenreService _genreService;
         private readonly ICountryService _countryService;
+        private readonly IPublicationService _publicationService;
 
-        public ArtistDashboardController(
-            IArtistService artistService,
-            IAlbumService albumService,
-            ISongService songService,
-            IGenreService genreService,
-            ICountryService countryService)
+        public ArtistDashboardController(IArtistService artistService, IAlbumService albumService, ISongService songService,
+            IGenreService genreService, ICountryService countryService, IPublicationService publicationService)
         {
             _artistService = artistService;
             _albumService = albumService;
             _songService = songService;
             _genreService = genreService;
             _countryService = countryService;
+            _publicationService = publicationService;
         }
 
         [HttpGet]
@@ -56,14 +47,7 @@ namespace MusicProject.Controllers
             return View(dashboard);
         }
 
-        /// <summary>
-        /// Oturumdaki kullaniciya ait sanatci panosunu getirir.
-        /// Bulunamazsa <paramref name="errorResult"/> doldurulur.
-        /// </summary>
-        private bool TryGetDashboard(
-            out ArtistDashboardViewModel dashboard,
-            out int userId,
-            out IActionResult? errorResult)
+        private bool TryGetDashboard(out ArtistDashboardViewModel dashboard, out int userId, out IActionResult? errorResult)
         {
             dashboard = null!;
             errorResult = null;
@@ -86,12 +70,7 @@ namespace MusicProject.Controllers
             return true;
         }
 
-        /// <summary>
-        /// _ArtistLayout / _ArtistSidebar icin ortak veriler.
-        /// </summary>
-        private static void FillArtistLayoutData(
-            ArtistLayoutViewModel model,
-            ArtistDashboardViewModel dashboard)
+        private static void FillArtistLayoutData(ArtistLayoutViewModel model, ArtistDashboardViewModel dashboard)
         {
             model.Artist = dashboard.Artist;
             model.ArtistInitial = dashboard.ArtistInitial;
