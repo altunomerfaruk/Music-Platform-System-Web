@@ -1,5 +1,7 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses;
 using MusicProject.Models.Concrete;
+
 namespace MusicProject.Services.Interface
 {
     public interface IAlbumService
@@ -14,13 +16,7 @@ namespace MusicProject.Services.Interface
 
         void AddAlbum(Album album);
 
-        bool UpdateArtistAlbum(
-           int albumId,
-           int artistId,
-           string name,
-           string? description,
-           string? coverImageUrl,
-           DateTime releaseDate);
+        bool UpdateArtistAlbum(UpdateAlbumRequest request);
 
         bool DeleteArtistAlbum(int albumId, int artistId);
     }

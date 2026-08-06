@@ -2,6 +2,7 @@
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
+using MusicProject.Contracts.Requests;
 
 namespace MusicProject.Repositories.Concrete
 {
@@ -57,20 +58,27 @@ namespace MusicProject.Repositories.Concrete
         }
 
 
-        public bool UpdateArtistAlbum(int albumId,int artistId,string name,string? description,string? coverImageUrl,DateTime releaseDate)
-        { 
-            var album = _context.Albums.FirstOrDefault(a => a.Id == albumId && a.ArtistId == artistId);
+        public bool UpdateArtistAlbum(UpdateAlbumRequest request)
+        {
+            var album = _context.Albums.FirstOrDefault(album =>
+                album.Id == request.AlbumId &&
+                album.ArtistId == request.ArtistId);
+
             if (album == null)
             {
                 return false;
             }
 
-            album.Name = name;
-            album.Description = description;
-            album.CoverImageUrl = coverImageUrl;
-            album.ReleaseDate = releaseDate;
+            album.Name = request.Name;
+            album.Description = request.Description;
+            album.CoverImageUrl = request.CoverImageUrl;
+            album.ReleaseDate = request.ReleaseDate;
+            album.PublicationStatus = request.PublicationStatus;
+            album.ScheduledPublishAtUtc = request.ScheduledPublishAtUtc;
+            album.PublishedAtUtc = request.PublishedAtUtc;
 
             _context.SaveChanges();
+
             return true;
         }
 

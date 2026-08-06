@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Requests;
 using MusicProject.Models.Concrete;
-using MusicProject.ViewModels.ArtistDashboard;
 using MusicProject.Models.Enums;
+using MusicProject.ViewModels.ArtistDashboard;
+
 namespace MusicProject.Controllers
 {
     public partial class ArtistDashboardController
@@ -14,7 +16,9 @@ namespace MusicProject.Controllers
                 return error!;
             }
 
-            var albums = _albumService.GetAlbumsByArtistId(dashboard.Artist.Id).ToList();
+            var albums = _albumService
+                .GetAlbumsByArtistId(dashboard.Artist.Id)
+                .ToList();
 
             var model = new ArtistAlbumsViewModel
             {
@@ -184,7 +188,11 @@ namespace MusicProject.Controllers
                 Name = album.Name,
                 Description = album.Description,
                 CoverImageUrl = album.CoverImageUrl,
-                ReleaseDate = album.ReleaseDate
+                ReleaseDate = album.ReleaseDate,
+                PublicationStatus = album.PublicationStatus,
+                ScheduledPublishAtLocal = album.ScheduledPublishAtUtc.HasValue
+                    ? _publicationService.ConvertUtcToTurkeyTime(album.ScheduledPublishAtUtc.Value)
+                    : null
             };
 
             FillArtistLayoutData(model, dashboard);
@@ -203,20 +211,64 @@ namespace MusicProject.Controllers
 
             FillArtistLayoutData(model, dashboard);
 
+            var existingAlbum = _albumService.GetArtistAlbumDetails(
+                model.AlbumId,
+                dashboard.Artist.Id);
+
+            if (existingAlbum == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Albüm bulunamadı veya bu albümü düzenleme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MyAlbums));
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
+            DateTime? scheduledPublishAtUtc;
+
             try
             {
-                var updated = _albumService.UpdateArtistAlbum(
-                    model.AlbumId,
-                    dashboard.Artist.Id,
-                    model.Name,
-                    model.Description,
-                    model.CoverImageUrl,
-                    model.ReleaseDate);
+                scheduledPublishAtUtc = _publicationService.ValidateAndConvertToUtc(
+                    model.PublicationStatus,
+                    model.ScheduledPublishAtLocal);
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(
+                    nameof(model.ScheduledPublishAtLocal),
+                    exception.Message);
+
+                return View(model);
+            }
+
+            var publishedAtUtc = existingAlbum.PublishedAtUtc;
+
+            if (model.PublicationStatus == PublicationStatus.Published &&
+                !publishedAtUtc.HasValue)
+            {
+                publishedAtUtc = DateTime.UtcNow;
+            }
+
+            var request = new UpdateAlbumRequest
+            {
+                AlbumId = model.AlbumId,
+                ArtistId = dashboard.Artist.Id,
+                Name = model.Name,
+                Description = model.Description,
+                CoverImageUrl = model.CoverImageUrl,
+                ReleaseDate = model.ReleaseDate,
+                PublicationStatus = model.PublicationStatus,
+                ScheduledPublishAtUtc = scheduledPublishAtUtc,
+                PublishedAtUtc = publishedAtUtc
+            };
+
+            try
+            {
+                var updated = _albumService.UpdateArtistAlbum(request);
 
                 if (!updated)
                 {
@@ -233,8 +285,7 @@ namespace MusicProject.Controllers
                 return View(model);
             }
 
-            TempData["SuccessMessage"] =
-                $"'{model.Name.Trim()}' albümü başarıyla güncellendi.";
+            TempData["SuccessMessage"] = GetAlbumUpdateMessage(request);
 
             return RedirectToAction(nameof(MyAlbums));
         }
@@ -250,7 +301,9 @@ namespace MusicProject.Controllers
 
             try
             {
-                var deleted = _albumService.DeleteArtistAlbum(albumId, dashboard.Artist.Id);
+                var deleted = _albumService.DeleteArtistAlbum(
+                    albumId,
+                    dashboard.Artist.Id);
 
                 if (!deleted)
                 {
@@ -269,6 +322,7 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MyAlbums));
         }
+
         private string GetAlbumCreationMessage(Album album)
         {
             return album.PublicationStatus switch
@@ -286,6 +340,29 @@ namespace MusicProject.Controllers
 
                 _ =>
                     $"'{album.Name}' albümü başarıyla oluşturuldu."
+            };
+        }
+
+        private string GetAlbumUpdateMessage(UpdateAlbumRequest request)
+        {
+            return request.PublicationStatus switch
+            {
+                PublicationStatus.Draft =>
+                    $"'{request.Name.Trim()}' albümü taslak olarak güncellendi.",
+
+                PublicationStatus.Scheduled when request.ScheduledPublishAtUtc.HasValue =>
+                    $"'{request.Name.Trim()}' albümü " +
+                    $"{_publicationService.ConvertUtcToTurkeyTime(request.ScheduledPublishAtUtc.Value):dd.MM.yyyy HH:mm} " +
+                    "tarihine planlandı.",
+
+                PublicationStatus.Published =>
+                    $"'{request.Name.Trim()}' albümü yayınlandı.",
+
+                PublicationStatus.Archived =>
+                    $"'{request.Name.Trim()}' albümü arşivlendi.",
+
+                _ =>
+                    $"'{request.Name.Trim()}' albümü başarıyla güncellendi."
             };
         }
     }

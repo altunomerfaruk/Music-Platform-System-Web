@@ -1,4 +1,5 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Models.Concrete;
 
 namespace MusicProject.Repositories.Interface
 {
@@ -14,15 +15,8 @@ namespace MusicProject.Repositories.Interface
 
         void Create(Album album);
 
-        bool UpdateArtistAlbum(
-            int albumId,
-            int artistId,
-            string name,
-            string? description,
-            string? coverImageUrl,
-            DateTime releaseDate);
+        bool UpdateArtistAlbum(UpdateAlbumRequest request);
 
         bool DeleteArtistAlbum(int albumId, int artistId);
-        
     }
 }

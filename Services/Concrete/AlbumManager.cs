@@ -2,6 +2,7 @@
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
+using MusicProject.Contracts.Requests;
 
 namespace MusicProject.Services.Concrete
 {
@@ -66,23 +67,25 @@ namespace MusicProject.Services.Concrete
             _albumRepository.Create(album);
         }
 
-        public bool UpdateArtistAlbum(int albumId,int artistId,string name,string? description,string? coverImageUrl,DateTime releaseDate)
+        public bool UpdateArtistAlbum(UpdateAlbumRequest request)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (request.AlbumId <= 0 || request.ArtistId <= 0)
             {
-                throw new InvalidOperationException(
-                    "Albüm adı boş bırakılamaz.");
+                return false;
             }
 
-            var trimmedName = name.Trim();
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                throw new InvalidOperationException("Albüm adı boş bırakılamaz.");
+            }
+
+            var trimmedName = request.Name.Trim();
 
             var duplicateAlbumExists = _albumRepository
-                .GetAlbumsByArtistId(artistId)
+                .GetAlbumsByArtistId(request.ArtistId)
                 .Any(album =>
-                    album.Id != albumId &&
-                    album.Name.Equals(
-                        trimmedName,
-                        StringComparison.OrdinalIgnoreCase));
+                    album.Id != request.AlbumId &&
+                    album.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase));
 
             if (duplicateAlbumExists)
             {
@@ -90,21 +93,17 @@ namespace MusicProject.Services.Concrete
                     $"'{trimmedName}' adında başka bir albüm zaten mevcut.");
             }
 
-            var trimmedDescription = string.IsNullOrWhiteSpace(description)
-                ? null
-                : description.Trim();
+            request.Name = trimmedName;
 
-            var trimmedCoverImageUrl = string.IsNullOrWhiteSpace(coverImageUrl)
+            request.Description = string.IsNullOrWhiteSpace(request.Description)
                 ? null
-                : coverImageUrl.Trim();
+                : request.Description.Trim();
 
-            return _albumRepository.UpdateArtistAlbum(
-                albumId,
-                artistId,
-                trimmedName,
-                trimmedDescription,
-                trimmedCoverImageUrl,
-                releaseDate);
+            request.CoverImageUrl = string.IsNullOrWhiteSpace(request.CoverImageUrl)
+                ? null
+                : request.CoverImageUrl.Trim();
+
+            return _albumRepository.UpdateArtistAlbum(request);
         }
 
         public bool DeleteArtistAlbum(int albumId, int artistId)
