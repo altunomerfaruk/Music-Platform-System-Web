@@ -67,6 +67,7 @@ namespace MusicProject.Repositories.Concrete
         public bool ExistsByTitleAndArtist(string title, int artistId, int excludedSongId)
         {
             var normalizedTitle = title.Trim();
+
             return _context.Songs
                 .AsNoTracking()
                 .Any(song =>
@@ -76,15 +77,16 @@ namespace MusicProject.Repositories.Concrete
                         songArtist.ArtistId == artistId));
         }
 
-
         public void UpdateSongWithRelations(Song song, IEnumerable<int> genreIds)
         {
             using var transaction = _context.Database.BeginTransaction();
+
             try
             {
                 var oldSongGenres = _context.SongGenres
-                    .Where(sg => sg.SongId == song.Id)
+                    .Where(songGenre => songGenre.SongId == song.Id)
                     .ToList();
+
                 _context.SongGenres.RemoveRange(oldSongGenres);
 
                 var distinctGenreIds = genreIds
@@ -99,19 +101,21 @@ namespace MusicProject.Repositories.Concrete
                         SongId = song.Id,
                         GenreId = genreId
                     };
+
                     _context.SongGenres.Add(songGenre);
                 }
+
                 _context.SaveChanges();
+
                 transaction.Commit();
             }
-
             catch
             {
                 transaction.Rollback();
                 throw;
             }
-
         }
+
         public List<Song> GetSongsByAlbum(int albumId)
         {
             return _dbSet
@@ -187,8 +191,7 @@ namespace MusicProject.Repositories.Concrete
 
         public void CreateSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds)
         {
-            using var transaction =
-                _context.Database.BeginTransaction();
+            using var transaction = _context.Database.BeginTransaction();
 
             try
             {
@@ -228,6 +231,7 @@ namespace MusicProject.Repositories.Concrete
                 };
 
                 _context.SongStats.Add(songStat);
+
                 _context.SaveChanges();
 
                 transaction.Commit();
@@ -242,8 +246,35 @@ namespace MusicProject.Repositories.Concrete
         public void SoftDeleteSong(Song song)
         {
             song.IsDeleted = true;
+
             _context.Songs.Update(song);
             _context.SaveChanges();
+        }
+
+        public Song? GetSongById(int songId)
+        {
+            return _context.Songs
+                .FirstOrDefault(song => song.Id == songId);
+        }
+
+        public bool UpdatePublication(Song song)
+        {
+            var existingSong = _context.Songs
+                .FirstOrDefault(existingSong => existingSong.Id == song.Id);
+
+            if (existingSong == null)
+            {
+                return false;
+            }
+
+            existingSong.PublicationStatus = song.PublicationStatus;
+            existingSong.ScheduledPublishAtUtc = song.ScheduledPublishAtUtc;
+            existingSong.PublishedAtUtc = song.PublishedAtUtc;
+            existingSong.PublicationJobId = song.PublicationJobId;
+
+            _context.SaveChanges();
+
+            return true;
         }
     }
 }

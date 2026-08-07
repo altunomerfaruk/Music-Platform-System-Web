@@ -17,6 +17,9 @@ namespace MusicProject.Models.Concrete
 
         public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
 
+        [MaxLength(100)]
+        public string? PublicationJobId { get; set; }
+
         public DateTime? ScheduledPublishAtUtc { get; set; }
 
         public DateTime? PublishedAtUtc { get; set; }

@@ -104,7 +104,31 @@ namespace MusicProject.Services.Concrete
                 : request.CoverImageUrl.Trim();
 
             return _albumRepository.UpdateArtistAlbum(request);
+        
+        
         }
+
+        public Album? GetAlbumById(int albumId)
+        {
+            if (albumId <= 0)
+            {
+                return null;
+            }
+
+            return _albumRepository.GetAlbumById(albumId);
+        }
+
+        public bool UpdatePublication(Album album)
+        {
+            if (album.Id <= 0)
+            {
+                return false;
+            }
+
+            return _albumRepository.UpdatePublication(album);
+        }
+
+
 
         public bool DeleteArtistAlbum(int albumId, int artistId)
         {

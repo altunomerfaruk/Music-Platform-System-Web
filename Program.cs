@@ -5,7 +5,8 @@ using MusicProject.Repositories.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Concrete;
 using MusicProject.Services.Interface;
-
+using Hangfire;
+using MusicProject.Services.Background;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,7 +113,17 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IGenreService, GenreManager>();
 builder.Services.AddScoped<ICountryService, CountryManager>();
 
+builder.Services.AddScoped<IPublicationJobScheduler, PublicationJobScheduler>();
 
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
+builder.Services.AddScoped<PublicationJob>();
 
 
 
@@ -181,6 +192,7 @@ app.UseAuthentication();
 // Sonra yetkisi kontrol edilir.
 app.UseAuthorization();
 
+app.UseHangfireDashboard("/hangfire");
 // ==========================================
 // 7. ROTA AYARLARI
 // ==========================================

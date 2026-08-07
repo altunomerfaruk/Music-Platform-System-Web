@@ -151,6 +151,17 @@ namespace MusicProject.Controllers
             try
             {
                 _albumService.AddAlbum(album);
+
+                if (album.PublicationStatus == PublicationStatus.Scheduled &&
+                    album.ScheduledPublishAtUtc.HasValue)
+                {
+                    album.PublicationJobId =
+                        _publicationJobScheduler.ScheduleAlbumPublication(
+                            album.Id,
+                            album.ScheduledPublishAtUtc.Value);
+
+                    _albumService.UpdatePublication(album);
+                }
             }
             catch (InvalidOperationException exception)
             {
@@ -253,6 +264,22 @@ namespace MusicProject.Controllers
                 publishedAtUtc = DateTime.UtcNow;
             }
 
+            if (!string.IsNullOrWhiteSpace(existingAlbum.PublicationJobId))
+            {
+                _publicationJobScheduler.Cancel(existingAlbum.PublicationJobId);
+            }
+
+            string? newPublicationJobId = null;
+
+            if (model.PublicationStatus == PublicationStatus.Scheduled &&
+                scheduledPublishAtUtc.HasValue)
+            {
+                newPublicationJobId =
+                    _publicationJobScheduler.ScheduleAlbumPublication(
+                        model.AlbumId,
+                        scheduledPublishAtUtc.Value);
+            }
+
             var request = new UpdateAlbumRequest
             {
                 AlbumId = model.AlbumId,
@@ -263,7 +290,8 @@ namespace MusicProject.Controllers
                 ReleaseDate = model.ReleaseDate,
                 PublicationStatus = model.PublicationStatus,
                 ScheduledPublishAtUtc = scheduledPublishAtUtc,
-                PublishedAtUtc = publishedAtUtc
+                PublishedAtUtc = publishedAtUtc,
+                PublicationJobId = newPublicationJobId
             };
 
             try
@@ -272,6 +300,11 @@ namespace MusicProject.Controllers
 
                 if (!updated)
                 {
+                    if (!string.IsNullOrWhiteSpace(newPublicationJobId))
+                    {
+                        _publicationJobScheduler.Cancel(newPublicationJobId);
+                    }
+
                     TempData["ErrorMessage"] =
                         "Albüm bulunamadı veya bu albümü düzenleme yetkiniz yok.";
 
@@ -280,6 +313,11 @@ namespace MusicProject.Controllers
             }
             catch (InvalidOperationException exception)
             {
+                if (!string.IsNullOrWhiteSpace(newPublicationJobId))
+                {
+                    _publicationJobScheduler.Cancel(newPublicationJobId);
+                }
+
                 ModelState.AddModelError(nameof(model.Name), exception.Message);
 
                 return View(model);
@@ -299,11 +337,19 @@ namespace MusicProject.Controllers
                 return error!;
             }
 
+            var album = _albumService.GetArtistAlbumDetails(albumId, dashboard.Artist.Id);
+
+            if (album == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Albüm bulunamadı veya bu albümü silme yetkiniz yok.";
+
+                return RedirectToAction(nameof(MyAlbums));
+            }
+
             try
             {
-                var deleted = _albumService.DeleteArtistAlbum(
-                    albumId,
-                    dashboard.Artist.Id);
+                var deleted = _albumService.DeleteArtistAlbum(albumId, dashboard.Artist.Id);
 
                 if (!deleted)
                 {
@@ -312,6 +358,8 @@ namespace MusicProject.Controllers
 
                     return RedirectToAction(nameof(MyAlbums));
                 }
+
+                _publicationJobScheduler.Cancel(album.PublicationJobId);
 
                 TempData["SuccessMessage"] = "Albüm başarıyla silindi.";
             }

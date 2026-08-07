@@ -2,52 +2,44 @@
 
 @{
     ViewData["Title"] = "Yeni Şarkı";
-
-    ViewData["PageDescription"] =
-        "Yeni bir şarkı ekle, albümünü ve müzik türlerini belirle.";
-
+    ViewData["PageDescription"] = "Yeni bir şarkı oluştur ve yayın ayarlarını belirle.";
     Layout = "_ArtistLayout";
-
-    var selectedGenreCount = Model.SelectedGenreIds?.Count ?? 0;
 }
 
 @section Styles {
     <style>
         .create-song-content {
+            max-width: 920px;
+            margin: 0 auto;
             padding: 32px 34px 50px;
         }
 
-        .create-song-container {
-            width: 100%;
-            max-width: 980px;
-            margin: 0 auto;
-        }
-
-        .create-song-hero {
-            padding: 30px;
+        .create-song-header {
+            padding: 28px;
             display: flex;
             align-items: center;
-            gap: 21px;
-            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.21), rgba(18, 23, 19, 0.97) 65% );
+            gap: 20px;
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
 
-        .create-song-hero-icon {
-            width: 86px;
-            height: 86px;
+        .create-song-header-icon {
+            width: 82px;
+            height: 82px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             color: #071008;
             background-color: var(--primary);
-            border-radius: 20px;
-            font-size: 39px;
-            box-shadow: 0 15px 36px rgba(0, 0, 0, 0.30);
+            border-radius: 18px;
+            font-size: 37px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.28);
         }
 
-        .create-song-label {
+        .create-song-header-label {
+            margin: 0;
             color: var(--primary);
             font-size: 11px;
             font-weight: 850;
@@ -55,412 +47,297 @@
             text-transform: uppercase;
         }
 
-        .create-song-title {
-            margin-top: 7px;
+        .create-song-header-title {
+            margin: 7px 0 0;
             color: #ffffff;
-            font-size: clamp(27px, 4vw, 39px);
+            font-size: clamp(25px, 4vw, 36px);
         }
 
-        .create-song-description {
-            max-width: 650px;
-            margin-top: 8px;
+        .create-song-header-description {
+            margin: 8px 0 0;
             color: var(--text-secondary);
             font-size: 13px;
-            line-height: 1.7;
+            line-height: 1.6;
         }
 
-        .song-form-panel {
+        .create-song-card {
             margin-top: 22px;
-            padding: 27px;
+            padding: 28px;
             background-color: var(--card);
             border: 1px solid var(--border);
             border-radius: 19px;
         }
 
-        .validation-summary {
-            margin-bottom: 20px;
+        .create-song-validation-summary {
+            margin-bottom: 22px;
             padding: 14px 16px;
-            color: #ffaaaa;
-            background-color: rgba(255, 92, 92, 0.08);
-            border: 1px solid rgba(255, 92, 92, 0.20);
+            color: #ff9b9b;
+            background-color: rgba(255, 92, 92, 0.09);
+            border: 1px solid rgba(255, 92, 92, 0.22);
             border-radius: 11px;
+            font-size: 13px;
+        }
+
+        .validation-summary-valid {
+            display: none;
+        }
+
+        .create-song-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 21px;
+        }
+
+        .create-song-group {
+            margin-bottom: 3px;
+        }
+
+            .create-song-group.full-width {
+                grid-column: 1 / -1;
+            }
+
+        .create-song-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .create-song-input,
+        .create-song-select {
+            width: 100%;
+            padding: 13px 15px;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.045);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .create-song-select {
+            cursor: pointer;
+        }
+
+            .create-song-select option {
+                color: #ffffff;
+                background-color: #151a17;
+            }
+
+            .create-song-input:focus,
+            .create-song-select:focus {
+                background-color: rgba(255, 255, 255, 0.065);
+                border-color: rgba(30, 215, 96, 0.65);
+                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
+            }
+
+        .create-song-hint {
+            display: block;
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .create-song-validation {
+            display: block;
+            margin-top: 7px;
+            color: #ff8585;
+            font-size: 12px;
+        }
+
+        .genre-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .genre-item {
+            padding: 11px 12px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+            .genre-item:hover {
+                border-color: rgba(30, 215, 96, 0.35);
+            }
+
+            .genre-item input {
+                accent-color: var(--primary);
+            }
+
+        .publication-section {
+            grid-column: 1 / -1;
+            padding: 21px;
+            background-color: rgba(30, 215, 96, 0.035);
+            border: 1px solid rgba(30, 215, 96, 0.14);
+            border-radius: 14px;
+        }
+
+            .publication-section.hidden {
+                display: none;
+            }
+
+        .publication-section-title {
+            margin: 0 0 5px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .publication-section-description {
+            margin: 0 0 19px;
+            color: var(--text-secondary);
             font-size: 12px;
             line-height: 1.6;
         }
 
-            .validation-summary:empty {
-                display: none;
+        .publication-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .scheduled-publish-group {
+            display: none;
+        }
+
+            .scheduled-publish-group.visible {
+                display: block;
             }
 
-        .song-form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 21px;
-        }
-
-        .form-group {
-            min-width: 0;
-        }
-
-        .form-group-full {
+        .publication-info {
             grid-column: 1 / -1;
-        }
-
-        .form-label-row {
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .form-label {
-            display: block;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .form-required {
-            color: var(--primary);
-        }
-
-        .form-optional {
+            padding: 13px 15px;
             color: var(--text-secondary);
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.6px;
-            text-transform: uppercase;
-        }
-
-        .form-input,
-        .form-select {
-            width: 100%;
-            height: 47px;
-            padding: 0 14px;
-            color: #ffffff;
-            background-color: #0c110e;
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            outline: none;
-            transition: 0.2s;
-        }
-
-            .form-input:focus,
-            .form-select:focus {
-                border-color: var(--primary);
-                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.10);
-            }
-
-            .form-input::placeholder {
-                color: #667069;
-            }
-
-            .form-select option {
-                color: #ffffff;
-                background-color: #101612;
-            }
-
-        .form-description {
-            margin-top: 7px;
-            color: var(--text-secondary);
-            font-size: 10px;
-            line-height: 1.5;
-        }
-
-        .field-validation-error {
-            margin-top: 7px;
-            display: block;
-            color: #ff8585;
-            font-size: 10px;
-        }
-
-        .genre-panel {
-            padding: 18px;
-            background-color: #0c110e;
-            border: 1px solid var(--border);
-            border-radius: 13px;
-        }
-
-        .genre-panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .genre-panel-title {
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .genre-selected-count {
-            padding: 5px 9px;
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.09);
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 800;
-        }
-
-        .genre-search-wrapper {
-            margin-top: 13px;
-            position: relative;
-        }
-
-        .genre-search-input {
-            width: 100%;
-            height: 42px;
-            padding: 0 13px 0 38px;
-            color: #ffffff;
-            background-color: #121914;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            outline: none;
-            transition: 0.2s;
-        }
-
-            .genre-search-input:focus {
-                border-color: var(--primary);
-                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
-            }
-
-            .genre-search-input::placeholder {
-                color: #687169;
-            }
-
-        .genre-search-icon {
-            position: absolute;
-            top: 50%;
-            left: 13px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .genre-options {
-            max-height: 270px;
-            margin-top: 13px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            overflow-y: auto;
-        }
-
-        .genre-option {
-            position: relative;
-        }
-
-        .genre-checkbox {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .genre-option-label {
-            min-height: 45px;
-            padding: 0 13px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            color: #d7ddd8;
             background-color: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border);
             border-radius: 10px;
-            font-size: 11px;
-            font-weight: 750;
-            cursor: pointer;
-            transition: 0.18s;
+            font-size: 12px;
+            line-height: 1.6;
         }
 
-            .genre-option-label:hover {
-                color: #ffffff;
-                border-color: rgba(30, 215, 96, 0.30);
+            .publication-info strong {
+                color: var(--primary);
             }
 
-        .genre-check-icon {
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            color: transparent;
-            background-color: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            font-size: 11px;
-            transition: 0.18s;
-        }
-
-        .genre-checkbox:checked + .genre-option-label {
-            color: #071008;
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-            .genre-checkbox:checked + .genre-option-label .genre-check-icon {
-                color: #071008;
-                background-color: rgba(0, 0, 0, 0.12);
-                border-color: rgba(0, 0, 0, 0.16);
-            }
-
-        .genre-empty-message {
-            margin-top: 15px;
+        .album-publication-info {
+            grid-column: 1 / -1;
+            padding: 14px 16px;
             display: none;
             color: var(--text-secondary);
-            font-size: 11px;
-            text-align: center;
-        }
-
-        .song-preview {
-            margin-top: 25px;
-            padding: 18px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
             background-color: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            line-height: 1.6;
         }
 
-        .song-preview-cover {
-            width: 73px;
-            height: 73px;
+            .album-publication-info.visible {
+                display: block;
+            }
+
+            .album-publication-info strong {
+                color: var(--primary);
+            }
+
+        .create-song-actions {
+            margin-top: 24px;
+            padding-top: 23px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            color: var(--primary);
-            background: radial-gradient( circle at top right, rgba(30, 215, 96, 0.22), transparent 48% ), #0c110e;
-            border-radius: 13px;
-            font-size: 30px;
-        }
-
-        .song-preview-content {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .song-preview-label {
-            color: var(--text-secondary);
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-
-        .song-preview-title {
-            margin-top: 6px;
-            overflow: hidden;
-            color: #ffffff;
-            font-size: 17px;
-            font-weight: 850;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .song-preview-meta {
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 7px;
-            color: var(--text-secondary);
-            font-size: 11px;
-        }
-
-        .song-preview-dot {
-            color: #525b55;
-        }
-
-        .song-form-actions {
-            margin-top: 25px;
-            padding-top: 20px;
-            display: flex;
-            align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 11px;
             border-top: 1px solid var(--border);
         }
 
-        .cancel-button,
-        .save-button {
-            min-height: 44px;
-            padding: 0 20px;
+        .create-song-cancel,
+        .create-song-save {
+            min-height: 43px;
+            padding: 0 19px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border-radius: 11px;
             font-size: 12px;
-            font-weight: 850;
+            font-weight: 800;
+            text-decoration: none;
             transition: 0.2s;
         }
 
-        .cancel-button {
+        .create-song-cancel {
             color: #ffffff;
-            background-color: transparent;
+            background-color: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
         }
 
-            .cancel-button:hover {
+            .create-song-cancel:hover {
                 color: var(--primary);
-                border-color: rgba(30, 215, 96, 0.30);
+                border-color: rgba(30, 215, 96, 0.35);
             }
 
-        .save-button {
+        .create-song-save {
             color: #071008;
             background-color: var(--primary);
-            border: 1px solid var(--primary);
+            border: none;
+            cursor: pointer;
         }
 
-            .save-button:hover {
+            .create-song-save:hover {
                 background-color: var(--primary-hover);
-                transform: translateY(-1px);
+                transform: translateY(-2px);
             }
 
-        @@media (max-width: 850px) {
+        @@media (max-width: 750px) {
             .create-song-content {
                 padding: 22px 16px 40px;
             }
 
-            .song-form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group-full {
-                grid-column: auto;
-            }
-
-            .genre-options {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @@media (max-width: 650px) {
-            .create-song-hero {
+            .create-song-header {
                 align-items: flex-start;
                 flex-direction: column;
             }
 
-            .song-form-panel {
-                padding: 20px;
-            }
-
-            .genre-options {
+            .create-song-grid,
+            .publication-grid {
                 grid-template-columns: 1fr;
             }
 
-            .song-form-actions {
-                align-items: stretch;
+            .create-song-group.full-width,
+            .publication-section,
+            .publication-info,
+            .album-publication-info {
+                grid-column: auto;
+            }
+
+            .genre-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @@media (max-width: 520px) {
+            .create-song-card {
+                padding: 20px;
+            }
+
+            .genre-list {
+                grid-template-columns: 1fr;
+            }
+
+            .create-song-actions {
                 flex-direction: column-reverse;
             }
 
-            .cancel-button,
-            .save-button {
+            .create-song-cancel,
+            .create-song-save {
                 width: 100%;
             }
         }
@@ -469,297 +346,245 @@
 
 <div class="create-song-content">
 
-    <div class="create-song-container">
+    <section class="create-song-header">
 
-        <section class="create-song-hero">
+        <div class="create-song-header-icon">
+            ♪
+        </div>
 
-            <div class="create-song-hero-icon">
-                ♪
-            </div>
+        <div>
+            <p class="create-song-header-label">
+                Şarkı yönetimi
+            </p>
 
-            <div>
+            <h2 class="create-song-header-title">
+                Yeni Şarkı Oluştur
+            </h2>
 
-                <p class="create-song-label">
-                    Yeni yayın
-                </p>
+            <p class="create-song-header-description">
+                Şarkı bilgilerini doldur, türlerini seç ve single ise yayın zamanını belirle.
+            </p>
+        </div>
 
-                <h2 class="create-song-title">
-                    Şarkı Ekle
-                </h2>
+    </section>
 
-                <p class="create-song-description">
-                    Şarkının adını gir, isteğe bağlı olarak bir albüm seç
-                    ve şarkının ait olduğu müzik türlerini belirle.
-                </p>
-
-            </div>
-
-        </section>
+    <section class="create-song-card">
 
         <form asp-controller="ArtistDashboard"
               asp-action="CreateSong"
-              method="post"
-              class="song-form-panel">
+              method="post">
 
             @Html.AntiForgeryToken()
 
             <div asp-validation-summary="ModelOnly"
-                 class="validation-summary">
+                 class="create-song-validation-summary">
             </div>
 
-            <div class="song-form-grid">
+            <div class="create-song-grid">
 
-                <div class="form-group form-group-full">
+                <div class="create-song-group full-width">
 
-                    <div class="form-label-row">
-
-                        <label asp-for="Title"
-                               class="form-label">
-                            Şarkı adı
-                            <span class="form-required">*</span>
-                        </label>
-
-                    </div>
+                    <label asp-for="Title"
+                           class="create-song-label">
+                        Şarkı Adı
+                    </label>
 
                     <input asp-for="Title"
-                           class="form-input"
-                           placeholder="Örneğin: Gece Yolculuğu"
-                           autocomplete="off" />
+                           class="create-song-input"
+                           placeholder="Şarkı adını yaz" />
 
                     <span asp-validation-for="Title"
-                          class="field-validation-error">
+                          class="create-song-validation">
                     </span>
-
-                    <p class="form-description">
-                        Aynı sanatçı hesabında aynı isimli ikinci bir şarkı oluşturulamaz.
-                    </p>
 
                 </div>
 
-                <div class="form-group">
+                <div class="create-song-group">
 
-                    <div class="form-label-row">
-
-                        <label asp-for="AlbumId"
-                               class="form-label">
-                            Albüm
-                        </label>
-
-                        <span class="form-optional">
-                            İsteğe bağlı
-                        </span>
-
-                    </div>
+                    <label asp-for="AlbumId"
+                           class="create-song-label">
+                        Albüm
+                    </label>
 
                     <select asp-for="AlbumId"
                             asp-items="Model.AlbumOptions"
-                            class="form-select">
+                            id="albumSelect"
+                            class="create-song-select">
 
                         <option value="">
-                            Albüm seçme — Single olarak yayınla
+                            Albümsüz / Single
                         </option>
 
                     </select>
 
-                    <span asp-validation-for="AlbumId"
-                          class="field-validation-error">
+                    <span class="create-song-hint">
+                        Albüm seçersen şarkının yayın durumunu albüm belirler.
                     </span>
 
-                    <p class="form-description">
-                        Albüm seçmezsen şarkı bağımsız single olarak kaydedilir.
-                    </p>
+                    <span asp-validation-for="AlbumId"
+                          class="create-song-validation">
+                    </span>
 
                 </div>
 
-                <div class="form-group">
+                <div class="create-song-group">
 
-                    <div class="form-label-row">
+                    <label asp-for="LabelId"
+                           class="create-song-label">
+                        Plak Şirketi
+                    </label>
 
-                        <span class="form-label">
-                            Sanatçı
-                        </span>
+                    <input asp-for="LabelId"
+                           type="number"
+                           class="create-song-input"
+                           placeholder="İsteğe bağlı" />
 
-                    </div>
-
-                    <input type="text"
-                           class="form-input"
-                           value="@Model.Artist.Name"
-                           disabled />
-
-                    <p class="form-description">
-                        Şarkı otomatik olarak giriş yaptığın sanatçı profiline bağlanır.
-                    </p>
+                    <span asp-validation-for="LabelId"
+                          class="create-song-validation">
+                    </span>
 
                 </div>
 
-                <div class="form-group form-group-full">
+                <div class="create-song-group full-width">
 
-                    <div class="form-label-row">
+                    <span class="create-song-label">
+                        Türler
+                    </span>
 
-                        <span class="form-label">
-                            Müzik türleri
-                            <span class="form-required">*</span>
-                        </span>
+                    <div class="genre-list">
 
-                    </div>
+                        @foreach (var genre in Model.GenreOptions)
+                        {
+                            var genreId = int.Parse(genre.Value);
+                            var isChecked = Model.SelectedGenreIds.Contains(genreId);
 
-                    <div class="genre-panel">
+                            <label class="genre-item">
 
-                        <div class="genre-panel-header">
+                                <input type="checkbox"
+                                       name="SelectedGenreIds"
+                                       value="@genre.Value"
+                                       checked="@isChecked" />
 
-                            <span class="genre-panel-title">
-                                En az bir tür seç
-                            </span>
+                                <span>
+                                    @genre.Text
+                                </span>
 
-                            <span class="genre-selected-count"
-                                  id="genreSelectedCount">
-                                @selectedGenreCount tür seçildi
-                            </span>
-
-                        </div>
-
-                        <div class="genre-search-wrapper">
-
-                            <span class="genre-search-icon">
-                                ⌕
-                            </span>
-
-                            <input type="text"
-                                   id="genreSearchInput"
-                                   class="genre-search-input"
-                                   placeholder="Tür ara..."
-                                   autocomplete="off" />
-
-                        </div>
-
-                        <div class="genre-options"
-                             id="genreOptions">
-
-                            @foreach (var genre in Model.GenreOptions)
-                            {
-                                var checkboxId = $"genre_{genre.Value}";
-                                var genreId = int.Parse(genre.Value);
-
-                                var isChecked =
-                                    Model.SelectedGenreIds?.Contains(genreId) == true; 
-
-                                <div class="genre-option"
-                                     data-genre-name="@genre.Text">
-
-                                    @if (isChecked)
-                                    {
-                                        <input type="checkbox"
-                                               id="@checkboxId"
-                                               name="SelectedGenreIds"
-                                               value="@genre.Value"
-                                               checked
-                                               class="genre-checkbox" />
-                                    }
-                                    else
-                                    {
-                                        <input type="checkbox"
-                                               id="@checkboxId"
-                                               name="SelectedGenreIds"
-                                               value="@genre.Value"
-                                               class="genre-checkbox" />
-                                    }
-
-                                    <label for="@checkboxId"
-                                           class="genre-option-label">
-
-                                        <span>
-                                            @genre.Text
-                                        </span>
-
-                                        <span class="genre-check-icon">
-                                            ✓
-                                        </span>
-
-                                    </label>
-
-                                </div>
-                            }
-
-                        </div>
-
-                        <p class="genre-empty-message"
-                           id="genreEmptyMessage">
-                            Aramana uygun müzik türü bulunamadı.
-                        </p>
+                            </label>
+                        }
 
                     </div>
 
                     <span asp-validation-for="SelectedGenreIds"
-                          class="field-validation-error">
+                          class="create-song-validation">
                     </span>
 
                 </div>
 
-            </div>
+                <div id="albumPublicationInfo"
+                     class="album-publication-info">
 
-            <div class="song-preview">
+                    <strong>Albüm yayını:</strong>
+                    Bu şarkının bağımsız bir yayın tarihi olmayacak.
+                    Şarkı, seçtiğin albümün yayın durumunu takip edecek.
 
-                <div class="song-preview-cover">
-                    ♪
                 </div>
 
-                <div class="song-preview-content">
+                <section id="publicationSection"
+                         class="publication-section">
 
-                    <p class="song-preview-label">
-                        Şarkı önizlemesi
+                    <h3 class="publication-section-title">
+                        Single Yayın Ayarları
+                    </h3>
+
+                    <p class="publication-section-description">
+                        Albümsüz şarkının ne zaman kullanıcılar tarafından görülebileceğini seç.
                     </p>
 
-                    <div class="song-preview-title"
-                         id="songPreviewTitle">
-                        Şarkı adı
+                    <div class="publication-grid">
+
+                        <div class="create-song-group">
+
+                            <label asp-for="PublicationStatus"
+                                   class="create-song-label">
+                                Yayın Durumu
+                            </label>
+
+                            <select asp-for="PublicationStatus"
+                                    id="publicationStatusSelect"
+                                    class="create-song-select">
+
+                                <option value="1">
+                                    Taslak olarak kaydet
+                                </option>
+
+                                <option value="2">
+                                    Cuma günü için planla
+                                </option>
+
+                                <option value="3">
+                                    Hemen yayınla
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="PublicationStatus"
+                                  class="create-song-validation">
+                            </span>
+
+                        </div>
+
+                        <div id="scheduledPublishGroup"
+                             class="create-song-group scheduled-publish-group">
+
+                            <label asp-for="ScheduledPublishAtLocal"
+                                   class="create-song-label">
+                                Planlanan Yayın Zamanı
+                            </label>
+
+                            <input asp-for="ScheduledPublishAtLocal"
+                                   id="scheduledPublishInput"
+                                   type="datetime-local"
+                                   class="create-song-input" />
+
+                            <span class="create-song-hint">
+                                Türkiye saatine göre gelecekteki bir cuma günü seçmelisin.
+                            </span>
+
+                            <span asp-validation-for="ScheduledPublishAtLocal"
+                                  class="create-song-validation">
+                            </span>
+
+                        </div>
+
+                        <div id="publicationInfo"
+                             class="publication-info">
+                        </div>
+
                     </div>
 
-                    <div class="song-preview-meta">
-
-                        <span>
-                            @Model.Artist.Name
-                        </span>
-
-                        <span class="song-preview-dot">
-                            •
-                        </span>
-
-                        <span id="songPreviewAlbum">
-                            Single
-                        </span>
-
-                        <span class="song-preview-dot">
-                            •
-                        </span>
-
-                        <span id="songPreviewGenreCount">
-                            @selectedGenreCount tür
-                        </span>
-
-                    </div>
-
-                </div>
+                </section>
 
             </div>
 
-            <div class="song-form-actions">
+            <div class="create-song-actions">
 
                 <a asp-controller="ArtistDashboard"
-                   asp-action="Index"
-                   class="cancel-button">
+                   asp-action="MySongs"
+                   class="create-song-cancel">
                     Vazgeç
                 </a>
 
                 <button type="submit"
-                        class="save-button">
-                    Şarkıyı Ekle
+                        id="createSongButton"
+                        class="create-song-save">
+                    Taslak Olarak Kaydet
                 </button>
 
             </div>
 
         </form>
 
-    </div>
+    </section>
 
 </div>
 
@@ -767,145 +592,113 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const titleInput = document.getElementById("Title");
-            const albumSelect = document.getElementById("AlbumId");
+        document.addEventListener("DOMContentLoaded", function() {
+            const albumSelect =
+                document.getElementById("albumSelect");
 
-            const previewTitle =
-                document.getElementById("songPreviewTitle");
+            const publicationSection =
+                document.getElementById("publicationSection");
 
-            const previewAlbum =
-                document.getElementById("songPreviewAlbum");
+            const albumPublicationInfo =
+                document.getElementById("albumPublicationInfo");
 
-            const previewGenreCount =
-                document.getElementById("songPreviewGenreCount");
+            const publicationStatusSelect =
+                document.getElementById("publicationStatusSelect");
 
-            const genreSelectedCount =
-                document.getElementById("genreSelectedCount");
+            const scheduledPublishGroup =
+                document.getElementById("scheduledPublishGroup");
 
-            const genreSearchInput =
-                document.getElementById("genreSearchInput");
+            const scheduledPublishInput =
+                document.getElementById("scheduledPublishInput");
 
-            const genreEmptyMessage =
-                document.getElementById("genreEmptyMessage");
+            const publicationInfo =
+                document.getElementById("publicationInfo");
 
-            const genreOptions = Array.from(
-                document.querySelectorAll(".genre-option")
-            );
+            const createSongButton =
+                document.getElementById("createSongButton");
 
-            const genreCheckboxes = Array.from(
-                document.querySelectorAll(".genre-checkbox")
-            );
-
-            function normalizeText(value) {
-                return value
-                    .toLocaleLowerCase("tr-TR")
-                    .trim();
-            }
-
-            function updateTitlePreview() {
-                if (!titleInput || !previewTitle) {
+            function updatePublicationFields() {
+                if (!publicationStatusSelect ||
+                    !scheduledPublishGroup ||
+                    !scheduledPublishInput ||
+                    !publicationInfo ||
+                    !createSongButton) {
                     return;
                 }
 
-                const title = titleInput.value.trim();
+                const selectedStatus = publicationStatusSelect.value;
 
-                previewTitle.textContent =
-                    title || "Şarkı adı";
-            }
+                if (selectedStatus === "2") {
+                    scheduledPublishGroup.classList.add("visible");
+                    scheduledPublishInput.required = true;
 
-            function updateAlbumPreview() {
-                if (!albumSelect || !previewAlbum) {
+                    publicationInfo.innerHTML =
+                        "<strong>Planlı yayın:</strong> Single seçilen cuma günü ve saatte otomatik olarak yayına alınacaktır.";
+
+                    createSongButton.textContent = "Single'ı Planla";
                     return;
                 }
 
-                const selectedOption =
-                    albumSelect.options[albumSelect.selectedIndex];
+                scheduledPublishGroup.classList.remove("visible");
+                scheduledPublishInput.required = false;
+                scheduledPublishInput.value = "";
 
-                const albumName =
-                    selectedOption && selectedOption.value
-                        ? selectedOption.text
-                        : "Single";
+                if (selectedStatus === "3") {
+                    publicationInfo.innerHTML =
+                        "<strong>Hemen yayınla:</strong> Single oluşturulduğu anda kullanıcılar tarafından görülebilir.";
 
-                previewAlbum.textContent = albumName;
+                    createSongButton.textContent = "Şarkıyı Yayınla";
+                    return;
+                }
+
+                publicationInfo.innerHTML =
+                    "<strong>Taslak:</strong> Single yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
+
+                createSongButton.textContent = "Taslak Olarak Kaydet";
             }
 
-            function updateGenreCount() {
-                const selectedCount = genreCheckboxes.filter(
-                    function (checkbox) {
-                        return checkbox.checked;
+            function updateAlbumBehavior() {
+                if (!albumSelect ||
+                    !publicationSection ||
+                    !albumPublicationInfo ||
+                    !createSongButton) {
+                    return;
+                }
+
+                const hasAlbum = albumSelect.value !== "";
+
+                if (hasAlbum) {
+                    publicationSection.classList.add("hidden");
+                    albumPublicationInfo.classList.add("visible");
+
+                    if (scheduledPublishInput) {
+                        scheduledPublishInput.required = false;
                     }
-                ).length;
 
-                if (genreSelectedCount) {
-                    genreSelectedCount.textContent =
-                        selectedCount + " tür seçildi";
+                    createSongButton.textContent = "Şarkıyı Albüme Ekle";
+                    return;
                 }
 
-                if (previewGenreCount) {
-                    previewGenreCount.textContent =
-                        selectedCount + " tür";
-                }
+                publicationSection.classList.remove("hidden");
+                albumPublicationInfo.classList.remove("visible");
+
+                updatePublicationFields();
             }
 
-            if (titleInput) {
-                titleInput.addEventListener(
-                    "input",
-                    updateTitlePreview
-                );
-
-                updateTitlePreview();
+            if (publicationStatusSelect) {
+                publicationStatusSelect.addEventListener(
+                    "change",
+                    updatePublicationFields);
             }
 
             if (albumSelect) {
                 albumSelect.addEventListener(
                     "change",
-                    updateAlbumPreview
-                );
-
-                updateAlbumPreview();
+                    updateAlbumBehavior);
             }
 
-            genreCheckboxes.forEach(function (checkbox) {
-                checkbox.addEventListener(
-                    "change",
-                    updateGenreCount
-                );
-            });
-
-            updateGenreCount();
-
-            if (genreSearchInput) {
-                genreSearchInput.addEventListener("input", function () {
-                    const searchValue =
-                        normalizeText(genreSearchInput.value);
-
-                    let visibleGenreCount = 0;
-
-                    genreOptions.forEach(function (option) {
-                        const genreName = normalizeText(
-                            option.dataset.genreName || ""
-                        );
-
-                        const isMatch =
-                            genreName.includes(searchValue);
-
-                        option.style.display =
-                            isMatch ? "block" : "none";
-
-                        if (isMatch) {
-                            visibleGenreCount++;
-                        }
-                    });
-
-                    if (genreEmptyMessage) {
-                        genreEmptyMessage.style.display =
-                            visibleGenreCount === 0
-                                ? "block"
-                                : "none";
-                    }
-                });
-            }
+            updatePublicationFields();
+            updateAlbumBehavior();
         });
     </script>
 }

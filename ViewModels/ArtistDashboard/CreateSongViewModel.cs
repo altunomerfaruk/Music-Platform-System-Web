@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MusicProject.ViewModels.ArtistDashboard
@@ -7,22 +8,23 @@ namespace MusicProject.ViewModels.ArtistDashboard
     {
         [Required(ErrorMessage = "Şarkı adı zorunludur.")]
         [MaxLength(100, ErrorMessage = "Şarkı adı en fazla 100 karakter olabilir.")]
-        [Display(Name = "Şarkı adı")]
         public string Title { get; set; } = string.Empty;
 
-        [Display(Name = "Albüm")]
         public int? AlbumId { get; set; }
 
-        [Display(Name = "Plak şirketi")]
         public int? LabelId { get; set; }
 
-        [Display(Name = "Müzik türleri")]
-        public List<int> SelectedGenreIds { get; set; } = new();
+        [Required(ErrorMessage = "En az bir tür seçmelisiniz.")]
+        public List<int> SelectedGenreIds { get; set; } = [];
 
-        public IEnumerable<SelectListItem> AlbumOptions { get; set; }
-            = new List<SelectListItem>();
+        [Required(ErrorMessage = "Yayın durumu seçilmelidir.")]
+        public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
 
-        public IEnumerable<SelectListItem> GenreOptions { get; set; }
-            = new List<SelectListItem>();
+        [Display(Name = "Planlanan yayın zamanı")]
+        public DateTime? ScheduledPublishAtLocal { get; set; }
+
+        public IEnumerable<SelectListItem> AlbumOptions { get; set; } = [];
+
+        public IEnumerable<SelectListItem> GenreOptions { get; set; } = [];
     }
 }

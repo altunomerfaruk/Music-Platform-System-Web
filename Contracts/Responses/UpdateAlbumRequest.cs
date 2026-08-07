@@ -21,5 +21,7 @@ namespace MusicProject.Contracts.Requests
         public DateTime? ScheduledPublishAtUtc { get; set; }
 
         public DateTime? PublishedAtUtc { get; set; }
+
+        public string? PublicationJobId { get; set; }
     }
 }

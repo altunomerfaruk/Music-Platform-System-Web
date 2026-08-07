@@ -28,16 +28,18 @@ namespace MusicProject.Repositories.Interface
 
         bool ExistsByTitleAndArtist(string title, int artistId);
 
-        void CreateSongWithRelations(
-            Song song,
-            int artistId,
-            IEnumerable<int> genreIds);
-        Song? GetArtistSongForEdit(int songId, int artistId);
-
         bool ExistsByTitleAndArtist(string title, int artistId, int excludedSongId);
+
+        void CreateSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds);
+
+        Song? GetArtistSongForEdit(int songId, int artistId);
 
         void UpdateSongWithRelations(Song song, IEnumerable<int> genreIds);
 
         void SoftDeleteSong(Song song);
+
+        Song? GetSongById(int songId);
+
+        bool UpdatePublication(Song song);
     }
 }

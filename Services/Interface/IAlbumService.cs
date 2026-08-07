@@ -19,5 +19,10 @@ namespace MusicProject.Services.Interface
         bool UpdateArtistAlbum(UpdateAlbumRequest request);
 
         bool DeleteArtistAlbum(int albumId, int artistId);
+
+        Album? GetAlbumById(int albumId);
+
+        bool UpdatePublication(Album album);
+
     }
 }

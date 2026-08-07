@@ -45,6 +45,32 @@ namespace MusicProject.Repositories.Concrete
                 .ToList();
         }
 
+        public Album? GetAlbumById(int albumId)
+        {
+            return _context.Albums
+                .Include(album => album.Songs)
+                .FirstOrDefault(album => album.Id == albumId);
+        }
+
+        public bool UpdatePublication(Album album)
+        {
+            var existingAlbum = _context.Albums
+                .FirstOrDefault(existingAlbum => existingAlbum.Id == album.Id);
+
+            if (existingAlbum == null)
+            {
+                return false;
+            }
+
+            existingAlbum.PublicationStatus = album.PublicationStatus;
+            existingAlbum.ScheduledPublishAtUtc = album.ScheduledPublishAtUtc;
+            existingAlbum.PublishedAtUtc = album.PublishedAtUtc;
+            existingAlbum.PublicationJobId = album.PublicationJobId;
+            _context.SaveChanges();
+
+            return true;
+        }
+
         public Album? GetArtistAlbumDetails(int albumId, int artistId)
         {
             return _context.Albums
@@ -76,7 +102,8 @@ namespace MusicProject.Repositories.Concrete
             album.PublicationStatus = request.PublicationStatus;
             album.ScheduledPublishAtUtc = request.ScheduledPublishAtUtc;
             album.PublishedAtUtc = request.PublishedAtUtc;
-
+            album.PublicationJobId = request.PublicationJobId;
+            album.PublicationJobId = request.PublicationJobId;
             _context.SaveChanges();
 
             return true;

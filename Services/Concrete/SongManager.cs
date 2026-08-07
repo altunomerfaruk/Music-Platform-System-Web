@@ -23,14 +23,17 @@ namespace MusicProject.Services.Concrete
 
             return _songRepository.GetSongsByArtistId(artistId);
         }
+
         public Song? GetArtistSongForEdit(int songId, int artistId)
         {
             if (songId <= 0 || artistId <= 0)
             {
                 return null;
             }
+
             return _songRepository.GetArtistSongForEdit(songId, artistId);
         }
+
         public void UpdateArtistSong(Song song, int artistId, IEnumerable<int> genreIds)
         {
             if (song.Id <= 0)
@@ -58,11 +61,10 @@ namespace MusicProject.Services.Concrete
 
             var normalizedTitle = song.Title.Trim();
 
-            var sameTitleExists = _songRepository
-                .ExistsByTitleAndArtist(
-                    normalizedTitle,
-                    artistId,
-                    song.Id);
+            var sameTitleExists = _songRepository.ExistsByTitleAndArtist(
+                normalizedTitle,
+                artistId,
+                song.Id);
 
             if (sameTitleExists)
             {
@@ -85,10 +87,16 @@ namespace MusicProject.Services.Concrete
             artistSong.AlbumId = song.AlbumId;
             artistSong.LabelId = song.LabelId;
 
+            artistSong.PublicationStatus = song.PublicationStatus;
+            artistSong.ScheduledPublishAtUtc = song.ScheduledPublishAtUtc;
+            artistSong.PublishedAtUtc = song.PublishedAtUtc;
+            artistSong.PublicationJobId = song.PublicationJobId;
+
             _songRepository.UpdateSongWithRelations(
                 artistSong,
                 selectedGenreIds);
         }
+
         public SongDetailsDto? GetSongDetails(int songId)
         {
             var song = _songRepository.GetSongDetailsById(songId);
@@ -133,11 +141,6 @@ namespace MusicProject.Services.Concrete
             return _songRepository.GetAll();
         }
 
-        public Song? GetSongById(int id)
-        {
-            return _songRepository.GetByID(id);
-        }
-
         public void AddSong(Song song)
         {
             ValidateTitle(song.Title);
@@ -147,7 +150,7 @@ namespace MusicProject.Services.Concrete
             _songRepository.Create(song);
         }
 
-        public void AddSongWithRelations(Song song,int artistId,IEnumerable<int> genreIds)
+        public void AddSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds)
         {
             if (artistId <= 0)
             {
@@ -159,10 +162,9 @@ namespace MusicProject.Services.Concrete
 
             var normalizedTitle = song.Title.Trim();
 
-            var songExists =
-                _songRepository.ExistsByTitleAndArtist(
-                    normalizedTitle,
-                    artistId);
+            var songExists = _songRepository.ExistsByTitleAndArtist(
+                normalizedTitle,
+                artistId);
 
             if (songExists)
             {
@@ -214,6 +216,47 @@ namespace MusicProject.Services.Concrete
             return _songRepository.GetPopularSongs();
         }
 
+        public void DeleteArtistSong(int songId, int artistId)
+        {
+            if (songId <= 0 || artistId <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Geçerli bir şarkı veya sanatçı bulunamadı.");
+            }
+
+            var artistSong = _songRepository.GetArtistSongForEdit(
+                songId,
+                artistId);
+
+            if (artistSong == null)
+            {
+                throw new InvalidOperationException(
+                    "Bu şarkıyı silme yetkiniz bulunmuyor.");
+            }
+
+            _songRepository.Delete(songId);
+        }
+
+        public Song? GetSongById(int songId)
+        {
+            if (songId <= 0)
+            {
+                return null;
+            }
+
+            return _songRepository.GetSongById(songId);
+        }
+
+        public bool UpdatePublication(Song song)
+        {
+            if (song.Id <= 0)
+            {
+                return false;
+            }
+
+            return _songRepository.UpdatePublication(song);
+        }
+
         private static void ValidateTitle(string title)
         {
             if (string.IsNullOrWhiteSpace(title))
@@ -227,25 +270,6 @@ namespace MusicProject.Services.Concrete
                 throw new InvalidOperationException(
                     "Şarkı adı en fazla 100 karakter olabilir.");
             }
-        }
-
-
-
-        public void DeleteArtistSong (int songId, int artistId)
-        {
-            if (songId <= 0 || artistId <= 0)
-            {
-                throw new InvalidOperationException(
-                    "Geçerli bir şarkı veya sanatçı bulunamadı.");
-            }
-            var artistSong = _songRepository
-                .GetArtistSongForEdit(songId, artistId);
-            if (artistSong == null)
-            {
-                throw new InvalidOperationException(
-                    "Bu şarkıyı silme yetkiniz bulunmuyor.");
-            }
-            _songRepository.Delete(songId);
         }
     }
 }

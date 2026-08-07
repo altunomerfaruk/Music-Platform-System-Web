@@ -11,10 +11,7 @@ namespace MusicProject.Services.Interface
 
         void AddSong(Song song);
 
-        void AddSongWithRelations(
-            Song song,
-            int artistId,
-            IEnumerable<int> genreIds);
+        void AddSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds);
 
         void UpdateSong(Song song);
 
@@ -29,9 +26,13 @@ namespace MusicProject.Services.Interface
         SongDetailsDto? GetSongDetails(int songId);
 
         IEnumerable<Song> GetSongsByArtistId(int artistId);
+
         Song? GetArtistSongForEdit(int songId, int artistId);
+
         void UpdateArtistSong(Song song, int artistId, IEnumerable<int> genreIds);
 
         void DeleteArtistSong(int songId, int artistId);
+
+        bool UpdatePublication(Song song);
     }
 }
