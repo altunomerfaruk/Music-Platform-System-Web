@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 
 namespace MusicProject.Repositories.Concrete
@@ -9,104 +10,69 @@ namespace MusicProject.Repositories.Concrete
     {
         private readonly AppDbContext _context;
 
-        public LikedSongRepository(
-            AppDbContext context)
+        public LikedSongRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public LikedSong? GetByUserAndSong(
-            int userId,
-            int songId)
+        public LikedSong? GetByUserAndSong(int userId, int songId)
         {
             return _context.LikedSongs
                 .FirstOrDefault(likedSong =>
                     likedSong.UserId == userId &&
-                    likedSong.SongId == songId
-                );
+                    likedSong.SongId == songId);
         }
 
-        public IEnumerable<int> GetActiveLikedSongIdsByUser(
-            int userId)
+        public IEnumerable<int> GetActiveLikedSongIdsByUser(int userId)
         {
             return _context.LikedSongs
                 .Where(likedSong =>
                     likedSong.UserId == userId &&
-                    likedSong.IsActive
-                )
-                .Select(likedSong =>
-                    likedSong.SongId
-                )
+                    likedSong.IsActive &&
+                    likedSong.Song.PublicationStatus == PublicationStatus.Published &&
+                    (likedSong.Song.AlbumId == null ||
+                     likedSong.Song.Album!.PublicationStatus == PublicationStatus.Published))
+                .Select(likedSong => likedSong.SongId)
                 .ToList();
         }
 
-        public int GetActiveLikeCountBySong(
-            int songId)
+        public int GetActiveLikeCountBySong(int songId)
         {
             return _context.LikedSongs
                 .Count(likedSong =>
                     likedSong.SongId == songId &&
-                    likedSong.IsActive
-                );
+                    likedSong.IsActive);
         }
 
-        public IEnumerable<LikedSong> GetActiveLikedSongsByUser(
-            int userId)
+        public IEnumerable<LikedSong> GetActiveLikedSongsByUser(int userId)
         {
             return _context.LikedSongs
                 .Where(likedSong =>
                     likedSong.UserId == userId &&
-                    likedSong.IsActive
-                )
-
-                .Include(likedSong =>
-                    likedSong.Song
-                )
-                .ThenInclude(song =>
-                    song.Album
-                )
-
-
-                .Include(likedSong =>
-                    likedSong.Song
-                )
-                .ThenInclude(song =>
-                    song.SongStat
-                )
-
-                .Include(likedSong =>
-                    likedSong.Song
-                )
-                .ThenInclude(song =>
-                    song.SongArtists
-                )
-                .ThenInclude(songArtist =>
-                    songArtist.Artist
-                )
-
-                .OrderByDescending(likedSong =>
-                    likedSong.LikedAt
-                )
+                    likedSong.IsActive &&
+                    likedSong.Song.PublicationStatus == PublicationStatus.Published &&
+                    (likedSong.Song.AlbumId == null ||
+                     likedSong.Song.Album!.PublicationStatus == PublicationStatus.Published))
+                .Include(likedSong => likedSong.Song)
+                    .ThenInclude(song => song.Album)
+                .Include(likedSong => likedSong.Song)
+                    .ThenInclude(song => song.SongStat)
+                .Include(likedSong => likedSong.Song)
+                    .ThenInclude(song => song.SongArtists)
+                        .ThenInclude(songArtist => songArtist.Artist)
+                .OrderByDescending(likedSong => likedSong.LikedAt)
                 .ToList();
         }
 
-        public void Create(
-            LikedSong likedSong)
+        public void Create(LikedSong likedSong)
         {
-            _context.LikedSongs.Add(
-                likedSong
-            );
-
+            _context.LikedSongs.Add(likedSong);
             _context.SaveChanges();
         }
 
-        public void Update(
-            LikedSong likedSong)
+        public void Update(LikedSong likedSong)
         {
-            _context.LikedSongs.Update(
-                likedSong
-            );
-
+            _context.LikedSongs.Update(likedSong);
             _context.SaveChanges();
         }
     }

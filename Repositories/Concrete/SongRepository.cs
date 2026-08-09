@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 
 namespace MusicProject.Repositories.Concrete
@@ -21,6 +22,9 @@ namespace MusicProject.Repositories.Concrete
         {
             return _dbSet
                 .AsNoTracking()
+                .Where(song =>
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published))
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
@@ -38,9 +42,7 @@ namespace MusicProject.Repositories.Concrete
             return _context.Songs
                 .AsNoTracking()
                 .AsSplitQuery()
-                .Where(song =>
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.ArtistId == artistId))
+                .Where(song => song.SongArtists.Any(songArtist => songArtist.ArtistId == artistId))
                 .Include(song => song.Album)
                 .Include(song => song.SongStat)
                 .Include(song => song.SongGenres)
@@ -60,8 +62,7 @@ namespace MusicProject.Repositories.Concrete
                     .ThenInclude(songGenre => songGenre.Genre)
                 .FirstOrDefault(song =>
                     song.Id == songId &&
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.ArtistId == artistId));
+                    song.SongArtists.Any(songArtist => songArtist.ArtistId == artistId));
         }
 
         public bool ExistsByTitleAndArtist(string title, int artistId, int excludedSongId)
@@ -73,8 +74,7 @@ namespace MusicProject.Repositories.Concrete
                 .Any(song =>
                     song.Id != excludedSongId &&
                     song.Title == normalizedTitle &&
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.ArtistId == artistId));
+                    song.SongArtists.Any(songArtist => songArtist.ArtistId == artistId));
         }
 
         public void UpdateSongWithRelations(Song song, IEnumerable<int> genreIds)
@@ -106,7 +106,6 @@ namespace MusicProject.Repositories.Concrete
                 }
 
                 _context.SaveChanges();
-
                 transaction.Commit();
             }
             catch
@@ -120,7 +119,10 @@ namespace MusicProject.Repositories.Concrete
         {
             return _dbSet
                 .AsNoTracking()
-                .Where(song => song.AlbumId == albumId)
+                .Where(song =>
+                    song.AlbumId == albumId &&
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    song.Album!.PublicationStatus == PublicationStatus.Published)
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
@@ -136,15 +138,15 @@ namespace MusicProject.Repositories.Concrete
         {
             return _context.Songs
                 .AsNoTracking()
+                .Where(song =>
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published))
                 .Include(song => song.SongStat)
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
                     .ThenInclude(songArtist => songArtist.Artist)
-                .OrderByDescending(song =>
-                    song.SongStat != null
-                        ? song.SongStat.PopularityScore
-                        : 0)
+                .OrderByDescending(song => song.SongStat != null ? song.SongStat.PopularityScore : 0)
                 .ThenBy(song => song.Title)
                 .Take(5)
                 .ToList();
@@ -161,7 +163,10 @@ namespace MusicProject.Repositories.Concrete
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
                 .Include(song => song.SongStat)
-                .FirstOrDefault(song => song.Id == songId);
+                .FirstOrDefault(song =>
+                    song.Id == songId &&
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published));
         }
 
         public Song? GetSongForListening(int songId)
@@ -174,7 +179,10 @@ namespace MusicProject.Repositories.Concrete
                     .ThenInclude(songArtist => songArtist.Artist)
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
-                .FirstOrDefault(song => song.Id == songId);
+                .FirstOrDefault(song =>
+                    song.Id == songId &&
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published));
         }
 
         public bool ExistsByTitleAndArtist(string title, int artistId)
@@ -185,8 +193,7 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .Any(song =>
                     song.Title == normalizedTitle &&
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.ArtistId == artistId));
+                    song.SongArtists.Any(songArtist => songArtist.ArtistId == artistId));
         }
 
         public void CreateSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds)
@@ -233,7 +240,6 @@ namespace MusicProject.Repositories.Concrete
                 _context.SongStats.Add(songStat);
 
                 _context.SaveChanges();
-
                 transaction.Commit();
             }
             catch

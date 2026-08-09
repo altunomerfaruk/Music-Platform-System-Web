@@ -147,6 +147,11 @@ namespace MusicProject.Controllers
                 return BadRequest("Geçersiz şarkı bilgisi.");
             }
 
+            if (_songService.GetSongDetails(songId) == null)
+            {
+                return NotFound("Şarkı bulunamadı.");
+            }
+
             _likedSongService.ToggleLike(userId, songId);
 
             return RedirectBack(returnUrl);

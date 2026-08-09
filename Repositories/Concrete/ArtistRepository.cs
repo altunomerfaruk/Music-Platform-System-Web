@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 
 namespace MusicProject.Repositories.Concrete
@@ -36,12 +37,22 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Include(artist => artist.CountryEntity)
-                .Include(artist => artist.Albums)
-                    .ThenInclude(album => album.Songs)
-                .Include(artist => artist.SongArtists)
+                .Include(artist => artist.Albums
+                    .Where(album => album.PublicationStatus == PublicationStatus.Published))
+                    .ThenInclude(album => album.Songs
+                        .Where(song => song.PublicationStatus == PublicationStatus.Published))
+                .Include(artist => artist.SongArtists
+                    .Where(songArtist =>
+                        songArtist.Song.PublicationStatus == PublicationStatus.Published &&
+                        (songArtist.Song.AlbumId == null ||
+                         songArtist.Song.Album!.PublicationStatus == PublicationStatus.Published)))
                     .ThenInclude(songArtist => songArtist.Song)
                         .ThenInclude(song => song.SongStat)
-                .Include(artist => artist.SongArtists)
+                .Include(artist => artist.SongArtists
+                    .Where(songArtist =>
+                        songArtist.Song.PublicationStatus == PublicationStatus.Published &&
+                        (songArtist.Song.AlbumId == null ||
+                         songArtist.Song.Album!.PublicationStatus == PublicationStatus.Published)))
                     .ThenInclude(songArtist => songArtist.Song)
                         .ThenInclude(song => song.Album)
                 .Include(artist => artist.Followers)
@@ -94,11 +105,7 @@ namespace MusicProject.Repositories.Concrete
             _context.SaveChanges();
         }
 
-        public bool UpdateProfileByUserId(
-            int userId,
-            string name,
-            int? countryId,
-            int? debutYear)
+        public bool UpdateProfileByUserId(int userId, string name, int? countryId, int? debutYear)
         {
             var artist = _context.Artists
                 .FirstOrDefault(artist => artist.UserId == userId);

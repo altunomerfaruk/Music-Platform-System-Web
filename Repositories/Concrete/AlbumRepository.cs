@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MusicProject.Contracts.Requests;
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
-using MusicProject.Contracts.Requests;
 
 namespace MusicProject.Repositories.Concrete
 {
@@ -20,19 +21,24 @@ namespace MusicProject.Repositories.Concrete
             return _context.Albums
                 .AsNoTracking()
                 .Include(album => album.Artist)
-                .Include(album => album.Songs)
+                .Include(album => album.Songs
+                    .Where(song => song.PublicationStatus == PublicationStatus.Published))
                     .ThenInclude(song => song.SongStat)
-                .FirstOrDefault(album => album.Id == albumId);
+                .FirstOrDefault(album =>
+                    album.Id == albumId &&
+                    album.PublicationStatus == PublicationStatus.Published);
         }
 
         public IEnumerable<Album> GetAllAlbums()
         {
             return _context.Albums
                 .AsNoTracking()
+                .Where(album => album.PublicationStatus == PublicationStatus.Published)
                 .Include(album => album.Artist)
                 .OrderBy(album => album.Name)
                 .ToList();
         }
+
         public IEnumerable<Album> GetAlbumsByArtistId(int artistId)
         {
             return _context.Albums
@@ -66,6 +72,7 @@ namespace MusicProject.Repositories.Concrete
             existingAlbum.ScheduledPublishAtUtc = album.ScheduledPublishAtUtc;
             existingAlbum.PublishedAtUtc = album.PublishedAtUtc;
             existingAlbum.PublicationJobId = album.PublicationJobId;
+
             _context.SaveChanges();
 
             return true;
@@ -82,7 +89,6 @@ namespace MusicProject.Repositories.Concrete
                     album.Id == albumId &&
                     album.ArtistId == artistId);
         }
-
 
         public bool UpdateArtistAlbum(UpdateAlbumRequest request)
         {
@@ -103,7 +109,7 @@ namespace MusicProject.Repositories.Concrete
             album.ScheduledPublishAtUtc = request.ScheduledPublishAtUtc;
             album.PublishedAtUtc = request.PublishedAtUtc;
             album.PublicationJobId = request.PublicationJobId;
-            album.PublicationJobId = request.PublicationJobId;
+
             _context.SaveChanges();
 
             return true;
