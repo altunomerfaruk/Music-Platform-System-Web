@@ -1,4 +1,5 @@
-﻿@model MusicProject.ViewModels.ArtistDashboard.CreateAlbumViewModel
+﻿@using MusicProject.Models.Enums
+@model MusicProject.ViewModels.ArtistDashboard.CreateAlbumViewModel
 
 @{
     ViewData["Title"] = "Yeni Albüm";
@@ -352,8 +353,8 @@
             </h2>
 
             <p class="create-album-header-description">
-                Albüm bilgilerini doldurabilir, taslak kaydedebilir, hemen yayınlayabilir
-                veya cuma günü için planlayabilirsin.
+                Albüm bilgilerini doldurabilir, taslak olarak kaydedebilir
+                veya gelecek bir cuma günü için planlayabilirsin.
             </p>
         </div>
 
@@ -480,7 +481,8 @@
                     </h3>
 
                     <p class="publication-section-description">
-                        Albümün kullanıcılar tarafından ne zaman görülebileceğini seç.
+                        Albümü taslak olarak saklayabilir veya kullanıcılarla paylaşılacağı
+                        gelecek bir cuma günü ve saatini belirleyebilirsin.
                     </p>
 
                     <div class="publication-grid">
@@ -496,16 +498,12 @@
                                     id="publicationStatusSelect"
                                     class="create-album-select">
 
-                                <option value="1">
+                                <option value="@((int)PublicationStatus.Draft)">
                                     Taslak olarak kaydet
                                 </option>
 
-                                <option value="2">
+                                <option value="@((int)PublicationStatus.Scheduled)">
                                     Cuma günü için planla
-                                </option>
-
-                                <option value="3">
-                                    Hemen yayınla
                                 </option>
 
                             </select>
@@ -576,6 +574,9 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const draftStatus = "@((int)PublicationStatus.Draft)";
+            const scheduledStatus = "@((int)PublicationStatus.Scheduled)";
+
             const publicationStatusSelect =
                 document.getElementById("publicationStatusSelect");
 
@@ -611,12 +612,12 @@
 
                 const selectedStatus = publicationStatusSelect.value;
 
-                if (selectedStatus === "2") {
+                if (selectedStatus === scheduledStatus) {
                     scheduledPublishGroup.classList.add("visible");
                     scheduledPublishInput.required = true;
 
                     publicationInfo.innerHTML =
-                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte otomatik olarak yayına alınacaktır.";
+                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır.";
 
                     createAlbumButton.textContent = "Albümü Planla";
                     return;
@@ -626,18 +627,12 @@
                 scheduledPublishInput.required = false;
                 scheduledPublishInput.value = "";
 
-                if (selectedStatus === "3") {
+                if (selectedStatus === draftStatus) {
                     publicationInfo.innerHTML =
-                        "<strong>Hemen yayınla:</strong> Albüm oluşturulduğu anda kullanıcılar tarafından görülebilir.";
+                        "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra cuma günü için planlanabilir.";
 
-                    createAlbumButton.textContent = "Albümü Yayınla";
-                    return;
+                    createAlbumButton.textContent = "Taslak Olarak Kaydet";
                 }
-
-                publicationInfo.innerHTML =
-                    "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
-
-                createAlbumButton.textContent = "Taslak Olarak Kaydet";
             }
 
             function updateCoverPreview() {

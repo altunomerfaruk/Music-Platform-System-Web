@@ -18,7 +18,7 @@ namespace MusicProject.Models.Concrete
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(50)]
+        [MaxLength(500)]
         public string Password { get; set; } = string.Empty;
 
 

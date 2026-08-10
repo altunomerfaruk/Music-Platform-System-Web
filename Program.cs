@@ -7,6 +7,8 @@ using MusicProject.Services.Concrete;
 using MusicProject.Services.Interface;
 using Hangfire;
 using MusicProject.Services.Background;
+using Microsoft.AspNetCore.Identity;
+using MusicProject.Models.Concrete;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,7 +114,7 @@ builder.Services.AddScoped<IListeningHistoryService, ListeningHistoryManager>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IGenreService, GenreManager>();
 builder.Services.AddScoped<ICountryService, CountryManager>();
-
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPublicationJobScheduler, PublicationJobScheduler>();
 
 builder.Services.AddHangfire(configuration => configuration

@@ -101,11 +101,12 @@ namespace MusicProject.Controllers
 
             FillArtistLayoutData(model, dashboard);
 
-            if (model.PublicationStatus == PublicationStatus.Archived)
+            if (model.PublicationStatus != PublicationStatus.Draft &&
+                model.PublicationStatus != PublicationStatus.Scheduled)
             {
                 ModelState.AddModelError(
                     nameof(model.PublicationStatus),
-                    "Yeni bir albüm arşivlenmiş durumda oluşturulamaz.");
+                    "Yeni bir albüm yalnızca taslak olarak kaydedilebilir veya cuma günü için planlanabilir.");
             }
 
             if (!ModelState.IsValid)
@@ -142,9 +143,7 @@ namespace MusicProject.Controllers
                 ReleaseDate = model.ReleaseDate,
                 PublicationStatus = model.PublicationStatus,
                 ScheduledPublishAtUtc = scheduledPublishAtUtc,
-                PublishedAtUtc = model.PublicationStatus == PublicationStatus.Published
-                    ? DateTime.UtcNow
-                    : null,
+                PublishedAtUtc = null,
                 ArtistId = dashboard.Artist.Id
             };
 
@@ -234,6 +233,23 @@ namespace MusicProject.Controllers
                 return RedirectToAction(nameof(MyAlbums));
             }
 
+            if (model.PublicationStatus == PublicationStatus.Published &&
+                existingAlbum.PublicationStatus != PublicationStatus.Published)
+            {
+                ModelState.AddModelError(
+                    nameof(model.PublicationStatus),
+                    "Albüm doğrudan yayınlanamaz. Albümü gelecek bir cuma günü için planlamalısın.");
+            }
+
+            if (existingAlbum.PublicationStatus == PublicationStatus.Published &&
+                model.PublicationStatus != PublicationStatus.Published &&
+                model.PublicationStatus != PublicationStatus.Archived)
+            {
+                ModelState.AddModelError(
+                    nameof(model.PublicationStatus),
+                    "Yayınlanmış bir albüm yalnızca yayında bırakılabilir veya arşivlenebilir.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -258,17 +274,6 @@ namespace MusicProject.Controllers
 
             var publishedAtUtc = existingAlbum.PublishedAtUtc;
 
-            if (model.PublicationStatus == PublicationStatus.Published &&
-                !publishedAtUtc.HasValue)
-            {
-                publishedAtUtc = DateTime.UtcNow;
-            }
-
-            if (!string.IsNullOrWhiteSpace(existingAlbum.PublicationJobId))
-            {
-                _publicationJobScheduler.Cancel(existingAlbum.PublicationJobId);
-            }
-
             string? newPublicationJobId = null;
 
             if (model.PublicationStatus == PublicationStatus.Scheduled &&
@@ -279,6 +284,8 @@ namespace MusicProject.Controllers
                         model.AlbumId,
                         scheduledPublishAtUtc.Value);
             }
+
+
 
             var request = new UpdateAlbumRequest
             {

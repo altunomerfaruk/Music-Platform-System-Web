@@ -1,4 +1,5 @@
-﻿@model MusicProject.ViewModels.ArtistDashboard.EditAlbumViewModel
+﻿@using MusicProject.Models.Enums
+@model MusicProject.ViewModels.ArtistDashboard.EditAlbumViewModel
 
 @{
     ViewData["Title"] = "Albümü Düzenle";
@@ -371,8 +372,8 @@
             </h2>
 
             <p class="edit-album-header-description">
-                Albüm bilgilerini güncelleyebilir, yayın tarihini değiştirebilir,
-                albümü planlayabilir veya yayından kaldırabilirsin.
+                Albüm bilgilerini güncelleyebilir, cuma günü için planlayabilir
+                veya yayından kaldırabilirsin.
             </p>
         </div>
 
@@ -501,8 +502,8 @@
                     </h3>
 
                     <p class="publication-section-description">
-                        Albümün kullanıcılar tarafından görülüp görülemeyeceğini
-                        ve ne zaman yayınlanacağını yönet.
+                        Albümün yayın durumunu yönet. Henüz yayınlanmamış albümler
+                        yalnızca gelecek bir cuma günü için planlanabilir.
                     </p>
 
                     <div class="publication-grid">
@@ -518,21 +519,30 @@
                                     id="publicationStatusSelect"
                                     class="edit-album-select">
 
-                                <option value="1">
-                                    Taslak
-                                </option>
+                                @if (Model.PublicationStatus == PublicationStatus.Published)
+                                {
+                                    <option value="@((int)PublicationStatus.Published)">
+                                        Yayında
+                                    </option>
 
-                                <option value="2">
-                                    Cuma günü için planla
-                                </option>
+                                    <option value="@((int)PublicationStatus.Archived)">
+                                        Arşivle
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@((int)PublicationStatus.Draft)">
+                                        Taslak
+                                    </option>
 
-                                <option value="3">
-                                    Yayında
-                                </option>
+                                    <option value="@((int)PublicationStatus.Scheduled)">
+                                        Cuma günü için planla
+                                    </option>
 
-                                <option value="4">
-                                    Arşivlendi
-                                </option>
+                                    <option value="@((int)PublicationStatus.Archived)">
+                                        Arşivlendi
+                                    </option>
+                                }
 
                             </select>
 
@@ -603,6 +613,11 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const draftStatus = "@((int)PublicationStatus.Draft)";
+            const scheduledStatus = "@((int)PublicationStatus.Scheduled)";
+            const publishedStatus = "@((int)PublicationStatus.Published)";
+            const archivedStatus = "@((int)PublicationStatus.Archived)";
+
             const publicationStatusSelect =
                 document.getElementById("publicationStatusSelect");
 
@@ -646,12 +661,12 @@
                 publicationInfo.classList.remove("archived");
                 editAlbumButton.classList.remove("archived-button");
 
-                if (selectedStatus === "2") {
+                if (selectedStatus === scheduledStatus) {
                     scheduledPublishGroup.classList.add("visible");
                     scheduledPublishInput.required = true;
 
                     publicationInfo.innerHTML =
-                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte otomatik olarak yayına alınacaktır.";
+                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır.";
 
                     editAlbumButton.textContent = "Albümü Planla";
 
@@ -666,22 +681,22 @@
                     scheduledPublishInput.value = "";
                 }
 
-                if (selectedStatus === "3") {
+                if (selectedStatus === publishedStatus) {
                     publicationInfo.innerHTML =
-                        "<strong>Yayında:</strong> Albüm kullanıcılar tarafından görülebilir.";
+                        "<strong>Yayında:</strong> Albüm zaten yayınlanmış durumda. Bilgilerini değiştirebilir veya albümü arşivleyebilirsin.";
 
-                    editAlbumButton.textContent = "Albümü Yayınla";
+                    editAlbumButton.textContent = "Değişiklikleri Kaydet";
 
                     previousPublicationStatus = selectedStatus;
                     return;
                 }
 
-                if (selectedStatus === "4") {
+                if (selectedStatus === archivedStatus) {
                     publicationInfo.classList.add("archived");
                     editAlbumButton.classList.add("archived-button");
 
                     publicationInfo.innerHTML =
-                        "<strong>Arşivlendi:</strong> Albüm veritabanında kalır ancak kullanıcı sayfalarında görünmez.";
+                        "<strong>Arşivlendi:</strong> Albüm veritabanında kalır ancak normal kullanıcıların sayfalarında görünmez.";
 
                     editAlbumButton.textContent = "Albümü Arşivle";
 
@@ -689,12 +704,14 @@
                     return;
                 }
 
-                publicationInfo.innerHTML =
-                    "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
+                if (selectedStatus === draftStatus) {
+                    publicationInfo.innerHTML =
+                        "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra gelecek bir cuma günü için planlanabilir.";
 
-                editAlbumButton.textContent = "Taslak Olarak Kaydet";
+                    editAlbumButton.textContent = "Taslak Olarak Kaydet";
 
-                previousPublicationStatus = selectedStatus;
+                    previousPublicationStatus = selectedStatus;
+                }
             }
 
             function updateCoverPreview() {
@@ -717,8 +734,8 @@
             if (publicationStatusSelect) {
                 publicationStatusSelect.addEventListener("change", function() {
                     const statusChangedFromScheduled =
-                        previousPublicationStatus === "2" &&
-                        publicationStatusSelect.value !== "2";
+                        previousPublicationStatus === scheduledStatus &&
+                        publicationStatusSelect.value !== scheduledStatus;
 
                     updatePublicationFields(statusChangedFromScheduled);
                 });

@@ -1,18 +1,21 @@
-﻿using MusicProject.Models.Concrete;
+﻿using Microsoft.AspNetCore.Identity;
+using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
-using MusicProject.ViewModels.UserDashboard;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
+using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Services.Concrete
 {
     public class UserManager : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public UserManager(IUserRepository userRepository)
+        public UserManager(IUserRepository userRepository, IPasswordHasher<User> passwordHasher)
         {
             _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
         }
 
         public User? Authenticate(string email, string password)
@@ -21,14 +24,25 @@ namespace MusicProject.Services.Concrete
 
             var user = _userRepository.GetByEmail(normalizedEmail);
 
-            if (user != null &&
-                user.IsActive &&
-                user.Password == password)
+            if (user == null || !user.IsActive)
             {
-                return user;
+                return null;
             }
 
-            return null;
+            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
+
+            if (verificationResult == PasswordVerificationResult.Failed)
+            {
+                return null;
+            }
+
+            if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.Password = _passwordHasher.HashPassword(user, password);
+                _userRepository.Update(user);
+            }
+
+            return user;
         }
 
         public bool Register(User user)
@@ -49,6 +63,8 @@ namespace MusicProject.Services.Concrete
             {
                 return false;
             }
+
+            user.Password = _passwordHasher.HashPassword(user, user.Password);
 
             _userRepository.Create(user);
 
@@ -86,20 +102,14 @@ namespace MusicProject.Services.Concrete
             var normalizedUsername = model.Username.Trim();
             var normalizedEmail = model.Email.Trim();
 
-            var usernameExists = _userRepository.UsernameExists(
-                normalizedUsername,
-                userId
-            );
+            var usernameExists = _userRepository.UsernameExists(normalizedUsername, userId);
 
             if (usernameExists)
             {
                 return UserSettingsResult.UsernameAlreadyExists;
             }
 
-            var emailExists = _userRepository.EmailExists(
-                normalizedEmail,
-                userId
-            );
+            var emailExists = _userRepository.EmailExists(normalizedEmail, userId);
 
             if (emailExists)
             {
@@ -113,9 +123,14 @@ namespace MusicProject.Services.Concrete
 
             if (wantsToChangePassword)
             {
+                if (string.IsNullOrWhiteSpace(model.CurrentPassword))
+                {
+                    return UserSettingsResult.CurrentPasswordIncorrect;
+                }
 
-                if (string.IsNullOrWhiteSpace(model.CurrentPassword) ||
-                    user.Password != model.CurrentPassword)
+                var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, model.CurrentPassword);
+
+                if (verificationResult == PasswordVerificationResult.Failed)
                 {
                     return UserSettingsResult.CurrentPasswordIncorrect;
                 }
@@ -125,7 +140,7 @@ namespace MusicProject.Services.Concrete
                     return UserSettingsResult.NewPasswordRequired;
                 }
 
-                user.Password = model.NewPassword;
+                user.Password = _passwordHasher.HashPassword(user, model.NewPassword);
             }
 
             user.Username = normalizedUsername;
