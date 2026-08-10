@@ -1,8 +1,9 @@
-﻿@model MusicProject.ViewModels.ArtistDashboard.EditSongViewModel
+﻿@using MusicProject.Models.Enums
+@model MusicProject.ViewModels.ArtistDashboard.EditSongViewModel
 
 @{
     ViewData["Title"] = "Şarkı Düzenle";
-    ViewData["PageDescription"] = "Şarkı bilgilerini ve müzik türlerini güncelle.";
+    ViewData["PageDescription"] = "Şarkı bilgilerini, müzik türlerini ve yayın ayarlarını güncelle.";
     Layout = "_ArtistLayout";
 }
 
@@ -18,12 +19,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 24px;
-            background:
-                linear-gradient(
-                    125deg,
-                    rgba(30, 215, 96, 0.18),
-                    rgba(18, 23, 19, 0.97) 65%
-                );
+            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65% );
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -85,11 +81,11 @@
             transition: 0.2s;
         }
 
-        .back-button:hover {
-            color: #071008;
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
+            .back-button:hover {
+                color: #071008;
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
 
         .edit-song-grid {
             margin-top: 24px;
@@ -154,14 +150,22 @@
             transition: 0.2s;
         }
 
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.09);
-        }
+            .form-control:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.09);
+            }
 
-        .form-control option {
-            color: #ffffff;
-            background-color: #111612;
+            .form-control option {
+                color: #ffffff;
+                background-color: #111612;
+            }
+
+        .form-hint {
+            margin-top: 7px;
+            display: block;
+            color: var(--text-secondary);
+            font-size: 9px;
+            line-height: 1.5;
         }
 
         .artist-display {
@@ -227,9 +231,9 @@
             transition: 0.2s;
         }
 
-        .genre-option-label:hover {
-            border-color: rgba(30, 215, 96, 0.45);
-        }
+            .genre-option-label:hover {
+                border-color: rgba(30, 215, 96, 0.45);
+            }
 
         .genre-check-icon {
             width: 21px;
@@ -250,10 +254,94 @@
             border-color: rgba(30, 215, 96, 0.45);
         }
 
-        .genre-checkbox:checked + .genre-option-label .genre-check-icon {
-            color: #071008;
-            background-color: var(--primary);
+            .genre-checkbox:checked + .genre-option-label .genre-check-icon {
+                color: #071008;
+                background-color: var(--primary);
+            }
+
+        .publication-section {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(30, 215, 96, 0.035);
+            border: 1px solid rgba(30, 215, 96, 0.16);
+            border-radius: 14px;
         }
+
+            .publication-section.hidden {
+                display: none;
+            }
+
+        .publication-section-title {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 850;
+        }
+
+        .publication-section-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .publication-grid {
+            margin-top: 17px;
+        }
+
+            .publication-grid .form-group:first-child {
+                margin-top: 0;
+            }
+
+        .scheduled-publish-group {
+            display: none;
+        }
+
+            .scheduled-publish-group.visible {
+                display: block;
+            }
+
+        .publication-info {
+            margin-top: 16px;
+            padding: 12px 14px;
+            color: #cbd2cc;
+            background-color: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+            .publication-info strong {
+                color: var(--primary);
+            }
+
+            .publication-info.archived {
+                border-color: rgba(255, 100, 100, 0.25);
+            }
+
+                .publication-info.archived strong {
+                    color: #ff8b8b;
+                }
+
+        .album-publication-info {
+            margin-top: 25px;
+            padding: 15px 16px;
+            display: none;
+            color: #cbd2cc;
+            background-color: rgba(30, 215, 96, 0.045);
+            border: 1px solid rgba(30, 215, 96, 0.18);
+            border-radius: 12px;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+            .album-publication-info.visible {
+                display: block;
+            }
+
+            .album-publication-info strong {
+                color: var(--primary);
+            }
 
         .validation-message {
             margin-top: 7px;
@@ -273,10 +361,14 @@
             font-size: 11px;
         }
 
-        .validation-summary ul {
-            margin: 0;
-            padding-left: 17px;
-        }
+            .validation-summary:empty {
+                display: none;
+            }
+
+            .validation-summary ul {
+                margin: 0;
+                padding-left: 17px;
+            }
 
         .form-actions {
             margin-top: 25px;
@@ -305,9 +397,9 @@
             border: 1px solid var(--border);
         }
 
-        .cancel-button:hover {
-            border-color: rgba(255, 255, 255, 0.22);
-        }
+            .cancel-button:hover {
+                border-color: rgba(255, 255, 255, 0.22);
+            }
 
         .save-button {
             color: #071008;
@@ -315,10 +407,20 @@
             border: 1px solid var(--primary);
         }
 
-        .save-button:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
+            .save-button:hover {
+                background-color: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            .save-button.archived-button {
+                color: #ffffff;
+                background-color: #8f3f3f;
+                border-color: #a54a4a;
+            }
+
+                .save-button.archived-button:hover {
+                    background-color: #a54a4a;
+                }
 
         .preview-panel {
             padding: 23px;
@@ -333,12 +435,7 @@
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            background:
-                radial-gradient(
-                    circle at center,
-                    rgba(30, 215, 96, 0.20),
-                    rgba(7, 12, 8, 0.98) 65%
-                );
+            background: radial-gradient( circle at center, rgba(30, 215, 96, 0.20), rgba(7, 12, 8, 0.98) 65% );
             border: 1px solid rgba(30, 215, 96, 0.16);
             border-radius: 17px;
             font-size: 72px;
@@ -384,15 +481,15 @@
             font-size: 10px;
         }
 
-        .preview-info-item strong {
-            max-width: 160px;
-            overflow: hidden;
-            color: #ffffff;
-            font-weight: 800;
-            text-align: right;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .preview-info-item strong {
+                max-width: 160px;
+                overflow: hidden;
+                color: #ffffff;
+                font-weight: 800;
+                text-align: right;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
         @@media (max-width: 930px) {
             .edit-song-grid {
@@ -463,7 +560,7 @@
                 </h2>
 
                 <p class="edit-song-description">
-                    Şarkı adını, bağlı olduğu albümü ve müzik türlerini güncelle.
+                    Şarkı bilgilerini, müzik türlerini ve yayın durumunu güncelle.
                 </p>
             </div>
 
@@ -486,7 +583,8 @@
             </h3>
 
             <p class="panel-description">
-                Kaydet butonuna bastığında yaptığın değişiklikler veritabanına gönderilir.
+                Albümlü şarkılar albümün yayın durumunu takip eder.
+                Single şarkıların yayın durumunu ise buradan bağımsız olarak yönetebilirsin.
             </p>
 
             <form asp-controller="ArtistDashboard"
@@ -495,7 +593,6 @@
 
                 @Html.AntiForgeryToken()
 
-                @* YENİ: Düzenlenecek şarkının ID değeri kullanıcıya gösterilmeden forma gönderilir. *@
                 <input asp-for="SongId" type="hidden" />
 
                 <div asp-validation-summary="ModelOnly"
@@ -549,6 +646,28 @@
 
                 <div class="form-group">
 
+                    <label asp-for="LabelId"
+                           class="form-label">
+                        Plak Şirketi ID
+                        <span class="form-label-note">
+                            — İsteğe bağlı
+                        </span>
+                    </label>
+
+                    <input asp-for="LabelId"
+                           type="number"
+                           min="1"
+                           class="form-control"
+                           placeholder="İsteğe bağlı" />
+
+                    <span asp-validation-for="LabelId"
+                          class="validation-message">
+                    </span>
+
+                </div>
+
+                <div class="form-group">
+
                     <label class="form-label">
                         Sanatçı
                     </label>
@@ -585,10 +704,7 @@
                         {
                             var checkboxId = $"genre_{genre.Value}";
                             var genreId = int.Parse(genre.Value);
-
-                            // YENİ: Daha önce seçilmiş türler düzenleme ekranında işaretli gelir.
-                            var isChecked =
-                                Model.SelectedGenreIds?.Contains(genreId) == true;
+                            var isChecked = Model.SelectedGenreIds?.Contains(genreId) == true;
 
                             <div class="genre-option"
                                  data-genre-name="@genre.Text.ToLowerInvariant()">
@@ -635,6 +751,97 @@
 
                 </div>
 
+                <div id="albumPublicationInfo"
+                     class="album-publication-info">
+
+                    <strong>Albüm yayını:</strong>
+                    Bu şarkının bağımsız yayın ayarı kullanılmaz.
+                    Şarkının görünürlüğü seçtiğin albümün yayın durumuna göre yönetilir.
+                    Varsa eski single yayın planı kaydedildiğinde iptal edilir.
+
+                </div>
+
+                <section id="publicationSection"
+                         class="publication-section">
+
+                    <h3 class="publication-section-title">
+                        Single Yayın Ayarları
+                    </h3>
+
+                    <p class="publication-section-description">
+                        Şarkı albümsüz olduğunda kullanıcılar tarafından ne zaman
+                        görülebileceğini buradan belirleyebilirsin.
+                    </p>
+
+                    <div class="publication-grid">
+
+                        <div class="form-group">
+
+                            <label asp-for="PublicationStatus"
+                                   class="form-label">
+                                Yayın Durumu
+                            </label>
+
+                            <select asp-for="PublicationStatus"
+                                    id="publicationStatusSelect"
+                                    class="form-control">
+
+                                <option value="@((int)PublicationStatus.Draft)">
+                                    Taslak
+                                </option>
+
+                                <option value="@((int)PublicationStatus.Scheduled)">
+                                    Cuma günü için planla
+                                </option>
+
+                                <option value="@((int)PublicationStatus.Published)">
+                                    Yayında
+                                </option>
+
+                                <option value="@((int)PublicationStatus.Archived)">
+                                    Arşivlendi
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="PublicationStatus"
+                                  class="validation-message">
+                            </span>
+
+                        </div>
+
+                        <div id="scheduledPublishGroup"
+                             class="form-group scheduled-publish-group">
+
+                            <label asp-for="ScheduledPublishAtLocal"
+                                   class="form-label">
+                                Planlanan Yayın Zamanı
+                            </label>
+
+                            <input asp-for="ScheduledPublishAtLocal"
+                                   id="scheduledPublishInput"
+                                   type="datetime-local"
+                                   asp-format="{0:yyyy-MM-ddTHH:mm}"
+                                   class="form-control" />
+
+                            <span class="form-hint">
+                                Türkiye saatine göre gelecekteki bir cuma günü seçmelisin.
+                            </span>
+
+                            <span asp-validation-for="ScheduledPublishAtLocal"
+                                  class="validation-message">
+                            </span>
+
+                        </div>
+
+                        <div id="publicationInfo"
+                             class="publication-info">
+                        </div>
+
+                    </div>
+
+                </section>
+
                 <div class="form-actions">
 
                     <a asp-controller="ArtistDashboard"
@@ -644,6 +851,7 @@
                     </a>
 
                     <button type="submit"
+                            id="saveSongButton"
                             class="save-button">
                         Değişiklikleri Kaydet
                     </button>
@@ -699,6 +907,18 @@
 
                 </div>
 
+                <div class="preview-info-item">
+
+                    <span>
+                        Yayın durumu
+                    </span>
+
+                    <strong id="previewPublicationStatus">
+                        -
+                    </strong>
+
+                </div>
+
             </div>
 
         </aside>
@@ -711,68 +931,221 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        const titleInput = document.getElementById("songTitle");
-        const albumSelect = document.getElementById("albumSelect");
-        const genreSearch = document.getElementById("genreSearch");
-        const genreOptions = document.querySelectorAll(".genre-option");
-        const genreCheckboxes = document.querySelectorAll(".genre-checkbox");
+        document.addEventListener("DOMContentLoaded", function() {
+            const draftStatus = "@((int)PublicationStatus.Draft)";
+            const scheduledStatus = "@((int)PublicationStatus.Scheduled)";
+            const publishedStatus = "@((int)PublicationStatus.Published)";
+            const archivedStatus = "@((int)PublicationStatus.Archived)";
 
-        const previewTitle = document.getElementById("previewTitle");
-        const previewAlbum = document.getElementById("previewAlbum");
-        const selectedGenreCount = document.getElementById("selectedGenreCount");
-        const previewGenreCount = document.getElementById("previewGenreCount");
+            const titleInput = document.getElementById("songTitle");
+            const albumSelect = document.getElementById("albumSelect");
+            const genreSearch = document.getElementById("genreSearch");
+            const genreOptions = document.querySelectorAll(".genre-option");
+            const genreCheckboxes = document.querySelectorAll(".genre-checkbox");
 
-        function updateTitlePreview() {
-            const title = titleInput.value.trim();
+            const publicationSection = document.getElementById("publicationSection");
+            const albumPublicationInfo = document.getElementById("albumPublicationInfo");
+            const publicationStatusSelect = document.getElementById("publicationStatusSelect");
+            const scheduledPublishGroup = document.getElementById("scheduledPublishGroup");
+            const scheduledPublishInput = document.getElementById("scheduledPublishInput");
+            const publicationInfo = document.getElementById("publicationInfo");
+            const saveSongButton = document.getElementById("saveSongButton");
 
-            previewTitle.textContent =
-                title.length > 0
+            const previewTitle = document.getElementById("previewTitle");
+            const previewAlbum = document.getElementById("previewAlbum");
+            const previewGenreCount = document.getElementById("previewGenreCount");
+            const previewPublicationStatus = document.getElementById("previewPublicationStatus");
+            const selectedGenreCount = document.getElementById("selectedGenreCount");
+
+            let previousPublicationStatus = publicationStatusSelect
+                ? publicationStatusSelect.value
+                : null;
+
+            function updateTitlePreview() {
+                if (!titleInput || !previewTitle) {
+                    return;
+                }
+
+                const title = titleInput.value.trim();
+
+                previewTitle.textContent = title.length > 0
                     ? title
                     : "Şarkı adı";
-        }
+            }
 
-        function updateAlbumPreview() {
-            const selectedOption =
-                albumSelect.options[albumSelect.selectedIndex];
+            function updateAlbumPreview() {
+                if (!albumSelect || !previewAlbum) {
+                    return;
+                }
 
-            previewAlbum.textContent =
-                selectedOption && selectedOption.value !== ""
-                    ? selectedOption.text
-                    : "Single";
-        }
+                const selectedOption = albumSelect.options[albumSelect.selectedIndex];
 
-        function updateGenreCount() {
-            const checkedCount =
-                document.querySelectorAll(".genre-checkbox:checked").length;
+                previewAlbum.textContent =
+                    selectedOption && selectedOption.value !== ""
+                        ? selectedOption.text
+                        : "Single";
+            }
 
-            selectedGenreCount.textContent = checkedCount;
-            previewGenreCount.textContent = checkedCount;
-        }
+            function updateGenreCount() {
+                const checkedCount =
+                    document.querySelectorAll(".genre-checkbox:checked").length;
 
-        titleInput.addEventListener("input", updateTitlePreview);
-        albumSelect.addEventListener("change", updateAlbumPreview);
+                if (selectedGenreCount) {
+                    selectedGenreCount.textContent = checkedCount;
+                }
 
-        genreCheckboxes.forEach(function (checkbox) {
-            checkbox.addEventListener("change", updateGenreCount);
-        });
+                if (previewGenreCount) {
+                    previewGenreCount.textContent = checkedCount;
+                }
+            }
 
-        genreSearch.addEventListener("input", function () {
-            const searchValue =
-                genreSearch.value.trim().toLowerCase();
+            function updatePublicationFields(clearScheduledValue) {
+                if (!publicationStatusSelect ||
+                    !scheduledPublishGroup ||
+                    !scheduledPublishInput ||
+                    !publicationInfo ||
+                    !saveSongButton ||
+                    !previewPublicationStatus) {
+                    return;
+                }
 
-            genreOptions.forEach(function (genreOption) {
-                const genreName =
-                    genreOption.dataset.genreName;
+                const selectedStatus = publicationStatusSelect.value;
 
-                genreOption.style.display =
-                    genreName.includes(searchValue)
-                        ? "block"
-                        : "none";
+                publicationInfo.classList.remove("archived");
+                saveSongButton.classList.remove("archived-button");
+
+                if (selectedStatus === scheduledStatus) {
+                    scheduledPublishGroup.classList.add("visible");
+                    scheduledPublishInput.required = true;
+
+                    publicationInfo.innerHTML =
+                        "<strong>Planlı yayın:</strong> Single seçtiğin cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır.";
+
+                    saveSongButton.textContent = "Yayını Planla";
+                    previewPublicationStatus.textContent = "Planlandı";
+
+                    previousPublicationStatus = selectedStatus;
+                    return;
+                }
+
+                scheduledPublishGroup.classList.remove("visible");
+                scheduledPublishInput.required = false;
+
+                if (clearScheduledValue) {
+                    scheduledPublishInput.value = "";
+                }
+
+                if (selectedStatus === publishedStatus) {
+                    publicationInfo.innerHTML =
+                        "<strong>Yayında:</strong> Single kullanıcılar tarafından görülebilir.";
+
+                    saveSongButton.textContent = "Şarkıyı Yayınla";
+                    previewPublicationStatus.textContent = "Yayında";
+
+                    previousPublicationStatus = selectedStatus;
+                    return;
+                }
+
+                if (selectedStatus === archivedStatus) {
+                    publicationInfo.classList.add("archived");
+                    saveSongButton.classList.add("archived-button");
+
+                    publicationInfo.innerHTML =
+                        "<strong>Arşivlendi:</strong> Şarkı veritabanında kalır ancak normal kullanıcıların ekranlarında görünmez.";
+
+                    saveSongButton.textContent = "Şarkıyı Arşivle";
+                    previewPublicationStatus.textContent = "Arşivlendi";
+
+                    previousPublicationStatus = selectedStatus;
+                    return;
+                }
+
+                publicationInfo.innerHTML =
+                    "<strong>Taslak:</strong> Single yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
+
+                saveSongButton.textContent = "Taslak Olarak Kaydet";
+                previewPublicationStatus.textContent = "Taslak";
+
+                previousPublicationStatus = draftStatus;
+            }
+
+            function updateAlbumBehavior() {
+                if (!albumSelect ||
+                    !publicationSection ||
+                    !albumPublicationInfo ||
+                    !scheduledPublishInput ||
+                    !saveSongButton ||
+                    !previewPublicationStatus) {
+                    return;
+                }
+
+                const hasAlbum = albumSelect.value !== "";
+
+                if (hasAlbum) {
+                    publicationSection.classList.add("hidden");
+                    albumPublicationInfo.classList.add("visible");
+
+                    scheduledPublishInput.required = false;
+                    saveSongButton.classList.remove("archived-button");
+                    saveSongButton.textContent = "Değişiklikleri Kaydet";
+
+                    previewPublicationStatus.textContent = "Albümü takip ediyor";
+                    return;
+                }
+
+                publicationSection.classList.remove("hidden");
+                albumPublicationInfo.classList.remove("visible");
+
+                updatePublicationFields(false);
+            }
+
+            if (titleInput) {
+                titleInput.addEventListener("input", updateTitlePreview);
+            }
+
+            if (albumSelect) {
+                albumSelect.addEventListener("change", function() {
+                    updateAlbumPreview();
+                    updateAlbumBehavior();
+                });
+            }
+
+            genreCheckboxes.forEach(function(checkbox) {
+                checkbox.addEventListener("change", updateGenreCount);
             });
-        });
 
-        updateTitlePreview();
-        updateAlbumPreview();
-        updateGenreCount();
+            if (genreSearch) {
+                genreSearch.addEventListener("input", function() {
+                    const searchValue = genreSearch.value
+                        .trim()
+                        .toLowerCase();
+
+                    genreOptions.forEach(function(genreOption) {
+                        const genreName = genreOption.dataset.genreName;
+
+                        genreOption.style.display =
+                            genreName.includes(searchValue)
+                                ? "block"
+                                : "none";
+                    });
+                });
+            }
+
+            if (publicationStatusSelect) {
+                publicationStatusSelect.addEventListener("change", function() {
+                    const statusChangedFromScheduled =
+                        previousPublicationStatus === scheduledStatus &&
+                        publicationStatusSelect.value !== scheduledStatus;
+
+                    updatePublicationFields(statusChangedFromScheduled);
+                });
+            }
+
+            updateTitlePreview();
+            updateAlbumPreview();
+            updateGenreCount();
+            updatePublicationFields(false);
+            updateAlbumBehavior();
+        });
     </script>
 }

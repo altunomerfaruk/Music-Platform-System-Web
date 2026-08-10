@@ -192,7 +192,13 @@ app.UseAuthentication();
 // Sonra yetkisi kontrol edilir.
 app.UseAuthorization();
 
-app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new HangfireDashboardAuthorizationFilter()
+    }
+});
 // ==========================================
 // 7. ROTA AYARLARI
 // ==========================================
