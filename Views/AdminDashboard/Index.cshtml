@@ -1,9 +1,15 @@
-﻿@{
+﻿@using System.Globalization
+@model MusicProject.ViewModels.AdminDashboard.AdminDashboardViewModel
+
+@{
     ViewData["Title"] = "Admin Paneli";
     Layout = null;
 
-    // Şimdilik tasarımı görebilmek için örnek veriler kullanılıyor.
-    // Controller ve ViewModel hazırlandığında bu değerler veritabanından gelecek.
+    var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
+    var adminName = User.Identity?.Name ?? "Admin";
+    var adminInitial = string.IsNullOrWhiteSpace(adminName)
+        ? "A"
+        : char.ToUpperInvariant(adminName.Trim()[0]).ToString();
 }
 
 <!DOCTYPE html>
@@ -11,919 +17,882 @@
 <head>
     <meta charset="utf-8" />
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>@ViewData["Title"] - MusicProject</title>
 
     <style>
-        :root {
-            --background: #080b09;
-            --sidebar: #0d110f;
-            --card: #121713;
-            --card-hover: #171e19;
-            --border: rgba(255, 255, 255, 0.08);
-            --primary: #1ed760;
-            --primary-dark: #18b950;
-            --text: #ffffff;
-            --text-secondary: #9da6a0;
-            --danger: #ff5c5c;
-            --warning: #ffbd3d;
-            --info: #55aaff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            min-height: 100vh;
-            overflow-x: hidden;
-            color: var(--text);
-            background:
-                radial-gradient(
-                    circle at 75% 5%,
-                    rgba(30, 215, 96, 0.10),
-                    transparent 24%
-                ),
-                var(--background);
-            font-family:
-                Inter,
-                Arial,
-                Helvetica,
-                sans-serif;
-        }
-
-        button,
-        input,
-        select {
-            font-family: inherit;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .admin-layout {
-            min-height: 100vh;
-            display: flex;
-        }
-
-        /* ==============================
-           SOL MENÜ
-        ============================== */
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-            width: 265px;
-            height: 100vh;
-            padding: 24px 17px;
-            display: flex;
-            flex-direction: column;
-            background-color: rgba(13, 17, 15, 0.97);
-            border-right: 1px solid var(--border);
-            backdrop-filter: blur(15px);
-            transition: transform 0.25s ease;
-        }
-
-        .brand {
-            padding: 0 12px 26px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #071009;
-            background-color: var(--primary);
-            border-radius: 14px;
-            font-size: 24px;
-            font-weight: 900;
-            box-shadow: 0 8px 25px rgba(30, 215, 96, 0.22);
-        }
-
-        .brand-name {
-            display: block;
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: 0.2px;
-        }
-
-        .brand-panel {
-            display: block;
-            margin-top: 3px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .navigation {
-            margin-top: 26px;
-            flex: 1;
-        }
-
-        .navigation-title {
-            margin: 0 13px 10px;
-            color: #687169;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-        }
-
-        .navigation-list {
-            list-style: none;
-        }
-
-        .navigation-item {
-            margin-bottom: 6px;
-        }
-
-        .navigation-link {
-            width: 100%;
-            min-height: 48px;
-            padding: 0 14px;
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            color: var(--text-secondary);
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            transition: 0.2s ease;
-        }
-
-        .navigation-link:hover {
-            color: var(--text);
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .navigation-link.active {
-            color: #061108;
-            background-color: var(--primary);
-            box-shadow: 0 9px 28px rgba(30, 215, 96, 0.16);
-        }
-
-        .navigation-icon {
-            width: 23px;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .navigation-badge {
-            min-width: 24px;
-            margin-left: auto;
-            padding: 4px 7px;
-            color: white;
-            background-color: rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            text-align: center;
-            font-size: 11px;
-        }
-
-        .navigation-link.active .navigation-badge {
-            color: white;
-            background-color: rgba(0, 0, 0, 0.25);
-        }
-
-        .sidebar-footer {
-            padding-top: 17px;
-            border-top: 1px solid var(--border);
-        }
-
-        .admin-profile {
-            padding: 11px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            border-radius: 13px;
-            background-color: rgba(255, 255, 255, 0.035);
-        }
-
-        .admin-avatar {
-            width: 39px;
-            height: 39px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #08110a;
-            background-color: var(--primary);
-            border-radius: 50%;
-            font-weight: 900;
-        }
-
-        .admin-profile-info {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .admin-name {
-            overflow: hidden;
-            font-size: 13px;
-            font-weight: 800;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .admin-role {
-            margin-top: 3px;
-            color: var(--text-secondary);
-            font-size: 11px;
-        }
-
-        .logout-button {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            background: transparent;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .logout-button:hover {
-            color: var(--danger);
-            background-color: rgba(255, 92, 92, 0.1);
-        }
-
-        /* ==============================
-           ANA İÇERİK
-        ============================== */
-
-        .main-content {
-            width: calc(100% - 265px);
-            min-height: 100vh;
-            margin-left: 265px;
-        }
-
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 900;
-            min-height: 78px;
-            padding: 16px 34px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: rgba(8, 11, 9, 0.83);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(18px);
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .menu-button {
-            width: 42px;
-            height: 42px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .page-heading h1 {
-            font-size: 22px;
-            font-weight: 850;
-        }
-
-        .page-heading p {
-            margin-top: 5px;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-        }
-
-        .search-box {
-            width: 270px;
-            height: 43px;
-            padding: 0 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-        }
-
-        .search-box span {
-            color: var(--text-secondary);
-        }
-
-        .search-box input {
-            width: 100%;
-            color: white;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 13px;
-        }
-
-        .search-box input::placeholder {
-            color: #69716c;
-        }
-
-        .notification-button {
-            position: relative;
-            width: 43px;
-            height: 43px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .notification-dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 7px;
-            height: 7px;
-            background-color: var(--primary);
-            border: 2px solid var(--card);
-            border-radius: 50%;
-        }
-
-        .dashboard-content {
-            padding: 32px 34px 50px;
-        }
-
-        .welcome-banner {
-            position: relative;
-            overflow: hidden;
-            min-height: 180px;
-            padding: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background:
-                linear-gradient(
-                    125deg,
-                    rgba(30, 215, 96, 0.20),
-                    rgba(18, 23, 19, 0.95) 55%
-                );
-            border: 1px solid rgba(30, 215, 96, 0.20);
-            border-radius: 22px;
-        }
-
-        .welcome-banner::after {
-            content: "♪";
-            position: absolute;
-            right: 50px;
-            color: rgba(30, 215, 96, 0.13);
-            font-size: 155px;
-            font-weight: bold;
-            transform: rotate(-12deg);
-        }
-
-        .welcome-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .welcome-label {
-            margin-bottom: 10px;
-            color: var(--primary);
-            font-size: 12px;
-            font-weight: 850;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .welcome-title {
-            margin-bottom: 10px;
-            font-size: clamp(25px, 3vw, 38px);
-            line-height: 1.15;
-        }
-
-        .welcome-description {
-            max-width: 620px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .welcome-date {
-            position: relative;
-            z-index: 1;
-            min-width: 150px;
-            padding: 14px 18px;
-            color: #d9e1dc;
-            background-color: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 13px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        /* ==============================
-           İSTATİSTİK KARTLARI
-        ============================== */
-
-        .stat-grid {
-            margin-top: 25px;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .stat-card {
-            min-height: 145px;
-            padding: 21px;
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            transition: 0.22s ease;
-        }
-
-        .stat-card:hover {
-            background-color: var(--card-hover);
-            border-color: rgba(30, 215, 96, 0.22);
-            transform: translateY(-3px);
-        }
-
-        .stat-card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-icon {
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 13px;
-            font-size: 20px;
-        }
-
-        .green-icon {
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.11);
-        }
-
-        .blue-icon {
-            color: var(--info);
-            background-color: rgba(85, 170, 255, 0.11);
-        }
-
-        .orange-icon {
-            color: var(--warning);
-            background-color: rgba(255, 189, 61, 0.11);
-        }
-
-        .red-icon {
-            color: var(--danger);
-            background-color: rgba(255, 92, 92, 0.11);
-        }
-
-        .stat-change {
-            padding: 5px 8px;
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.09);
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .stat-number {
-            margin-top: 20px;
-            font-size: 28px;
-            font-weight: 900;
-        }
-
-        .stat-label {
-            margin-top: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        /* ==============================
-           ORTA BÖLÜM
-        ============================== */
-
-        .dashboard-grid {
-            margin-top: 25px;
-            display: grid;
-            grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
-            gap: 20px;
-        }
-
-        .panel {
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 19px;
-        }
-
-        .panel-header {
-            min-height: 69px;
-            padding: 18px 21px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .panel-title {
-            font-size: 16px;
-            font-weight: 850;
-        }
-
-        .panel-subtitle {
-            margin-top: 4px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .panel-link {
-            color: var(--primary);
-            font-size: 12px;
-            font-weight: 750;
-        }
-
-        .chart-area {
-            height: 285px;
-            padding: 27px 22px 18px;
-            display: flex;
-            align-items: flex-end;
-            gap: 13px;
-        }
-
-        .chart-column {
-            height: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .chart-bar-wrapper {
-            height: 220px;
-            display: flex;
-            align-items: flex-end;
-        }
-
-        .chart-bar {
-            width: 100%;
-            min-height: 12px;
-            background:
-                linear-gradient(
-                    180deg,
-                    var(--primary),
-                    rgba(30, 215, 96, 0.22)
-                );
-            border-radius: 8px 8px 3px 3px;
-            transition: 0.2s;
-        }
-
-        .chart-bar:hover {
-            filter: brightness(1.16);
-            transform: scaleX(1.04);
-        }
-
-        .chart-label {
-            color: var(--text-secondary);
-            text-align: center;
-            font-size: 11px;
-        }
-
-        .quick-actions {
-            padding: 17px;
-            display: grid;
-            gap: 11px;
-        }
-
-        .quick-action {
-            min-height: 64px;
-            padding: 13px;
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            background-color: rgba(255, 255, 255, 0.025);
-            border: 1px solid transparent;
-            border-radius: 13px;
-            transition: 0.2s;
-        }
-
-        .quick-action:hover {
-            background-color: rgba(255, 255, 255, 0.055);
-            border-color: var(--border);
-            transform: translateX(3px);
-        }
-
-        .quick-action-icon {
-            width: 39px;
-            height: 39px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.09);
-            border-radius: 11px;
-        }
-
-        .quick-action-content {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .quick-action-title {
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .quick-action-description {
-            margin-top: 4px;
-            overflow: hidden;
-            color: var(--text-secondary);
-            font-size: 11px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .quick-action-arrow {
-            color: #5c655f;
-        }
-
-        /* ==============================
-           TABLOLAR
-        ============================== */
-
-        .tables-grid {
-            margin-top: 25px;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 15px 18px;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-            white-space: nowrap;
-        }
-
-        .data-table th {
-            color: #687169;
-            font-size: 10px;
-            font-weight: 850;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-
-        .data-table td {
-            color: #d8ded9;
-            font-size: 12px;
-        }
-
-        .data-table tbody tr {
-            transition: 0.2s;
-        }
-
-        .data-table tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.025);
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .user-cell,
-        .song-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .table-avatar,
-        .song-cover {
-            width: 37px;
-            height: 37px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            color: #071008;
-            background-color: var(--primary);
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .song-cover {
-            color: var(--primary);
-            background:
-                linear-gradient(
-                    135deg,
-                    #1d3324,
-                    #0c110e
-                );
-        }
-
-        .cell-title {
-            color: white;
-            font-size: 12px;
-            font-weight: 750;
-        }
-
-        .cell-subtitle {
-            margin-top: 3px;
-            color: var(--text-secondary);
-            font-size: 10px;
-        }
-
-        .role-badge,
-        .status-badge {
-            display: inline-flex;
-            padding: 5px 9px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-        }
-
-        .role-user {
-            color: var(--info);
-            background-color: rgba(85, 170, 255, 0.10);
-        }
-
-        .role-artist {
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.10);
-        }
-
-        .role-admin {
-            color: var(--warning);
-            background-color: rgba(255, 189, 61, 0.10);
-        }
-
-        .status-active {
-            color: var(--primary);
-            background-color: rgba(30, 215, 96, 0.10);
-        }
-
-        .table-action {
-            padding: 7px 10px;
-            color: #dce1dd;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .table-action:hover {
-            color: #071008;
-            background-color: var(--primary);
-        }
-
-        /* ==============================
-           MOBİL UYUMLULUK
-        ============================== */
-
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 950;
-            display: none;
-            background-color: rgba(0, 0, 0, 0.65);
-        }
-
-        @@media (max-width: 1200px) {
-            .stat-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            :root {
+                --background: #080b09;
+                --sidebar: #0d110f;
+                --card: #121713;
+                --card-hover: #171e19;
+                --border: rgba(255, 255, 255, 0.08);
+                --primary: #1ed760;
+                --primary-dark: #18b950;
+                --text: #ffffff;
+                --text-secondary: #9da6a0;
+                --danger: #ff5c5c;
+                --warning: #ffbd3d;
+                --info: #55aaff;
             }
 
-            .dashboard-grid,
-            .tables-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 900px) {
-            .sidebar {
-                transform: translateX(-100%);
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
 
-            .sidebar.open {
-                transform: translateX(0);
+            html {
+                scroll-behavior: smooth;
             }
 
-            .sidebar-overlay.open {
-                display: block;
+            body {
+                min-height: 100vh;
+                overflow-x: hidden;
+                color: var(--text);
+                background: radial-gradient(circle at 75% 5%, rgba(30, 215, 96, 0.10), transparent 24%), var(--background);
+                font-family: Inter, Arial, Helvetica, sans-serif;
             }
 
-            .main-content {
-                width: 100%;
-                margin-left: 0;
+            button,
+            input {
+                font-family: inherit;
             }
 
-            .menu-button {
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .admin-layout {
+                min-height: 100vh;
                 display: flex;
             }
 
-            .search-box {
-                width: 210px;
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1000;
+                width: 265px;
+                height: 100vh;
+                padding: 24px 17px;
+                display: flex;
+                flex-direction: column;
+                background-color: rgba(13, 17, 15, 0.97);
+                border-right: 1px solid var(--border);
+                backdrop-filter: blur(15px);
+                transition: transform 0.25s ease;
             }
-        }
 
-        @@media (max-width: 650px) {
+            .brand {
+                padding: 0 12px 26px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .brand-icon {
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #071009;
+                background-color: var(--primary);
+                border-radius: 14px;
+                font-size: 24px;
+                font-weight: 900;
+                box-shadow: 0 8px 25px rgba(30, 215, 96, 0.22);
+            }
+
+            .brand-name {
+                display: block;
+                font-size: 19px;
+                font-weight: 800;
+                letter-spacing: 0.2px;
+            }
+
+            .brand-panel {
+                display: block;
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 12px;
+            }
+
+            .navigation {
+                margin-top: 26px;
+                flex: 1;
+            }
+
+            .navigation-title {
+                margin: 0 13px 10px;
+                color: #687169;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 1.4px;
+                text-transform: uppercase;
+            }
+
+            .navigation-list {
+                list-style: none;
+            }
+
+            .navigation-item {
+                margin-bottom: 6px;
+            }
+
+            .navigation-link {
+                width: 100%;
+                min-height: 48px;
+                padding: 0 14px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                color: var(--text-secondary);
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 700;
+                transition: 0.2s ease;
+            }
+
+                .navigation-link:hover {
+                    color: var(--text);
+                    background-color: rgba(255, 255, 255, 0.05);
+                }
+
+                .navigation-link.active {
+                    color: #061108;
+                    background-color: var(--primary);
+                    box-shadow: 0 9px 28px rgba(30, 215, 96, 0.16);
+                }
+
+            .navigation-icon {
+                width: 23px;
+                text-align: center;
+                font-size: 18px;
+            }
+
+            .navigation-badge {
+                min-width: 24px;
+                margin-left: auto;
+                padding: 4px 7px;
+                color: #ffffff;
+                background-color: rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .navigation-link.active .navigation-badge {
+                background-color: rgba(0, 0, 0, 0.25);
+            }
+
+            .sidebar-footer {
+                padding-top: 17px;
+                border-top: 1px solid var(--border);
+            }
+
+            .admin-profile {
+                padding: 11px;
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                background-color: rgba(255, 255, 255, 0.035);
+                border-radius: 13px;
+            }
+
+            .admin-avatar {
+                width: 39px;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #08110a;
+                background-color: var(--primary);
+                border-radius: 50%;
+                font-weight: 900;
+            }
+
+            .admin-profile-info {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .admin-name {
+                overflow: hidden;
+                font-size: 13px;
+                font-weight: 800;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .admin-role {
+                margin-top: 3px;
+                color: var(--text-secondary);
+                font-size: 11px;
+            }
+
+            .logout-button {
+                width: 34px;
+                height: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-secondary);
+                background: transparent;
+                border-radius: 9px;
+                transition: 0.2s;
+            }
+
+                .logout-button:hover {
+                    color: var(--danger);
+                    background-color: rgba(255, 92, 92, 0.10);
+                }
+
+            .main-content {
+                width: calc(100% - 265px);
+                min-height: 100vh;
+                margin-left: 265px;
+            }
+
             .topbar {
-                padding: 14px 17px;
+                position: sticky;
+                top: 0;
+                z-index: 900;
+                min-height: 78px;
+                padding: 16px 34px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                background-color: rgba(8, 11, 9, 0.83);
+                border-bottom: 1px solid var(--border);
+                backdrop-filter: blur(18px);
+            }
+
+            .topbar-left {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .menu-button {
+                width: 42px;
+                height: 42px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 11px;
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .page-heading h1 {
+                font-size: 22px;
+                font-weight: 850;
             }
 
             .page-heading p {
-                display: none;
+                margin-top: 5px;
+                color: var(--text-secondary);
+                font-size: 13px;
             }
 
             .search-box {
-                display: none;
+                width: 290px;
+                height: 43px;
+                padding: 0 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
             }
 
+                .search-box span {
+                    color: var(--text-secondary);
+                }
+
+                .search-box input {
+                    width: 100%;
+                    color: #ffffff;
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    font-size: 13px;
+                }
+
+                    .search-box input::placeholder {
+                        color: #69716c;
+                    }
+
             .dashboard-content {
-                padding: 20px 16px 35px;
+                padding: 32px 34px 50px;
             }
 
             .welcome-banner {
-                min-height: 205px;
-                padding: 25px;
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 20px;
+                position: relative;
+                overflow: hidden;
+                min-height: 180px;
+                padding: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 25px;
+                background: linear-gradient(125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.95) 55%);
+                border: 1px solid rgba(30, 215, 96, 0.20);
+                border-radius: 22px;
             }
 
-            .welcome-banner::after {
-                right: 15px;
-                bottom: -30px;
-                font-size: 120px;
+                .welcome-banner::after {
+                    content: "♪";
+                    position: absolute;
+                    right: 50px;
+                    color: rgba(30, 215, 96, 0.13);
+                    font-size: 155px;
+                    font-weight: bold;
+                    transform: rotate(-12deg);
+                }
+
+            .welcome-content {
+                position: relative;
+                z-index: 1;
+            }
+
+            .welcome-label {
+                margin-bottom: 10px;
+                color: var(--primary);
+                font-size: 12px;
+                font-weight: 850;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+            }
+
+            .welcome-title {
+                margin-bottom: 10px;
+                font-size: clamp(25px, 3vw, 38px);
+                line-height: 1.15;
+            }
+
+            .welcome-description {
+                max-width: 620px;
+                color: var(--text-secondary);
+                font-size: 14px;
+                line-height: 1.7;
             }
 
             .welcome-date {
-                min-width: 0;
-                padding: 9px 13px;
+                position: relative;
+                z-index: 1;
+                min-width: 160px;
+                padding: 14px 18px;
+                color: #d9e1dc;
+                background-color: rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 13px;
+                text-align: center;
+                font-size: 13px;
             }
 
             .stat-grid {
-                grid-template-columns: 1fr;
+                margin-top: 25px;
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 18px;
+            }
+
+            .stat-card {
+                min-height: 145px;
+                padding: 21px;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 18px;
+                transition: 0.22s ease;
+            }
+
+                .stat-card:hover {
+                    background-color: var(--card-hover);
+                    border-color: rgba(30, 215, 96, 0.22);
+                    transform: translateY(-3px);
+                }
+
+            .stat-card-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 13px;
+                font-size: 20px;
+            }
+
+            .green-icon {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.11);
+            }
+
+            .blue-icon {
+                color: var(--info);
+                background-color: rgba(85, 170, 255, 0.11);
+            }
+
+            .orange-icon {
+                color: var(--warning);
+                background-color: rgba(255, 189, 61, 0.11);
+            }
+
+            .red-icon {
+                color: var(--danger);
+                background-color: rgba(255, 92, 92, 0.11);
+            }
+
+            .stat-value-label {
+                padding: 5px 8px;
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.09);
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 800;
+            }
+
+            .stat-number {
+                margin-top: 20px;
+                font-size: 28px;
+                font-weight: 900;
+            }
+
+            .stat-label {
+                margin-top: 6px;
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+            .dashboard-grid {
+                margin-top: 25px;
+                display: grid;
+                grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+                gap: 20px;
+            }
+
+            .panel {
+                overflow: hidden;
+                background-color: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 19px;
+            }
+
+            .panel-header {
+                min-height: 69px;
+                padding: 18px 21px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .panel-title {
+                font-size: 16px;
+                font-weight: 850;
+            }
+
+            .panel-subtitle {
+                margin-top: 4px;
+                color: var(--text-secondary);
+                font-size: 12px;
+            }
+
+            .panel-value {
+                color: var(--primary);
+                font-size: 12px;
+                font-weight: 800;
             }
 
             .chart-area {
-                gap: 7px;
+                height: 300px;
+                padding: 27px 22px 18px;
+                display: flex;
+                align-items: flex-end;
+                gap: 13px;
             }
 
-            .data-table th,
-            .data-table td {
-                padding: 13px 14px;
+            .chart-column {
+                height: 100%;
+                min-width: 0;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                gap: 10px;
             }
-        }
+
+            .chart-value {
+                overflow: hidden;
+                color: #ffffff;
+                text-align: center;
+                font-size: 10px;
+                font-weight: 800;
+                text-overflow: ellipsis;
+            }
+
+            .chart-bar-wrapper {
+                height: 210px;
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .chart-bar {
+                width: 100%;
+                background: linear-gradient(180deg, var(--primary), rgba(30, 215, 96, 0.22));
+                border-radius: 8px 8px 3px 3px;
+                transition: 0.2s;
+            }
+
+                .chart-bar.empty {
+                    height: 3px !important;
+                    opacity: 0.25;
+                }
+
+                .chart-bar:hover {
+                    filter: brightness(1.16);
+                    transform: scaleX(1.04);
+                }
+
+            .chart-label {
+                color: var(--text-secondary);
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .quick-actions {
+                padding: 17px;
+                display: grid;
+                gap: 11px;
+            }
+
+            .quick-action {
+                min-height: 64px;
+                padding: 13px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                background-color: rgba(255, 255, 255, 0.025);
+                border: 1px solid transparent;
+                border-radius: 13px;
+                transition: 0.2s;
+            }
+
+                .quick-action:hover {
+                    background-color: rgba(255, 255, 255, 0.055);
+                    border-color: var(--border);
+                    transform: translateX(3px);
+                }
+
+            .quick-action-icon {
+                width: 39px;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.09);
+                border-radius: 11px;
+            }
+
+            .quick-action-content {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .quick-action-title {
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+            .quick-action-description {
+                margin-top: 4px;
+                overflow: hidden;
+                color: var(--text-secondary);
+                font-size: 11px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .quick-action-arrow {
+                color: #5c655f;
+            }
+
+            .tables-grid {
+                margin-top: 25px;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 20px;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+                .data-table th,
+                .data-table td {
+                    padding: 15px 18px;
+                    border-bottom: 1px solid var(--border);
+                    text-align: left;
+                    white-space: nowrap;
+                }
+
+                .data-table th {
+                    color: #687169;
+                    font-size: 10px;
+                    font-weight: 850;
+                    letter-spacing: 0.8px;
+                    text-transform: uppercase;
+                }
+
+                .data-table td {
+                    color: #d8ded9;
+                    font-size: 12px;
+                }
+
+                .data-table tbody tr {
+                    transition: 0.2s;
+                }
+
+                    .data-table tbody tr:hover {
+                        background-color: rgba(255, 255, 255, 0.025);
+                    }
+
+                    .data-table tbody tr:last-child td {
+                        border-bottom: none;
+                    }
+
+            .user-cell,
+            .song-cell {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .table-avatar,
+            .song-cover {
+                width: 37px;
+                height: 37px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                color: #071008;
+                background-color: var(--primary);
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: 900;
+            }
+
+            .song-cover {
+                color: var(--primary);
+                background: linear-gradient(135deg, #1d3324, #0c110e);
+            }
+
+            .cell-title {
+                max-width: 200px;
+                overflow: hidden;
+                color: #ffffff;
+                font-size: 12px;
+                font-weight: 750;
+                text-overflow: ellipsis;
+            }
+
+            .cell-subtitle {
+                max-width: 200px;
+                margin-top: 3px;
+                overflow: hidden;
+                color: var(--text-secondary);
+                font-size: 10px;
+                text-overflow: ellipsis;
+            }
+
+            .role-badge,
+            .status-badge {
+                display: inline-flex;
+                padding: 5px 9px;
+                border-radius: 20px;
+                font-size: 10px;
+                font-weight: 800;
+            }
+
+            .role-user {
+                color: var(--info);
+                background-color: rgba(85, 170, 255, 0.10);
+            }
+
+            .role-artist {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.10);
+            }
+
+            .role-admin {
+                color: var(--warning);
+                background-color: rgba(255, 189, 61, 0.10);
+            }
+
+            .status-active {
+                color: var(--primary);
+                background-color: rgba(30, 215, 96, 0.10);
+            }
+
+            .status-inactive {
+                color: var(--danger);
+                background-color: rgba(255, 92, 92, 0.10);
+            }
+
+            .rank {
+                font-size: 12px;
+                font-weight: 900;
+            }
+
+            .rank-first {
+                color: var(--primary);
+            }
+
+            .rank-second {
+                color: var(--warning);
+            }
+
+            .rank-third {
+                color: #d2a67a;
+            }
+
+            .rank-other {
+                color: var(--text-secondary);
+            }
+
+            .empty-state {
+                padding: 35px 20px !important;
+                color: var(--text-secondary) !important;
+                text-align: center !important;
+            }
+
+            .hidden-row {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 950;
+                display: none;
+                background-color: rgba(0, 0, 0, 0.65);
+            }
+
+            @@media (max-width: 1200px) {
+                .stat-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .dashboard-grid,
+                .tables-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @@media (max-width: 900px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                    .sidebar.open {
+                        transform: translateX(0);
+                    }
+
+                .sidebar-overlay.open {
+                    display: block;
+                }
+
+                .main-content {
+                    width: 100%;
+                    margin-left: 0;
+                }
+
+                .menu-button {
+                    display: flex;
+                }
+
+                .search-box {
+                    width: 230px;
+                }
+            }
+
+            @@media (max-width: 650px) {
+                .topbar {
+                    padding: 14px 17px;
+                }
+
+                .page-heading p {
+                    display: none;
+                }
+
+                .search-box {
+                    display: none;
+                }
+
+                .dashboard-content {
+                    padding: 20px 16px 35px;
+                }
+
+                .welcome-banner {
+                    min-height: 205px;
+                    padding: 25px;
+                    align-items: flex-start;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                    .welcome-banner::after {
+                        right: 15px;
+                        bottom: -30px;
+                        font-size: 120px;
+                    }
+
+                .welcome-date {
+                    min-width: 0;
+                    padding: 9px 13px;
+                }
+
+                .stat-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .chart-area {
+                    gap: 7px;
+                    padding-left: 12px;
+                    padding-right: 12px;
+                }
+
+                .data-table th,
+                .data-table td {
+                    padding: 13px 14px;
+                }
+            }
     </style>
 </head>
 
@@ -931,10 +900,11 @@
 
     <div class="admin-layout">
 
-        <!-- SOL MENÜ -->
         <aside class="sidebar" id="sidebar">
 
-            <a href="/" class="brand">
+            <a asp-controller="AdminDashboard"
+               asp-action="Index"
+               class="brand">
 
                 <div class="brand-icon">
                     ♪
@@ -961,7 +931,8 @@
                 <ul class="navigation-list">
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a asp-controller="AdminDashboard"
+                           asp-action="Index"
                            class="navigation-link active">
 
                             <span class="navigation-icon">
@@ -973,7 +944,7 @@
                     </li>
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a href="#recentUsers"
                            class="navigation-link">
 
                             <span class="navigation-icon">
@@ -983,13 +954,13 @@
                             Kullanıcılar
 
                             <span class="navigation-badge">
-                                248
+                                @Model.TotalUsers
                             </span>
                         </a>
                     </li>
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a href="#statistics"
                            class="navigation-link">
 
                             <span class="navigation-icon">
@@ -999,13 +970,13 @@
                             Sanatçılar
 
                             <span class="navigation-badge">
-                                36
+                                @Model.TotalArtists
                             </span>
                         </a>
                     </li>
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a href="#topSongs"
                            class="navigation-link">
 
                             <span class="navigation-icon">
@@ -1015,13 +986,13 @@
                             Şarkılar
 
                             <span class="navigation-badge">
-                                514
+                                @Model.TotalSongs
                             </span>
                         </a>
                     </li>
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a href="#weeklyListening"
                            class="navigation-link">
 
                             <span class="navigation-icon">
@@ -1042,14 +1013,14 @@
                 <ul class="navigation-list">
 
                     <li class="navigation-item">
-                        <a href="#"
+                        <a href="/hangfire"
                            class="navigation-link">
 
                             <span class="navigation-icon">
                                 ⚙
                             </span>
 
-                            Ayarlar
+                            Hangfire
                         </a>
                     </li>
 
@@ -1074,13 +1045,13 @@
                 <div class="admin-profile">
 
                     <div class="admin-avatar">
-                        A
+                        @adminInitial
                     </div>
 
                     <div class="admin-profile-info">
 
                         <div class="admin-name">
-                            Sistem Yöneticisi
+                            @adminName
                         </div>
 
                         <div class="admin-role">
@@ -1089,7 +1060,8 @@
 
                     </div>
 
-                    <a href="/Auth/Logout"
+                    <a asp-controller="Auth"
+                       asp-action="Logout"
                        class="logout-button"
                        title="Çıkış Yap">
                         ↪
@@ -1105,7 +1077,6 @@
              id="sidebarOverlay">
         </div>
 
-        <!-- ANA İÇERİK -->
         <main class="main-content">
 
             <header class="topbar">
@@ -1119,31 +1090,28 @@
                     </button>
 
                     <div class="page-heading">
-                        <h1>Admin Paneli</h1>
+
+                        <h1>
+                            Admin Paneli
+                        </h1>
 
                         <p>
-                            Platformun genel durumunu buradan yönetebilirsin.
+                            Platformun güncel durumunu buradan takip edebilirsin.
                         </p>
+
                     </div>
 
                 </div>
 
-                <div class="topbar-actions">
+                <div class="search-box">
 
-                    <div class="search-box">
-                        <span>⌕</span>
+                    <span>
+                        ⌕
+                    </span>
 
-                        <input type="text"
-                               placeholder="Kullanıcı, sanatçı veya şarkı ara..." />
-                    </div>
-
-                    <button type="button"
-                            class="notification-button"
-                            title="Bildirimler">
-                        ♢
-
-                        <span class="notification-dot"></span>
-                    </button>
+                    <input type="text"
+                           id="dashboardSearch"
+                           placeholder="Son kullanıcı veya şarkı ara..." />
 
                 </div>
 
@@ -1151,7 +1119,6 @@
 
             <div class="dashboard-content">
 
-                <!-- KARŞILAMA ALANI -->
                 <section class="welcome-banner">
 
                     <div class="welcome-content">
@@ -1161,25 +1128,24 @@
                         </p>
 
                         <h2 class="welcome-title">
-                            Tekrar hoş geldin, Admin.
+                            Tekrar hoş geldin, @adminName.
                         </h2>
 
                         <p class="welcome-description">
-                            Kullanıcıları yönetebilir, normal kullanıcıları
-                            sanatçıya dönüştürebilir ve platformdaki bütün
-                            şarkıların istatistiklerini inceleyebilirsin.
+                            Platformdaki kullanıcı, sanatçı ve şarkı sayılarını takip edebilir;
+                            dinlenme hareketlerini ve en çok dinlenen şarkıları inceleyebilirsin.
                         </p>
 
                     </div>
 
                     <div class="welcome-date">
-                        @DateTime.Now.ToString("dd MMMM yyyy")
+                        @DateTime.Now.ToString("dd MMMM yyyy", turkishCulture)
                     </div>
 
                 </section>
 
-                <!-- İSTATİSTİK KARTLARI -->
-                <section class="stat-grid">
+                <section class="stat-grid"
+                         id="statistics">
 
                     <article class="stat-card">
 
@@ -1189,14 +1155,14 @@
                                 👥
                             </div>
 
-                            <span class="stat-change">
-                                +%12
+                            <span class="stat-value-label">
+                                Hesaplar
                             </span>
 
                         </div>
 
                         <div class="stat-number">
-                            248
+                            @Model.TotalUsers.ToString("N0", turkishCulture)
                         </div>
 
                         <div class="stat-label">
@@ -1213,14 +1179,14 @@
                                 ★
                             </div>
 
-                            <span class="stat-change">
-                                +4
+                            <span class="stat-value-label">
+                                Sanatçılar
                             </span>
 
                         </div>
 
                         <div class="stat-number">
-                            36
+                            @Model.TotalArtists.ToString("N0", turkishCulture)
                         </div>
 
                         <div class="stat-label">
@@ -1237,14 +1203,14 @@
                                 ♫
                             </div>
 
-                            <span class="stat-change">
-                                +28
+                            <span class="stat-value-label">
+                                Katalog
                             </span>
 
                         </div>
 
                         <div class="stat-number">
-                            514
+                            @Model.TotalSongs.ToString("N0", turkishCulture)
                         </div>
 
                         <div class="stat-label">
@@ -1261,14 +1227,14 @@
                                 ▶
                             </div>
 
-                            <span class="stat-change">
-                                +%18
+                            <span class="stat-value-label">
+                                Geçmiş
                             </span>
 
                         </div>
 
                         <div class="stat-number">
-                            1.2M
+                            @Model.TotalListenings.ToString("N0", turkishCulture)
                         </div>
 
                         <div class="stat-label">
@@ -1279,101 +1245,56 @@
 
                 </section>
 
-                <!-- GRAFİK VE HIZLI İŞLEMLER -->
-                <section class="dashboard-grid">
+                <section class="dashboard-grid"
+                         id="weeklyListening">
 
                     <article class="panel">
 
                         <div class="panel-header">
 
                             <div>
+
                                 <h3 class="panel-title">
                                     Haftalık dinlenme
                                 </h3>
 
                                 <p class="panel-subtitle">
-                                    Son yedi günlük toplam şarkı dinlenmeleri
+                                    Son yedi günlük gerçek dinleme kayıtları
                                 </p>
+
                             </div>
 
-                            <a href="#"
-                               class="panel-link">
-                                Detayları gör
-                            </a>
+                            <span class="panel-value">
+                                @Model.WeeklyListenings.Sum(day => day.ListeningCount).ToString("N0", turkishCulture) dinlenme
+                            </span>
 
                         </div>
 
                         <div class="chart-area">
 
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 44%;">
+                            @foreach (var day in Model.WeeklyListenings)
+                            {
+                                <div class="chart-column">
+
+                                    <span class="chart-value">
+                                        @day.ListeningCount
+                                    </span>
+
+                                    <div class="chart-bar-wrapper">
+
+                                        <div class="chart-bar @(day.ListeningCount == 0 ? "empty" : "")"
+                                             style="height: @(day.BarHeightPercent)%;"
+                                             title="@($"{day.DayLabel}: {day.ListeningCount} dinlenme")">
+                                        </div>
+
                                     </div>
+
+                                    <span class="chart-label">
+                                        @day.DayLabel
+                                    </span>
+
                                 </div>
-
-                                <span class="chart-label">Pzt</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 62%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Sal</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 51%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Çar</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 76%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Per</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 66%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Cum</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 92%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Cmt</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar-wrapper">
-                                    <div class="chart-bar"
-                                         style="height: 81%;">
-                                    </div>
-                                </div>
-
-                                <span class="chart-label">Paz</span>
-                            </div>
+                            }
 
                         </div>
 
@@ -1384,34 +1305,38 @@
                         <div class="panel-header">
 
                             <div>
+
                                 <h3 class="panel-title">
-                                    Hızlı işlemler
+                                    Hızlı erişim
                                 </h3>
 
                                 <p class="panel-subtitle">
-                                    Sık kullanılan yönetim işlemleri
+                                    Yönetimde sık kullanacağımız bölümler
                                 </p>
+
                             </div>
 
                         </div>
 
                         <div class="quick-actions">
 
-                            <a href="#"
+                            <a href="#recentUsers"
                                class="quick-action">
 
                                 <div class="quick-action-icon">
-                                    ★
+                                    👥
                                 </div>
 
                                 <div class="quick-action-content">
+
                                     <div class="quick-action-title">
-                                        Kullanıcıyı sanatçı yap
+                                        Son kullanıcıları görüntüle
                                     </div>
 
                                     <div class="quick-action-description">
-                                        Kullanıcı rolünü Artist olarak değiştir
+                                        Platforma son katılan hesapları incele
                                     </div>
+
                                 </div>
 
                                 <span class="quick-action-arrow">
@@ -1420,7 +1345,7 @@
 
                             </a>
 
-                            <a href="#"
+                            <a href="#topSongs"
                                class="quick-action">
 
                                 <div class="quick-action-icon">
@@ -1428,13 +1353,15 @@
                                 </div>
 
                                 <div class="quick-action-content">
+
                                     <div class="quick-action-title">
-                                        Şarkıları yönet
+                                        Popüler şarkıları görüntüle
                                     </div>
 
                                     <div class="quick-action-description">
-                                        Şarkıları görüntüle, düzenle veya kaldır
+                                        Dinlenme sayısına göre ilk şarkıları incele
                                     </div>
+
                                 </div>
 
                                 <span class="quick-action-arrow">
@@ -1443,30 +1370,7 @@
 
                             </a>
 
-                            <a href="#"
-                               class="quick-action">
-
-                                <div class="quick-action-icon">
-                                    ▤
-                                </div>
-
-                                <div class="quick-action-content">
-                                    <div class="quick-action-title">
-                                        İstatistik raporu
-                                    </div>
-
-                                    <div class="quick-action-description">
-                                        Genel platform performansını incele
-                                    </div>
-                                </div>
-
-                                <span class="quick-action-arrow">
-                                    ›
-                                </span>
-
-                            </a>
-
-                            <a href="#"
+                            <a href="/hangfire"
                                class="quick-action">
 
                                 <div class="quick-action-icon">
@@ -1474,13 +1378,40 @@
                                 </div>
 
                                 <div class="quick-action-content">
+
                                     <div class="quick-action-title">
-                                        Sistem ayarları
+                                        Hangfire Dashboard
                                     </div>
 
                                     <div class="quick-action-description">
-                                        Platform ayarlarını düzenle
+                                        Planlı yayın işlerini ve kuyrukları görüntüle
                                     </div>
+
+                                </div>
+
+                                <span class="quick-action-arrow">
+                                    ›
+                                </span>
+
+                            </a>
+
+                            <a href="/"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    ↗
+                                </div>
+
+                                <div class="quick-action-content">
+
+                                    <div class="quick-action-title">
+                                        Siteyi görüntüle
+                                    </div>
+
+                                    <div class="quick-action-description">
+                                        MusicProject ana sayfasına geç
+                                    </div>
+
                                 </div>
 
                                 <span class="quick-action-arrow">
@@ -1495,27 +1426,24 @@
 
                 </section>
 
-                <!-- TABLOLAR -->
                 <section class="tables-grid">
 
-                    <article class="panel">
+                    <article class="panel"
+                             id="recentUsers">
 
                         <div class="panel-header">
 
                             <div>
+
                                 <h3 class="panel-title">
                                     Son kayıt olan kullanıcılar
                                 </h3>
 
                                 <p class="panel-subtitle">
-                                    Platforma en son katılan hesaplar
+                                    Platforma en son katılan @Model.RecentUsers.Count hesap
                                 </p>
-                            </div>
 
-                            <a href="#"
-                               class="panel-link">
-                                Tümünü gör
-                            </a>
+                            </div>
 
                         </div>
 
@@ -1528,122 +1456,81 @@
                                         <th>Kullanıcı</th>
                                         <th>Rol</th>
                                         <th>Durum</th>
-                                        <th>İşlem</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody id="recentUsersBody">
 
-                                    <tr>
-                                        <td>
-                                            <div class="user-cell">
-                                                <div class="table-avatar">Ö</div>
+                                    @if (Model.RecentUsers.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="3"
+                                                class="empty-state">
+                                                Henüz kullanıcı bulunmuyor.
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var recentUser in Model.RecentUsers)
+                                        {
+                                            var roleClass = $"role-{recentUser.RoleName.ToLowerInvariant()}";
 
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Ömer Altun
+                                            <tr class="searchable-row"
+                                                data-search="@($"{recentUser.Username} {recentUser.Email} {recentUser.RoleName}".ToLowerInvariant())">
+
+                                                <td>
+
+                                                    <div class="user-cell">
+
+                                                        <div class="table-avatar">
+                                                            @recentUser.Initial
+                                                        </div>
+
+                                                        <div>
+
+                                                            <div class="cell-title">
+                                                                @recentUser.Username
+                                                            </div>
+
+                                                            <div class="cell-subtitle">
+                                                                @recentUser.Email
+                                                            </div>
+
+                                                        </div>
+
                                                     </div>
 
-                                                    <div class="cell-subtitle">
-                                                        omer@example.com
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+                                                </td>
 
-                                        <td>
-                                            <span class="role-badge role-user">
-                                                User
-                                            </span>
-                                        </td>
+                                                <td>
 
-                                        <td>
-                                            <span class="status-badge status-active">
-                                                Aktif
-                                            </span>
-                                        </td>
+                                                    <span class="role-badge @roleClass">
+                                                        @recentUser.RoleName
+                                                    </span>
 
-                                        <td>
-                                            <button type="button"
-                                                    class="table-action">
-                                                Sanatçı Yap
-                                            </button>
-                                        </td>
-                                    </tr>
+                                                </td>
 
-                                    <tr>
-                                        <td>
-                                            <div class="user-cell">
-                                                <div class="table-avatar">E</div>
+                                                <td>
 
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Elif Kaya
-                                                    </div>
+                                                    @if (recentUser.IsActive)
+                                                    {
+                                                        <span class="status-badge status-active">
+                                                            Aktif
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="status-badge status-inactive">
+                                                            Pasif
+                                                        </span>
+                                                    }
 
-                                                    <div class="cell-subtitle">
-                                                        elif@example.com
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+                                                </td>
 
-                                        <td>
-                                            <span class="role-badge role-artist">
-                                                Artist
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <span class="status-badge status-active">
-                                                Aktif
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <button type="button"
-                                                    class="table-action">
-                                                Görüntüle
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <div class="user-cell">
-                                                <div class="table-avatar">M</div>
-
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Mert Demir
-                                                    </div>
-
-                                                    <div class="cell-subtitle">
-                                                        mert@example.com
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <span class="role-badge role-user">
-                                                User
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <span class="status-badge status-active">
-                                                Aktif
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <button type="button"
-                                                    class="table-action">
-                                                Sanatçı Yap
-                                            </button>
-                                        </td>
-                                    </tr>
+                                            </tr>
+                                        }
+                                    }
 
                                 </tbody>
 
@@ -1653,24 +1540,22 @@
 
                     </article>
 
-                    <article class="panel">
+                    <article class="panel"
+                             id="topSongs">
 
                         <div class="panel-header">
 
                             <div>
+
                                 <h3 class="panel-title">
                                     En çok dinlenen şarkılar
                                 </h3>
 
                                 <p class="panel-subtitle">
-                                    Platform genelindeki şarkı sıralaması
+                                    Platform genelinde en yüksek dinlenme sayılarına sahip şarkılar
                                 </p>
-                            </div>
 
-                            <a href="#"
-                               class="panel-link">
-                                Tümünü gör
-                            </a>
+                            </div>
 
                         </div>
 
@@ -1686,91 +1571,72 @@
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody id="topSongsBody">
 
-                                    <tr>
-                                        <td>
-                                            <div class="song-cell">
-                                                <div class="song-cover">
-                                                    ♪
-                                                </div>
+                                    @if (Model.TopSongs.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="3"
+                                                class="empty-state">
+                                                Henüz şarkı bulunmuyor.
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @for (var index = 0; index < Model.TopSongs.Count; index++)
+                                        {
+                                            var song = Model.TopSongs[index];
+                                            var rank = index + 1;
 
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Gece Yolculuğu
+                                            var rankClass = rank switch
+                                            {
+                                                1 => "rank-first",
+                                                2 => "rank-second",
+                                                3 => "rank-third",
+                                                _ => "rank-other"
+                                            };
+
+                                            <tr class="searchable-row"
+                                                data-search="@($"{song.Title} {song.ArtistName}".ToLowerInvariant())">
+
+                                                <td>
+
+                                                    <div class="song-cell">
+
+                                                        <div class="song-cover">
+                                                            ♪
+                                                        </div>
+
+                                                        <div>
+
+                                                            <div class="cell-title">
+                                                                @song.Title
+                                                            </div>
+
+                                                            <div class="cell-subtitle">
+                                                                @song.ArtistName
+                                                            </div>
+
+                                                        </div>
+
                                                     </div>
 
-                                                    <div class="cell-subtitle">
-                                                        Elif Kaya
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+                                                </td>
 
-                                        <td>284.120</td>
+                                                <td>
+                                                    @song.TotalStreams.ToString("N0", turkishCulture)
+                                                </td>
 
-                                        <td>
-                                            <strong style="color: var(--primary);">
-                                                #1
-                                            </strong>
-                                        </td>
-                                    </tr>
+                                                <td>
+                                                    <span class="rank @rankClass">
+                                                        #@rank
+                                                    </span>
+                                                </td>
 
-                                    <tr>
-                                        <td>
-                                            <div class="song-cell">
-                                                <div class="song-cover">
-                                                    ♪
-                                                </div>
-
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Son Durak
-                                                    </div>
-
-                                                    <div class="cell-subtitle">
-                                                        Atlas
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td>198.450</td>
-
-                                        <td>
-                                            <strong style="color: var(--warning);">
-                                                #2
-                                            </strong>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <div class="song-cell">
-                                                <div class="song-cover">
-                                                    ♪
-                                                </div>
-
-                                                <div>
-                                                    <div class="cell-title">
-                                                        Sessiz Şehir
-                                                    </div>
-
-                                                    <div class="cell-subtitle">
-                                                        Mavi
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td>154.870</td>
-
-                                        <td>
-                                            <strong style="color: #d2a67a;">
-                                                #3
-                                            </strong>
-                                        </td>
-                                    </tr>
+                                            </tr>
+                                        }
+                                    }
 
                                 </tbody>
 
@@ -1789,22 +1655,51 @@
     </div>
 
     <script>
-        const menuButton = document.getElementById("menuButton");
-        const sidebar = document.getElementById("sidebar");
-        const sidebarOverlay = document.getElementById("sidebarOverlay");
+            const menuButton = document.getElementById("menuButton");
+            const sidebar = document.getElementById("sidebar");
+            const sidebarOverlay = document.getElementById("sidebarOverlay");
+            const dashboardSearch = document.getElementById("dashboardSearch");
+            const searchableRows = document.querySelectorAll(".searchable-row");
 
-        function openSidebar() {
-            sidebar.classList.add("open");
-            sidebarOverlay.classList.add("open");
-        }
+            function openSidebar() {
+                sidebar.classList.add("open");
+                sidebarOverlay.classList.add("open");
+            }
 
-        function closeSidebar() {
-            sidebar.classList.remove("open");
-            sidebarOverlay.classList.remove("open");
-        }
+            function closeSidebar() {
+                sidebar.classList.remove("open");
+                sidebarOverlay.classList.remove("open");
+            }
 
-        menuButton.addEventListener("click", openSidebar);
-        sidebarOverlay.addEventListener("click", closeSidebar);
+            function filterDashboardTables() {
+                if (!dashboardSearch) {
+                    return;
+                }
+
+                const searchValue = dashboardSearch.value.trim().toLowerCase();
+
+                searchableRows.forEach(function(row) {
+                    const searchableText = row.dataset.search ?? "";
+
+                    if (searchableText.includes(searchValue)) {
+                        row.classList.remove("hidden-row");
+                    } else {
+                        row.classList.add("hidden-row");
+                    }
+                });
+            }
+
+            if (menuButton) {
+                menuButton.addEventListener("click", openSidebar);
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener("click", closeSidebar);
+            }
+
+            if (dashboardSearch) {
+                dashboardSearch.addEventListener("input", filterDashboardTables);
+            }
     </script>
 
 </body>

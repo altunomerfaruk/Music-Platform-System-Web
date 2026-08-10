@@ -70,7 +70,7 @@ builder.Services.AddScoped<
     FollowedArtistRepository
 >();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
-
+builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 
 // ==========================================
@@ -106,7 +106,7 @@ builder.Services.AddScoped<
     IFollowedArtistService,
     FollowedArtistService
 >();
-
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardManager>();
 builder.Services.AddScoped<IAlbumService, AlbumManager>();
 builder.Services.AddScoped<IPublicationService, PublicationManager>();
 builder.Services.AddScoped<IListeningHistoryRepository, ListeningHistoryRepository>();
