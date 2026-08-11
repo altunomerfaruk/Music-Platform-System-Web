@@ -65,5 +65,37 @@ namespace MusicProject.Repositories.Concrete
                 .Where(history => history.ListenedAt >= startUtc)
                 .ToList();
         }
+
+        public IEnumerable<User> GetUsers(string? search)
+        {
+            var query = _context.users
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalizedSearch = search.Trim();
+
+                query = query.Where(user =>
+                    user.Username.Contains(normalizedSearch) ||
+                    user.Email.Contains(normalizedSearch));
+            }
+
+            return query
+                .OrderByDescending(user => user.CreatedAt)
+                .ThenBy(user => user.Username)
+                .ToList();
+        }
+
+        public User? GetUserById(int userId)
+        {
+            return _context.users
+                .FirstOrDefault(user => user.Id == userId);
+        }
+
+        public void UpdateUser(User user)
+        {
+            _context.SaveChanges();
+        }
     }
 }

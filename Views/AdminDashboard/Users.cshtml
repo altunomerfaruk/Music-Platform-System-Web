@@ -1,0 +1,642 @@
+﻿@using System.Globalization
+@model MusicProject.ViewModels.AdminDashboard.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+    ViewData["PageDescription"] = "Platformdaki kullanıcı hesaplarını görüntüle ve yönet.";
+    Layout = "_AdminLayout";
+
+    var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+@section Styles {
+    <style>
+        .users-content {
+            padding: 32px 34px 50px;
+        }
+
+        .users-hero {
+            padding: 29px 31px;
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 21px;
+        }
+
+        .users-hero-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .users-hero-title {
+            margin-top: 7px;
+            color: #ffffff;
+            font-size: clamp(27px, 4vw, 38px);
+        }
+
+        .users-hero-description {
+            max-width: 650px;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 11px;
+            font-size: 12px;
+        }
+
+        .success-message {
+            color: #9bf3b9;
+            background-color: rgba(30, 215, 96, 0.08);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+        }
+
+        .error-message {
+            color: #ffaaaa;
+            background-color: rgba(255, 92, 92, 0.08);
+            border: 1px solid rgba(255, 92, 92, 0.20);
+        }
+
+        .users-stat-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .users-stat-card {
+            padding: 20px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 17px;
+        }
+
+        .users-stat-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .users-stat-value {
+            margin-top: 9px;
+            color: #ffffff;
+            font-size: 27px;
+            font-weight: 900;
+        }
+
+            .users-stat-value.active {
+                color: var(--primary);
+            }
+
+            .users-stat-value.inactive {
+                color: var(--danger);
+            }
+
+        .users-panel {
+            margin-top: 22px;
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .users-panel-header {
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-panel-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .users-panel-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .search-form {
+            width: min(100%, 410px);
+            display: flex;
+            gap: 9px;
+        }
+
+        .search-input {
+            min-width: 0;
+            min-height: 42px;
+            padding: 0 14px;
+            flex: 1;
+            color: #ffffff;
+            background-color: #0d110e;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .search-button,
+        .clear-button {
+            min-height: 42px;
+            padding: 0 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .search-button {
+            color: #071008;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .clear-button {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .users-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .users-table th,
+            .users-table td {
+                padding: 15px 18px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .users-table th {
+                color: #69716c;
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .users-table td {
+                color: #dbe0dc;
+                font-size: 12px;
+            }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 11px;
+            font-weight: 900;
+        }
+
+        .user-name {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .user-email {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .role-badge,
+        .status-badge,
+        .premium-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .role-user {
+            color: var(--info);
+            background-color: rgba(85, 170, 255, 0.10);
+        }
+
+        .role-artist {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .role-admin {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.10);
+        }
+
+        .status-active {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .status-inactive {
+            color: var(--danger);
+            background-color: rgba(255, 92, 92, 0.10);
+        }
+
+        .premium-yes {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.10);
+        }
+
+        .premium-no {
+            color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .status-button {
+            min-height: 35px;
+            padding: 0 12px;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .deactivate-button {
+            color: #ffaaaa;
+            background-color: rgba(255, 92, 92, 0.07);
+            border: 1px solid rgba(255, 92, 92, 0.20);
+        }
+
+        .activate-button {
+            color: #9bf3b9;
+            background-color: rgba(30, 215, 96, 0.07);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+        }
+
+        .self-badge {
+            color: var(--warning);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        @@media (max-width: 1050px) {
+            .users-panel-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .search-form {
+                width: 100%;
+            }
+        }
+
+        @@media (max-width: 650px) {
+            .users-content {
+                padding: 20px 16px 35px;
+            }
+
+            .users-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-wrap: wrap;
+            }
+
+            .search-input {
+                width: 100%;
+                flex-basis: 100%;
+            }
+
+            .search-button,
+            .clear-button {
+                flex: 1;
+            }
+        }
+    </style>
+}
+
+<div class="users-content">
+
+    <section class="users-hero">
+
+        <p class="users-hero-label">
+            Yönetim
+        </p>
+
+        <h2 class="users-hero-title">
+            Kullanıcılar
+        </h2>
+
+        <p class="users-hero-description">
+            Kullanıcıları kullanıcı adı veya e-posta adresine göre arayabilir,
+            hesap durumlarını görüntüleyebilir ve aktif veya pasif hale getirebilirsin.
+        </p>
+
+    </section>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success-message">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error-message">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <section class="users-stat-grid">
+
+        <article class="users-stat-card">
+
+            <div class="users-stat-label">
+                Görüntülenen Kullanıcı
+            </div>
+
+            <div class="users-stat-value">
+                @Model.DisplayedUsers
+            </div>
+
+        </article>
+
+        <article class="users-stat-card">
+
+            <div class="users-stat-label">
+                Aktif Kullanıcı
+            </div>
+
+            <div class="users-stat-value active">
+                @Model.ActiveUsers
+            </div>
+
+        </article>
+
+        <article class="users-stat-card">
+
+            <div class="users-stat-label">
+                Pasif Kullanıcı
+            </div>
+
+            <div class="users-stat-value inactive">
+                @Model.InactiveUsers
+            </div>
+
+        </article>
+
+    </section>
+
+    <section class="users-panel">
+
+        <div class="users-panel-header">
+
+            <div>
+
+                <h3 class="users-panel-title">
+                    Kullanıcı Listesi
+                </h3>
+
+                <p class="users-panel-description">
+                    En yeni hesaplar önce gösterilir.
+                </p>
+
+            </div>
+
+            <form asp-controller="AdminDashboard"
+                  asp-action="Users"
+                  method="get"
+                  class="search-form">
+
+                <input type="text"
+                       name="search"
+                       value="@Model.SearchTerm"
+                       class="search-input"
+                       placeholder="Kullanıcı adı veya e-posta ara..." />
+
+                <button type="submit"
+                        class="search-button">
+                    Ara
+                </button>
+
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <a asp-controller="AdminDashboard"
+                       asp-action="Users"
+                       class="clear-button">
+                        Temizle
+                    </a>
+                }
+
+            </form>
+
+        </div>
+
+        @if (Model.Users.Count == 0)
+        {
+            <div class="empty-state">
+                Arama kriterine uygun kullanıcı bulunamadı.
+            </div>
+        }
+        else
+        {
+            <div class="users-table-wrapper">
+
+                <table class="users-table">
+
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı</th>
+                            <th>Rol</th>
+                            <th>Premium</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var user in Model.Users)
+                        {
+                            var roleClass = $"role-{user.RoleName.ToLowerInvariant()}";
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="user-cell">
+
+                                        <div class="user-avatar">
+                                            @user.Initial
+                                        </div>
+
+                                        <div>
+
+                                            <div class="user-name">
+                                                @user.Username
+                                            </div>
+
+                                            <div class="user-email">
+                                                @user.Email
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    <span class="role-badge @roleClass">
+                                        @user.RoleName
+                                    </span>
+                                </td>
+
+                                <td>
+
+                                    @if (user.IsPremium)
+                                    {
+                                        <span class="premium-badge premium-yes">
+                                            Premium
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="premium-badge premium-no">
+                                            Standart
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @user.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm", turkishCulture)
+                                </td>
+
+                                <td>
+
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="status-badge status-active">
+                                            Aktif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-inactive">
+                                            Pasif
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (!user.CanChangeStatus)
+                                    {
+                                        <span class="self-badge">
+                                            Mevcut Admin
+                                        </span>
+                                    }
+                                    else if (user.IsActive)
+                                    {
+                                        <form asp-controller="AdminDashboard"
+                                              asp-action="SetUserActiveStatus"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="userId"
+                                                   value="@user.Id" />
+
+                                            <input type="hidden"
+                                                   name="isActive"
+                                                   value="false" />
+
+                                            <input type="hidden"
+                                                   name="search"
+                                                   value="@Model.SearchTerm" />
+
+                                            <button type="submit"
+                                                    class="status-button deactivate-button"
+                                                    onclick="return confirm('Bu kullanıcı hesabını pasif hale getirmek istediğine emin misin?');">
+                                                Pasif Yap
+                                            </button>
+
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="AdminDashboard"
+                                              asp-action="SetUserActiveStatus"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="userId"
+                                                   value="@user.Id" />
+
+                                            <input type="hidden"
+                                                   name="isActive"
+                                                   value="true" />
+
+                                            <input type="hidden"
+                                                   name="search"
+                                                   value="@Model.SearchTerm" />
+
+                                            <button type="submit"
+                                                    class="status-button activate-button">
+                                                Aktif Yap
+                                            </button>
+
+                                        </form>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </section>
+
+</div>

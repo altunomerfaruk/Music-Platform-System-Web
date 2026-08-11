@@ -17,5 +17,11 @@ namespace MusicProject.Repositories.Interface
         IEnumerable<Song> GetTopSongsByStreams(int count);
 
         IEnumerable<ListeningHistory> GetListeningHistorySince(DateTime startUtc);
+
+        IEnumerable<User> GetUsers(string? search);
+
+        User? GetUserById(int userId);
+
+        void UpdateUser(User user);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 using MusicProject.ViewModels.AdminDashboard;
@@ -44,18 +45,77 @@ namespace MusicProject.Services.Concrete
                 })
                 .ToList();
 
-            var weeklyListenings = GetWeeklyListenings();
-
-            return new AdminDashboardViewModel
+            var model = new AdminDashboardViewModel
             {
-                TotalUsers = _adminDashboardRepository.GetTotalUserCount(),
-                TotalArtists = _adminDashboardRepository.GetTotalArtistCount(),
-                TotalSongs = _adminDashboardRepository.GetTotalSongCount(),
                 TotalListenings = _adminDashboardRepository.GetTotalListeningCount(),
                 RecentUsers = recentUsers,
                 TopSongs = topSongs,
-                WeeklyListenings = weeklyListenings
+                WeeklyListenings = GetWeeklyListenings()
             };
+
+            FillLayoutData(model);
+
+            return model;
+        }
+
+        public AdminUsersViewModel GetUsers(string? search, int currentAdminUserId)
+        {
+            var users = _adminDashboardRepository
+                .GetUsers(search)
+                .Select(user => new AdminUserListItemViewModel
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    RoleName = user.Role.ToString(),
+                    IsActive = user.IsActive,
+                    IsPremium = user.IsPremium ?? false,
+                    CreatedAt = user.CreatedAt,
+                    Initial = GetInitial(user.Username),
+                    CanChangeStatus = user.Id != currentAdminUserId
+                })
+                .ToList();
+
+            var model = new AdminUsersViewModel
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                DisplayedUsers = users.Count,
+                ActiveUsers = users.Count(user => user.IsActive),
+                InactiveUsers = users.Count(user => !user.IsActive),
+                Users = users
+            };
+
+            FillLayoutData(model);
+
+            return model;
+        }
+
+        public AdminUserStatusUpdateResult SetUserActiveStatus(int userId, int currentAdminUserId, bool isActive)
+        {
+            if (userId == currentAdminUserId)
+            {
+                return AdminUserStatusUpdateResult.CannotChangeOwnStatus;
+            }
+
+            var user = _adminDashboardRepository.GetUserById(userId);
+
+            if (user == null)
+            {
+                return AdminUserStatusUpdateResult.UserNotFound;
+            }
+
+            user.IsActive = isActive;
+
+            _adminDashboardRepository.UpdateUser(user);
+
+            return AdminUserStatusUpdateResult.Success;
+        }
+
+        private void FillLayoutData(AdminLayoutViewModel model)
+        {
+            model.TotalUsers = _adminDashboardRepository.GetTotalUserCount();
+            model.TotalArtists = _adminDashboardRepository.GetTotalArtistCount();
+            model.TotalSongs = _adminDashboardRepository.GetTotalSongCount();
         }
 
         private List<AdminDailyListeningViewModel> GetWeeklyListenings()
@@ -105,8 +165,7 @@ namespace MusicProject.Services.Concrete
                 return 0;
             }
 
-            var percentage = (int)Math.Round(
-                listeningCount * 100d / maximumListeningCount);
+            var percentage = (int)Math.Round(listeningCount * 100d / maximumListeningCount);
 
             return Math.Max(8, percentage);
         }

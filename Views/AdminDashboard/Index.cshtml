@@ -3,1704 +3,899 @@
 
 @{
     ViewData["Title"] = "Admin Paneli";
-    Layout = null;
+    ViewData["PageDescription"] = "Platformun güncel durumunu buradan takip edebilirsin.";
+    Layout = "_AdminLayout";
 
     var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
     var adminName = User.Identity?.Name ?? "Admin";
-    var adminInitial = string.IsNullOrWhiteSpace(adminName)
-        ? "A"
-        : char.ToUpperInvariant(adminName.Trim()[0]).ToString();
 }
 
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>@ViewData["Title"] - MusicProject</title>
-
+@section Styles {
     <style>
-            :root {
-                --background: #080b09;
-                --sidebar: #0d110f;
-                --card: #121713;
-                --card-hover: #171e19;
-                --border: rgba(255, 255, 255, 0.08);
-                --primary: #1ed760;
-                --primary-dark: #18b950;
-                --text: #ffffff;
-                --text-secondary: #9da6a0;
-                --danger: #ff5c5c;
-                --warning: #ffbd3d;
-                --info: #55aaff;
+        .dashboard-content {
+            padding: 32px 34px 50px;
+        }
+
+        .welcome-banner {
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.95) 55%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 22px;
+        }
+
+            .welcome-banner::after {
+                content: "♪";
+                position: absolute;
+                right: 50px;
+                color: rgba(30, 215, 96, 0.13);
+                font-size: 155px;
+                font-weight: bold;
+                transform: rotate(-12deg);
             }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-label {
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .welcome-title {
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-size: clamp(25px, 3vw, 38px);
+            line-height: 1.15;
+        }
+
+        .welcome-description {
+            max-width: 620px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .welcome-date {
+            position: relative;
+            z-index: 1;
+            min-width: 160px;
+            padding: 14px 18px;
+            color: #d9e1dc;
+            background-color: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 13px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .stat-grid {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .stat-card {
+            min-height: 145px;
+            padding: 21px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            transition: 0.22s ease;
+        }
+
+            .stat-card:hover {
+                background-color: var(--card-hover);
+                border-color: rgba(30, 215, 96, 0.22);
+                transform: translateY(-3px);
             }
 
-            html {
-                scroll-behavior: smooth;
+        .stat-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            font-size: 20px;
+        }
+
+        .green-icon {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.11);
+        }
+
+        .blue-icon {
+            color: var(--info);
+            background-color: rgba(85, 170, 255, 0.11);
+        }
+
+        .orange-icon {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.11);
+        }
+
+        .red-icon {
+            color: var(--danger);
+            background-color: rgba(255, 92, 92, 0.11);
+        }
+
+        .stat-value-label {
+            padding: 5px 8px;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.09);
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .stat-number {
+            margin-top: 20px;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        .stat-label {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .dashboard-grid {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+            gap: 20px;
+        }
+
+        .panel {
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+        }
+
+        .panel-header {
+            min-height: 69px;
+            padding: 18px 21px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .panel-subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .panel-value {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .chart-area {
+            height: 300px;
+            padding: 27px 22px 18px;
+            display: flex;
+            align-items: flex-end;
+            gap: 13px;
+        }
+
+        .chart-column {
+            height: 100%;
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .chart-value {
+            color: #ffffff;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .chart-bar-wrapper {
+            height: 210px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            background: linear-gradient(180deg, var(--primary), rgba(30, 215, 96, 0.22));
+            border-radius: 8px 8px 3px 3px;
+        }
+
+            .chart-bar.empty {
+                height: 3px !important;
+                opacity: 0.25;
             }
 
-            body {
-                min-height: 100vh;
-                overflow-x: hidden;
-                color: var(--text);
-                background: radial-gradient(circle at 75% 5%, rgba(30, 215, 96, 0.10), transparent 24%), var(--background);
-                font-family: Inter, Arial, Helvetica, sans-serif;
+        .chart-label {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .quick-actions {
+            padding: 17px;
+            display: grid;
+            gap: 11px;
+        }
+
+        .quick-action {
+            min-height: 64px;
+            padding: 13px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            background-color: rgba(255, 255, 255, 0.025);
+            border: 1px solid transparent;
+            border-radius: 13px;
+            transition: 0.2s;
+        }
+
+            .quick-action:hover {
+                background-color: rgba(255, 255, 255, 0.055);
+                border-color: var(--border);
+                transform: translateX(3px);
             }
 
-            button,
-            input {
-                font-family: inherit;
-            }
+        .quick-action-icon {
+            width: 39px;
+            height: 39px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.09);
+            border-radius: 11px;
+        }
 
-            a {
-                color: inherit;
-                text-decoration: none;
-            }
+        .quick-action-content {
+            min-width: 0;
+            flex: 1;
+        }
 
-            .admin-layout {
-                min-height: 100vh;
-                display: flex;
-            }
+        .quick-action-title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+        }
 
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                z-index: 1000;
-                width: 265px;
-                height: 100vh;
-                padding: 24px 17px;
-                display: flex;
-                flex-direction: column;
-                background-color: rgba(13, 17, 15, 0.97);
-                border-right: 1px solid var(--border);
-                backdrop-filter: blur(15px);
-                transition: transform 0.25s ease;
-            }
+        .quick-action-description {
+            margin-top: 4px;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-            .brand {
-                padding: 0 12px 26px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
+        .quick-action-arrow {
+            color: #5c655f;
+        }
+
+        .tables-grid {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .data-table th,
+            .data-table td {
+                padding: 15px 18px;
                 border-bottom: 1px solid var(--border);
-            }
-
-            .brand-icon {
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #071009;
-                background-color: var(--primary);
-                border-radius: 14px;
-                font-size: 24px;
-                font-weight: 900;
-                box-shadow: 0 8px 25px rgba(30, 215, 96, 0.22);
-            }
-
-            .brand-name {
-                display: block;
-                font-size: 19px;
-                font-weight: 800;
-                letter-spacing: 0.2px;
-            }
-
-            .brand-panel {
-                display: block;
-                margin-top: 3px;
-                color: var(--text-secondary);
-                font-size: 12px;
-            }
-
-            .navigation {
-                margin-top: 26px;
-                flex: 1;
-            }
-
-            .navigation-title {
-                margin: 0 13px 10px;
-                color: #687169;
-                font-size: 11px;
-                font-weight: 800;
-                letter-spacing: 1.4px;
-                text-transform: uppercase;
-            }
-
-            .navigation-list {
-                list-style: none;
-            }
-
-            .navigation-item {
-                margin-bottom: 6px;
-            }
-
-            .navigation-link {
-                width: 100%;
-                min-height: 48px;
-                padding: 0 14px;
-                display: flex;
-                align-items: center;
-                gap: 13px;
-                color: var(--text-secondary);
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 700;
-                transition: 0.2s ease;
-            }
-
-                .navigation-link:hover {
-                    color: var(--text);
-                    background-color: rgba(255, 255, 255, 0.05);
-                }
-
-                .navigation-link.active {
-                    color: #061108;
-                    background-color: var(--primary);
-                    box-shadow: 0 9px 28px rgba(30, 215, 96, 0.16);
-                }
-
-            .navigation-icon {
-                width: 23px;
-                text-align: center;
-                font-size: 18px;
-            }
-
-            .navigation-badge {
-                min-width: 24px;
-                margin-left: auto;
-                padding: 4px 7px;
-                color: #ffffff;
-                background-color: rgba(255, 255, 255, 0.12);
-                border-radius: 20px;
-                text-align: center;
-                font-size: 11px;
-            }
-
-            .navigation-link.active .navigation-badge {
-                background-color: rgba(0, 0, 0, 0.25);
-            }
-
-            .sidebar-footer {
-                padding-top: 17px;
-                border-top: 1px solid var(--border);
-            }
-
-            .admin-profile {
-                padding: 11px;
-                display: flex;
-                align-items: center;
-                gap: 11px;
-                background-color: rgba(255, 255, 255, 0.035);
-                border-radius: 13px;
-            }
-
-            .admin-avatar {
-                width: 39px;
-                height: 39px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                color: #08110a;
-                background-color: var(--primary);
-                border-radius: 50%;
-                font-weight: 900;
-            }
-
-            .admin-profile-info {
-                min-width: 0;
-                flex: 1;
-            }
-
-            .admin-name {
-                overflow: hidden;
-                font-size: 13px;
-                font-weight: 800;
-                text-overflow: ellipsis;
+                text-align: left;
                 white-space: nowrap;
             }
 
-            .admin-role {
-                margin-top: 3px;
-                color: var(--text-secondary);
-                font-size: 11px;
-            }
-
-            .logout-button {
-                width: 34px;
-                height: 34px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--text-secondary);
-                background: transparent;
-                border-radius: 9px;
-                transition: 0.2s;
-            }
-
-                .logout-button:hover {
-                    color: var(--danger);
-                    background-color: rgba(255, 92, 92, 0.10);
-                }
-
-            .main-content {
-                width: calc(100% - 265px);
-                min-height: 100vh;
-                margin-left: 265px;
-            }
-
-            .topbar {
-                position: sticky;
-                top: 0;
-                z-index: 900;
-                min-height: 78px;
-                padding: 16px 34px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 20px;
-                background-color: rgba(8, 11, 9, 0.83);
-                border-bottom: 1px solid var(--border);
-                backdrop-filter: blur(18px);
-            }
-
-            .topbar-left {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-            }
-
-            .menu-button {
-                width: 42px;
-                height: 42px;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                color: #ffffff;
-                background-color: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 11px;
-                font-size: 20px;
-                cursor: pointer;
-            }
-
-            .page-heading h1 {
-                font-size: 22px;
+            .data-table th {
+                color: #687169;
+                font-size: 10px;
                 font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
             }
 
-            .page-heading p {
-                margin-top: 5px;
-                color: var(--text-secondary);
-                font-size: 13px;
+            .data-table td {
+                color: #d8ded9;
+                font-size: 12px;
             }
 
-            .search-box {
-                width: 290px;
-                height: 43px;
-                padding: 0 15px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                background-color: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 12px;
+        .user-cell,
+        .song-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-avatar,
+        .song-cover {
+            width: 37px;
+            height: 37px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background-color: var(--primary);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .song-cover {
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+        }
+
+        .cell-title {
+            max-width: 200px;
+            overflow: hidden;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 750;
+            text-overflow: ellipsis;
+        }
+
+        .cell-subtitle {
+            max-width: 200px;
+            margin-top: 3px;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 10px;
+            text-overflow: ellipsis;
+        }
+
+        .role-badge,
+        .status-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .role-user {
+            color: var(--info);
+            background-color: rgba(85, 170, 255, 0.10);
+        }
+
+        .role-artist {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .role-admin {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.10);
+        }
+
+        .status-active {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .status-inactive {
+            color: var(--danger);
+            background-color: rgba(255, 92, 92, 0.10);
+        }
+
+        .rank {
+            font-weight: 900;
+        }
+
+        .rank-first {
+            color: var(--primary);
+        }
+
+        .rank-second {
+            color: var(--warning);
+        }
+
+        .rank-third {
+            color: #d2a67a;
+        }
+
+        .rank-other {
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            padding: 35px 20px !important;
+            color: var(--text-secondary) !important;
+            text-align: center !important;
+        }
+
+        @@media (max-width: 1200px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-                .search-box span {
-                    color: var(--text-secondary);
-                }
+            .dashboard-grid,
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-                .search-box input {
-                    width: 100%;
-                    color: #ffffff;
-                    background: transparent;
-                    border: none;
-                    outline: none;
-                    font-size: 13px;
-                }
-
-                    .search-box input::placeholder {
-                        color: #69716c;
-                    }
-
+        @@media (max-width: 650px) {
             .dashboard-content {
-                padding: 32px 34px 50px;
+                padding: 20px 16px 35px;
             }
 
             .welcome-banner {
-                position: relative;
-                overflow: hidden;
-                min-height: 180px;
-                padding: 34px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 25px;
-                background: linear-gradient(125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.95) 55%);
-                border: 1px solid rgba(30, 215, 96, 0.20);
-                border-radius: 22px;
-            }
-
-                .welcome-banner::after {
-                    content: "♪";
-                    position: absolute;
-                    right: 50px;
-                    color: rgba(30, 215, 96, 0.13);
-                    font-size: 155px;
-                    font-weight: bold;
-                    transform: rotate(-12deg);
-                }
-
-            .welcome-content {
-                position: relative;
-                z-index: 1;
-            }
-
-            .welcome-label {
-                margin-bottom: 10px;
-                color: var(--primary);
-                font-size: 12px;
-                font-weight: 850;
-                letter-spacing: 1.5px;
-                text-transform: uppercase;
-            }
-
-            .welcome-title {
-                margin-bottom: 10px;
-                font-size: clamp(25px, 3vw, 38px);
-                line-height: 1.15;
-            }
-
-            .welcome-description {
-                max-width: 620px;
-                color: var(--text-secondary);
-                font-size: 14px;
-                line-height: 1.7;
-            }
-
-            .welcome-date {
-                position: relative;
-                z-index: 1;
-                min-width: 160px;
-                padding: 14px 18px;
-                color: #d9e1dc;
-                background-color: rgba(0, 0, 0, 0.25);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 13px;
-                text-align: center;
-                font-size: 13px;
+                min-height: 205px;
+                padding: 25px;
+                align-items: flex-start;
+                flex-direction: column;
             }
 
             .stat-grid {
-                margin-top: 25px;
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 18px;
+                grid-template-columns: 1fr;
             }
-
-            .stat-card {
-                min-height: 145px;
-                padding: 21px;
-                background-color: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 18px;
-                transition: 0.22s ease;
-            }
-
-                .stat-card:hover {
-                    background-color: var(--card-hover);
-                    border-color: rgba(30, 215, 96, 0.22);
-                    transform: translateY(-3px);
-                }
-
-            .stat-card-top {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-
-            .stat-icon {
-                width: 45px;
-                height: 45px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 13px;
-                font-size: 20px;
-            }
-
-            .green-icon {
-                color: var(--primary);
-                background-color: rgba(30, 215, 96, 0.11);
-            }
-
-            .blue-icon {
-                color: var(--info);
-                background-color: rgba(85, 170, 255, 0.11);
-            }
-
-            .orange-icon {
-                color: var(--warning);
-                background-color: rgba(255, 189, 61, 0.11);
-            }
-
-            .red-icon {
-                color: var(--danger);
-                background-color: rgba(255, 92, 92, 0.11);
-            }
-
-            .stat-value-label {
-                padding: 5px 8px;
-                color: var(--primary);
-                background-color: rgba(30, 215, 96, 0.09);
-                border-radius: 8px;
-                font-size: 10px;
-                font-weight: 800;
-            }
-
-            .stat-number {
-                margin-top: 20px;
-                font-size: 28px;
-                font-weight: 900;
-            }
-
-            .stat-label {
-                margin-top: 6px;
-                color: var(--text-secondary);
-                font-size: 13px;
-            }
-
-            .dashboard-grid {
-                margin-top: 25px;
-                display: grid;
-                grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
-                gap: 20px;
-            }
-
-            .panel {
-                overflow: hidden;
-                background-color: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 19px;
-            }
-
-            .panel-header {
-                min-height: 69px;
-                padding: 18px 21px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 15px;
-                border-bottom: 1px solid var(--border);
-            }
-
-            .panel-title {
-                font-size: 16px;
-                font-weight: 850;
-            }
-
-            .panel-subtitle {
-                margin-top: 4px;
-                color: var(--text-secondary);
-                font-size: 12px;
-            }
-
-            .panel-value {
-                color: var(--primary);
-                font-size: 12px;
-                font-weight: 800;
-            }
-
-            .chart-area {
-                height: 300px;
-                padding: 27px 22px 18px;
-                display: flex;
-                align-items: flex-end;
-                gap: 13px;
-            }
-
-            .chart-column {
-                height: 100%;
-                min-width: 0;
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-end;
-                gap: 10px;
-            }
-
-            .chart-value {
-                overflow: hidden;
-                color: #ffffff;
-                text-align: center;
-                font-size: 10px;
-                font-weight: 800;
-                text-overflow: ellipsis;
-            }
-
-            .chart-bar-wrapper {
-                height: 210px;
-                display: flex;
-                align-items: flex-end;
-            }
-
-            .chart-bar {
-                width: 100%;
-                background: linear-gradient(180deg, var(--primary), rgba(30, 215, 96, 0.22));
-                border-radius: 8px 8px 3px 3px;
-                transition: 0.2s;
-            }
-
-                .chart-bar.empty {
-                    height: 3px !important;
-                    opacity: 0.25;
-                }
-
-                .chart-bar:hover {
-                    filter: brightness(1.16);
-                    transform: scaleX(1.04);
-                }
-
-            .chart-label {
-                color: var(--text-secondary);
-                text-align: center;
-                font-size: 11px;
-            }
-
-            .quick-actions {
-                padding: 17px;
-                display: grid;
-                gap: 11px;
-            }
-
-            .quick-action {
-                min-height: 64px;
-                padding: 13px;
-                display: flex;
-                align-items: center;
-                gap: 13px;
-                background-color: rgba(255, 255, 255, 0.025);
-                border: 1px solid transparent;
-                border-radius: 13px;
-                transition: 0.2s;
-            }
-
-                .quick-action:hover {
-                    background-color: rgba(255, 255, 255, 0.055);
-                    border-color: var(--border);
-                    transform: translateX(3px);
-                }
-
-            .quick-action-icon {
-                width: 39px;
-                height: 39px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                color: var(--primary);
-                background-color: rgba(30, 215, 96, 0.09);
-                border-radius: 11px;
-            }
-
-            .quick-action-content {
-                min-width: 0;
-                flex: 1;
-            }
-
-            .quick-action-title {
-                font-size: 13px;
-                font-weight: 800;
-            }
-
-            .quick-action-description {
-                margin-top: 4px;
-                overflow: hidden;
-                color: var(--text-secondary);
-                font-size: 11px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .quick-action-arrow {
-                color: #5c655f;
-            }
-
-            .tables-grid {
-                margin-top: 25px;
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 20px;
-            }
-
-            .table-wrapper {
-                overflow-x: auto;
-            }
-
-            .data-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-                .data-table th,
-                .data-table td {
-                    padding: 15px 18px;
-                    border-bottom: 1px solid var(--border);
-                    text-align: left;
-                    white-space: nowrap;
-                }
-
-                .data-table th {
-                    color: #687169;
-                    font-size: 10px;
-                    font-weight: 850;
-                    letter-spacing: 0.8px;
-                    text-transform: uppercase;
-                }
-
-                .data-table td {
-                    color: #d8ded9;
-                    font-size: 12px;
-                }
-
-                .data-table tbody tr {
-                    transition: 0.2s;
-                }
-
-                    .data-table tbody tr:hover {
-                        background-color: rgba(255, 255, 255, 0.025);
-                    }
-
-                    .data-table tbody tr:last-child td {
-                        border-bottom: none;
-                    }
-
-            .user-cell,
-            .song-cell {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .table-avatar,
-            .song-cover {
-                width: 37px;
-                height: 37px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                color: #071008;
-                background-color: var(--primary);
-                border-radius: 10px;
-                font-size: 13px;
-                font-weight: 900;
-            }
-
-            .song-cover {
-                color: var(--primary);
-                background: linear-gradient(135deg, #1d3324, #0c110e);
-            }
-
-            .cell-title {
-                max-width: 200px;
-                overflow: hidden;
-                color: #ffffff;
-                font-size: 12px;
-                font-weight: 750;
-                text-overflow: ellipsis;
-            }
-
-            .cell-subtitle {
-                max-width: 200px;
-                margin-top: 3px;
-                overflow: hidden;
-                color: var(--text-secondary);
-                font-size: 10px;
-                text-overflow: ellipsis;
-            }
-
-            .role-badge,
-            .status-badge {
-                display: inline-flex;
-                padding: 5px 9px;
-                border-radius: 20px;
-                font-size: 10px;
-                font-weight: 800;
-            }
-
-            .role-user {
-                color: var(--info);
-                background-color: rgba(85, 170, 255, 0.10);
-            }
-
-            .role-artist {
-                color: var(--primary);
-                background-color: rgba(30, 215, 96, 0.10);
-            }
-
-            .role-admin {
-                color: var(--warning);
-                background-color: rgba(255, 189, 61, 0.10);
-            }
-
-            .status-active {
-                color: var(--primary);
-                background-color: rgba(30, 215, 96, 0.10);
-            }
-
-            .status-inactive {
-                color: var(--danger);
-                background-color: rgba(255, 92, 92, 0.10);
-            }
-
-            .rank {
-                font-size: 12px;
-                font-weight: 900;
-            }
-
-            .rank-first {
-                color: var(--primary);
-            }
-
-            .rank-second {
-                color: var(--warning);
-            }
-
-            .rank-third {
-                color: #d2a67a;
-            }
-
-            .rank-other {
-                color: var(--text-secondary);
-            }
-
-            .empty-state {
-                padding: 35px 20px !important;
-                color: var(--text-secondary) !important;
-                text-align: center !important;
-            }
-
-            .hidden-row {
-                display: none;
-            }
-
-            .sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                z-index: 950;
-                display: none;
-                background-color: rgba(0, 0, 0, 0.65);
-            }
-
-            @@media (max-width: 1200px) {
-                .stat-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
-
-                .dashboard-grid,
-                .tables-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-
-            @@media (max-width: 900px) {
-                .sidebar {
-                    transform: translateX(-100%);
-                }
-
-                    .sidebar.open {
-                        transform: translateX(0);
-                    }
-
-                .sidebar-overlay.open {
-                    display: block;
-                }
-
-                .main-content {
-                    width: 100%;
-                    margin-left: 0;
-                }
-
-                .menu-button {
-                    display: flex;
-                }
-
-                .search-box {
-                    width: 230px;
-                }
-            }
-
-            @@media (max-width: 650px) {
-                .topbar {
-                    padding: 14px 17px;
-                }
-
-                .page-heading p {
-                    display: none;
-                }
-
-                .search-box {
-                    display: none;
-                }
-
-                .dashboard-content {
-                    padding: 20px 16px 35px;
-                }
-
-                .welcome-banner {
-                    min-height: 205px;
-                    padding: 25px;
-                    align-items: flex-start;
-                    flex-direction: column;
-                    gap: 20px;
-                }
-
-                    .welcome-banner::after {
-                        right: 15px;
-                        bottom: -30px;
-                        font-size: 120px;
-                    }
-
-                .welcome-date {
-                    min-width: 0;
-                    padding: 9px 13px;
-                }
-
-                .stat-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .chart-area {
-                    gap: 7px;
-                    padding-left: 12px;
-                    padding-right: 12px;
-                }
-
-                .data-table th,
-                .data-table td {
-                    padding: 13px 14px;
-                }
-            }
+        }
     </style>
-</head>
+}
 
-<body>
+<div class="dashboard-content">
 
-    <div class="admin-layout">
+    <section class="welcome-banner">
 
-        <aside class="sidebar" id="sidebar">
+        <div class="welcome-content">
 
-            <a asp-controller="AdminDashboard"
-               asp-action="Index"
-               class="brand">
+            <p class="welcome-label">
+                MusicProject yönetimi
+            </p>
 
-                <div class="brand-icon">
-                    ♪
-                </div>
+            <h2 class="welcome-title">
+                Tekrar hoş geldin, @adminName.
+            </h2>
 
-                <div>
-                    <span class="brand-name">
-                        MusicProject
-                    </span>
+            <p class="welcome-description">
+                Platformdaki kullanıcı, sanatçı ve şarkı sayılarını takip edebilir;
+                dinlenme hareketlerini ve en çok dinlenen şarkıları inceleyebilirsin.
+            </p>
 
-                    <span class="brand-panel">
-                        Yönetim paneli
-                    </span>
-                </div>
-
-            </a>
-
-            <nav class="navigation">
-
-                <p class="navigation-title">
-                    Yönetim
-                </p>
-
-                <ul class="navigation-list">
-
-                    <li class="navigation-item">
-                        <a asp-controller="AdminDashboard"
-                           asp-action="Index"
-                           class="navigation-link active">
-
-                            <span class="navigation-icon">
-                                ▦
-                            </span>
-
-                            Genel Bakış
-                        </a>
-                    </li>
-
-                    <li class="navigation-item">
-                        <a href="#recentUsers"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                👥
-                            </span>
-
-                            Kullanıcılar
-
-                            <span class="navigation-badge">
-                                @Model.TotalUsers
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="navigation-item">
-                        <a href="#statistics"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                ★
-                            </span>
-
-                            Sanatçılar
-
-                            <span class="navigation-badge">
-                                @Model.TotalArtists
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="navigation-item">
-                        <a href="#topSongs"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                ♫
-                            </span>
-
-                            Şarkılar
-
-                            <span class="navigation-badge">
-                                @Model.TotalSongs
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="navigation-item">
-                        <a href="#weeklyListening"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                ▤
-                            </span>
-
-                            İstatistikler
-                        </a>
-                    </li>
-
-                </ul>
-
-                <p class="navigation-title"
-                   style="margin-top: 27px;">
-                    Sistem
-                </p>
-
-                <ul class="navigation-list">
-
-                    <li class="navigation-item">
-                        <a href="/hangfire"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                ⚙
-                            </span>
-
-                            Hangfire
-                        </a>
-                    </li>
-
-                    <li class="navigation-item">
-                        <a href="/"
-                           class="navigation-link">
-
-                            <span class="navigation-icon">
-                                ↗
-                            </span>
-
-                            Siteyi Görüntüle
-                        </a>
-                    </li>
-
-                </ul>
-
-            </nav>
-
-            <div class="sidebar-footer">
-
-                <div class="admin-profile">
-
-                    <div class="admin-avatar">
-                        @adminInitial
-                    </div>
-
-                    <div class="admin-profile-info">
-
-                        <div class="admin-name">
-                            @adminName
-                        </div>
-
-                        <div class="admin-role">
-                            Admin
-                        </div>
-
-                    </div>
-
-                    <a asp-controller="Auth"
-                       asp-action="Logout"
-                       class="logout-button"
-                       title="Çıkış Yap">
-                        ↪
-                    </a>
-
-                </div>
-
-            </div>
-
-        </aside>
-
-        <div class="sidebar-overlay"
-             id="sidebarOverlay">
         </div>
 
-        <main class="main-content">
+        <div class="welcome-date">
+            @DateTime.Now.ToString("dd MMMM yyyy", turkishCulture)
+        </div>
 
-            <header class="topbar">
+    </section>
 
-                <div class="topbar-left">
+    <section class="stat-grid">
 
-                    <button type="button"
-                            class="menu-button"
-                            id="menuButton">
-                        ☰
-                    </button>
+        <article class="stat-card">
 
-                    <div class="page-heading">
+            <div class="stat-card-top">
+                <div class="stat-icon blue-icon">👥</div>
+                <span class="stat-value-label">Hesaplar</span>
+            </div>
 
-                        <h1>
-                            Admin Paneli
-                        </h1>
+            <div class="stat-number">
+                @Model.TotalUsers.ToString("N0", turkishCulture)
+            </div>
 
-                        <p>
-                            Platformun güncel durumunu buradan takip edebilirsin.
-                        </p>
+            <div class="stat-label">
+                Toplam kullanıcı
+            </div>
 
-                    </div>
+        </article>
 
+        <article class="stat-card">
+
+            <div class="stat-card-top">
+                <div class="stat-icon green-icon">★</div>
+                <span class="stat-value-label">Sanatçılar</span>
+            </div>
+
+            <div class="stat-number">
+                @Model.TotalArtists.ToString("N0", turkishCulture)
+            </div>
+
+            <div class="stat-label">
+                Toplam sanatçı
+            </div>
+
+        </article>
+
+        <article class="stat-card">
+
+            <div class="stat-card-top">
+                <div class="stat-icon orange-icon">♫</div>
+                <span class="stat-value-label">Katalog</span>
+            </div>
+
+            <div class="stat-number">
+                @Model.TotalSongs.ToString("N0", turkishCulture)
+            </div>
+
+            <div class="stat-label">
+                Toplam şarkı
+            </div>
+
+        </article>
+
+        <article class="stat-card">
+
+            <div class="stat-card-top">
+                <div class="stat-icon red-icon">▶</div>
+                <span class="stat-value-label">Geçmiş</span>
+            </div>
+
+            <div class="stat-number">
+                @Model.TotalListenings.ToString("N0", turkishCulture)
+            </div>
+
+            <div class="stat-label">
+                Toplam dinlenme
+            </div>
+
+        </article>
+
+    </section>
+
+    <section class="dashboard-grid">
+
+        <article class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3 class="panel-title">Haftalık dinlenme</h3>
+                    <p class="panel-subtitle">Son yedi günlük gerçek dinleme kayıtları</p>
                 </div>
 
-                <div class="search-box">
-
-                    <span>
-                        ⌕
-                    </span>
-
-                    <input type="text"
-                           id="dashboardSearch"
-                           placeholder="Son kullanıcı veya şarkı ara..." />
-
-                </div>
-
-            </header>
-
-            <div class="dashboard-content">
-
-                <section class="welcome-banner">
-
-                    <div class="welcome-content">
-
-                        <p class="welcome-label">
-                            MusicProject yönetimi
-                        </p>
-
-                        <h2 class="welcome-title">
-                            Tekrar hoş geldin, @adminName.
-                        </h2>
-
-                        <p class="welcome-description">
-                            Platformdaki kullanıcı, sanatçı ve şarkı sayılarını takip edebilir;
-                            dinlenme hareketlerini ve en çok dinlenen şarkıları inceleyebilirsin.
-                        </p>
-
-                    </div>
-
-                    <div class="welcome-date">
-                        @DateTime.Now.ToString("dd MMMM yyyy", turkishCulture)
-                    </div>
-
-                </section>
-
-                <section class="stat-grid"
-                         id="statistics">
-
-                    <article class="stat-card">
-
-                        <div class="stat-card-top">
-
-                            <div class="stat-icon blue-icon">
-                                👥
-                            </div>
-
-                            <span class="stat-value-label">
-                                Hesaplar
-                            </span>
-
-                        </div>
-
-                        <div class="stat-number">
-                            @Model.TotalUsers.ToString("N0", turkishCulture)
-                        </div>
-
-                        <div class="stat-label">
-                            Toplam kullanıcı
-                        </div>
-
-                    </article>
-
-                    <article class="stat-card">
-
-                        <div class="stat-card-top">
-
-                            <div class="stat-icon green-icon">
-                                ★
-                            </div>
-
-                            <span class="stat-value-label">
-                                Sanatçılar
-                            </span>
-
-                        </div>
-
-                        <div class="stat-number">
-                            @Model.TotalArtists.ToString("N0", turkishCulture)
-                        </div>
-
-                        <div class="stat-label">
-                            Toplam sanatçı
-                        </div>
-
-                    </article>
-
-                    <article class="stat-card">
-
-                        <div class="stat-card-top">
-
-                            <div class="stat-icon orange-icon">
-                                ♫
-                            </div>
-
-                            <span class="stat-value-label">
-                                Katalog
-                            </span>
-
-                        </div>
-
-                        <div class="stat-number">
-                            @Model.TotalSongs.ToString("N0", turkishCulture)
-                        </div>
-
-                        <div class="stat-label">
-                            Toplam şarkı
-                        </div>
-
-                    </article>
-
-                    <article class="stat-card">
-
-                        <div class="stat-card-top">
-
-                            <div class="stat-icon red-icon">
-                                ▶
-                            </div>
-
-                            <span class="stat-value-label">
-                                Geçmiş
-                            </span>
-
-                        </div>
-
-                        <div class="stat-number">
-                            @Model.TotalListenings.ToString("N0", turkishCulture)
-                        </div>
-
-                        <div class="stat-label">
-                            Toplam dinlenme
-                        </div>
-
-                    </article>
-
-                </section>
-
-                <section class="dashboard-grid"
-                         id="weeklyListening">
-
-                    <article class="panel">
-
-                        <div class="panel-header">
-
-                            <div>
-
-                                <h3 class="panel-title">
-                                    Haftalık dinlenme
-                                </h3>
-
-                                <p class="panel-subtitle">
-                                    Son yedi günlük gerçek dinleme kayıtları
-                                </p>
-
-                            </div>
-
-                            <span class="panel-value">
-                                @Model.WeeklyListenings.Sum(day => day.ListeningCount).ToString("N0", turkishCulture) dinlenme
-                            </span>
-
-                        </div>
-
-                        <div class="chart-area">
-
-                            @foreach (var day in Model.WeeklyListenings)
-                            {
-                                <div class="chart-column">
-
-                                    <span class="chart-value">
-                                        @day.ListeningCount
-                                    </span>
-
-                                    <div class="chart-bar-wrapper">
-
-                                        <div class="chart-bar @(day.ListeningCount == 0 ? "empty" : "")"
-                                             style="height: @(day.BarHeightPercent)%;"
-                                             title="@($"{day.DayLabel}: {day.ListeningCount} dinlenme")">
-                                        </div>
-
-                                    </div>
-
-                                    <span class="chart-label">
-                                        @day.DayLabel
-                                    </span>
-
-                                </div>
-                            }
-
-                        </div>
-
-                    </article>
-
-                    <article class="panel">
-
-                        <div class="panel-header">
-
-                            <div>
-
-                                <h3 class="panel-title">
-                                    Hızlı erişim
-                                </h3>
-
-                                <p class="panel-subtitle">
-                                    Yönetimde sık kullanacağımız bölümler
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div class="quick-actions">
-
-                            <a href="#recentUsers"
-                               class="quick-action">
-
-                                <div class="quick-action-icon">
-                                    👥
-                                </div>
-
-                                <div class="quick-action-content">
-
-                                    <div class="quick-action-title">
-                                        Son kullanıcıları görüntüle
-                                    </div>
-
-                                    <div class="quick-action-description">
-                                        Platforma son katılan hesapları incele
-                                    </div>
-
-                                </div>
-
-                                <span class="quick-action-arrow">
-                                    ›
-                                </span>
-
-                            </a>
-
-                            <a href="#topSongs"
-                               class="quick-action">
-
-                                <div class="quick-action-icon">
-                                    ♫
-                                </div>
-
-                                <div class="quick-action-content">
-
-                                    <div class="quick-action-title">
-                                        Popüler şarkıları görüntüle
-                                    </div>
-
-                                    <div class="quick-action-description">
-                                        Dinlenme sayısına göre ilk şarkıları incele
-                                    </div>
-
-                                </div>
-
-                                <span class="quick-action-arrow">
-                                    ›
-                                </span>
-
-                            </a>
-
-                            <a href="/hangfire"
-                               class="quick-action">
-
-                                <div class="quick-action-icon">
-                                    ⚙
-                                </div>
-
-                                <div class="quick-action-content">
-
-                                    <div class="quick-action-title">
-                                        Hangfire Dashboard
-                                    </div>
-
-                                    <div class="quick-action-description">
-                                        Planlı yayın işlerini ve kuyrukları görüntüle
-                                    </div>
-
-                                </div>
-
-                                <span class="quick-action-arrow">
-                                    ›
-                                </span>
-
-                            </a>
-
-                            <a href="/"
-                               class="quick-action">
-
-                                <div class="quick-action-icon">
-                                    ↗
-                                </div>
-
-                                <div class="quick-action-content">
-
-                                    <div class="quick-action-title">
-                                        Siteyi görüntüle
-                                    </div>
-
-                                    <div class="quick-action-description">
-                                        MusicProject ana sayfasına geç
-                                    </div>
-
-                                </div>
-
-                                <span class="quick-action-arrow">
-                                    ›
-                                </span>
-
-                            </a>
-
-                        </div>
-
-                    </article>
-
-                </section>
-
-                <section class="tables-grid">
-
-                    <article class="panel"
-                             id="recentUsers">
-
-                        <div class="panel-header">
-
-                            <div>
-
-                                <h3 class="panel-title">
-                                    Son kayıt olan kullanıcılar
-                                </h3>
-
-                                <p class="panel-subtitle">
-                                    Platforma en son katılan @Model.RecentUsers.Count hesap
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div class="table-wrapper">
-
-                            <table class="data-table">
-
-                                <thead>
-                                    <tr>
-                                        <th>Kullanıcı</th>
-                                        <th>Rol</th>
-                                        <th>Durum</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="recentUsersBody">
-
-                                    @if (Model.RecentUsers.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="3"
-                                                class="empty-state">
-                                                Henüz kullanıcı bulunmuyor.
-                                            </td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var recentUser in Model.RecentUsers)
-                                        {
-                                            var roleClass = $"role-{recentUser.RoleName.ToLowerInvariant()}";
-
-                                            <tr class="searchable-row"
-                                                data-search="@($"{recentUser.Username} {recentUser.Email} {recentUser.RoleName}".ToLowerInvariant())">
-
-                                                <td>
-
-                                                    <div class="user-cell">
-
-                                                        <div class="table-avatar">
-                                                            @recentUser.Initial
-                                                        </div>
-
-                                                        <div>
-
-                                                            <div class="cell-title">
-                                                                @recentUser.Username
-                                                            </div>
-
-                                                            <div class="cell-subtitle">
-                                                                @recentUser.Email
-                                                            </div>
-
-                                                        </div>
-
-                                                    </div>
-
-                                                </td>
-
-                                                <td>
-
-                                                    <span class="role-badge @roleClass">
-                                                        @recentUser.RoleName
-                                                    </span>
-
-                                                </td>
-
-                                                <td>
-
-                                                    @if (recentUser.IsActive)
-                                                    {
-                                                        <span class="status-badge status-active">
-                                                            Aktif
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="status-badge status-inactive">
-                                                            Pasif
-                                                        </span>
-                                                    }
-
-                                                </td>
-
-                                            </tr>
-                                        }
-                                    }
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </article>
-
-                    <article class="panel"
-                             id="topSongs">
-
-                        <div class="panel-header">
-
-                            <div>
-
-                                <h3 class="panel-title">
-                                    En çok dinlenen şarkılar
-                                </h3>
-
-                                <p class="panel-subtitle">
-                                    Platform genelinde en yüksek dinlenme sayılarına sahip şarkılar
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div class="table-wrapper">
-
-                            <table class="data-table">
-
-                                <thead>
-                                    <tr>
-                                        <th>Şarkı</th>
-                                        <th>Dinlenme</th>
-                                        <th>Sıra</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="topSongsBody">
-
-                                    @if (Model.TopSongs.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="3"
-                                                class="empty-state">
-                                                Henüz şarkı bulunmuyor.
-                                            </td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @for (var index = 0; index < Model.TopSongs.Count; index++)
-                                        {
-                                            var song = Model.TopSongs[index];
-                                            var rank = index + 1;
-
-                                            var rankClass = rank switch
-                                            {
-                                                1 => "rank-first",
-                                                2 => "rank-second",
-                                                3 => "rank-third",
-                                                _ => "rank-other"
-                                            };
-
-                                            <tr class="searchable-row"
-                                                data-search="@($"{song.Title} {song.ArtistName}".ToLowerInvariant())">
-
-                                                <td>
-
-                                                    <div class="song-cell">
-
-                                                        <div class="song-cover">
-                                                            ♪
-                                                        </div>
-
-                                                        <div>
-
-                                                            <div class="cell-title">
-                                                                @song.Title
-                                                            </div>
-
-                                                            <div class="cell-subtitle">
-                                                                @song.ArtistName
-                                                            </div>
-
-                                                        </div>
-
-                                                    </div>
-
-                                                </td>
-
-                                                <td>
-                                                    @song.TotalStreams.ToString("N0", turkishCulture)
-                                                </td>
-
-                                                <td>
-                                                    <span class="rank @rankClass">
-                                                        #@rank
-                                                    </span>
-                                                </td>
-
-                                            </tr>
-                                        }
-                                    }
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </article>
-
-                </section>
+                <span class="panel-value">
+                    @Model.WeeklyListenings.Sum(day => day.ListeningCount).ToString("N0", turkishCulture) dinlenme
+                </span>
 
             </div>
 
-        </main>
+            <div class="chart-area">
 
-    </div>
+                @foreach (var day in Model.WeeklyListenings)
+                {
+                    <div class="chart-column">
 
-    <script>
-            const menuButton = document.getElementById("menuButton");
-            const sidebar = document.getElementById("sidebar");
-            const sidebarOverlay = document.getElementById("sidebarOverlay");
-            const dashboardSearch = document.getElementById("dashboardSearch");
-            const searchableRows = document.querySelectorAll(".searchable-row");
+                        <span class="chart-value">
+                            @day.ListeningCount
+                        </span>
 
-            function openSidebar() {
-                sidebar.classList.add("open");
-                sidebarOverlay.classList.add("open");
-            }
+                        <div class="chart-bar-wrapper">
 
-            function closeSidebar() {
-                sidebar.classList.remove("open");
-                sidebarOverlay.classList.remove("open");
-            }
+                            <div class="chart-bar @(day.ListeningCount == 0 ? "empty" : "")"
+                                 style="height: @(day.BarHeightPercent)%;">
+                            </div>
 
-            function filterDashboardTables() {
-                if (!dashboardSearch) {
-                    return;
+                        </div>
+
+                        <span class="chart-label">
+                            @day.DayLabel
+                        </span>
+
+                    </div>
                 }
 
-                const searchValue = dashboardSearch.value.trim().toLowerCase();
+            </div>
 
-                searchableRows.forEach(function(row) {
-                    const searchableText = row.dataset.search ?? "";
+        </article>
 
-                    if (searchableText.includes(searchValue)) {
-                        row.classList.remove("hidden-row");
-                    } else {
-                        row.classList.add("hidden-row");
-                    }
-                });
-            }
+        <article class="panel">
 
-            if (menuButton) {
-                menuButton.addEventListener("click", openSidebar);
-            }
+            <div class="panel-header">
 
-            if (sidebarOverlay) {
-                sidebarOverlay.addEventListener("click", closeSidebar);
-            }
+                <div>
+                    <h3 class="panel-title">Hızlı erişim</h3>
+                    <p class="panel-subtitle">Yönetimde sık kullanılan bölümler</p>
+                </div>
 
-            if (dashboardSearch) {
-                dashboardSearch.addEventListener("input", filterDashboardTables);
-            }
-    </script>
+            </div>
 
-</body>
-</html>
+            <div class="quick-actions">
+
+                <a asp-controller="AdminDashboard"
+                   asp-action="Users"
+                   class="quick-action">
+
+                    <div class="quick-action-icon">
+                        👥
+                    </div>
+
+                    <div class="quick-action-content">
+
+                        <div class="quick-action-title">
+                            Kullanıcıları yönet
+                        </div>
+
+                        <div class="quick-action-description">
+                            Kullanıcıları ara, görüntüle ve hesap durumlarını yönet
+                        </div>
+
+                    </div>
+
+                    <span class="quick-action-arrow">
+                        ›
+                    </span>
+
+                </a>
+
+                <a href="/hangfire"
+                   class="quick-action">
+
+                    <div class="quick-action-icon">
+                        ⚙
+                    </div>
+
+                    <div class="quick-action-content">
+
+                        <div class="quick-action-title">
+                            Hangfire Dashboard
+                        </div>
+
+                        <div class="quick-action-description">
+                            Planlı yayın işlerini görüntüle
+                        </div>
+
+                    </div>
+
+                    <span class="quick-action-arrow">
+                        ›
+                    </span>
+
+                </a>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <section class="tables-grid">
+
+        <article class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3 class="panel-title">Son kayıt olan kullanıcılar</h3>
+                    <p class="panel-subtitle">Platforma en son katılan hesaplar</p>
+                </div>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı</th>
+                            <th>Rol</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model.RecentUsers.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    Henüz kullanıcı bulunmuyor.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var recentUser in Model.RecentUsers)
+                            {
+                                var roleClass = $"role-{recentUser.RoleName.ToLowerInvariant()}";
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="user-cell">
+
+                                            <div class="table-avatar">
+                                                @recentUser.Initial
+                                            </div>
+
+                                            <div>
+
+                                                <div class="cell-title">
+                                                    @recentUser.Username
+                                                </div>
+
+                                                <div class="cell-subtitle">
+                                                    @recentUser.Email
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        <span class="role-badge @roleClass">
+                                            @recentUser.RoleName
+                                        </span>
+                                    </td>
+
+                                    <td>
+
+                                        @if (recentUser.IsActive)
+                                        {
+                                            <span class="status-badge status-active">
+                                                Aktif
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-inactive">
+                                                Pasif
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </article>
+
+        <article class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3 class="panel-title">En çok dinlenen şarkılar</h3>
+                    <p class="panel-subtitle">Dinlenme sayısına göre ilk şarkılar</p>
+                </div>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+                        <tr>
+                            <th>Şarkı</th>
+                            <th>Dinlenme</th>
+                            <th>Sıra</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model.TopSongs.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    Henüz şarkı bulunmuyor.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @for (var index = 0; index < Model.TopSongs.Count; index++)
+                            {
+                                var song = Model.TopSongs[index];
+                                var rank = index + 1;
+
+                                var rankClass = rank switch
+                                {
+                                    1 => "rank-first",
+                                    2 => "rank-second",
+                                    3 => "rank-third",
+                                    _ => "rank-other"
+                                };
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="song-cell">
+
+                                            <div class="song-cover">
+                                                ♪
+                                            </div>
+
+                                            <div>
+
+                                                <div class="cell-title">
+                                                    @song.Title
+                                                </div>
+
+                                                <div class="cell-subtitle">
+                                                    @song.ArtistName
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        @song.TotalStreams.ToString("N0", turkishCulture)
+                                    </td>
+
+                                    <td>
+                                        <span class="rank @rankClass">
+                                            #@rank
+                                        </span>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </article>
+
+    </section>
+
+</div>

@@ -1,13 +1,7 @@
 ﻿namespace MusicProject.ViewModels.AdminDashboard
 {
-    public class AdminDashboardViewModel
+    public class AdminDashboardViewModel : AdminLayoutViewModel
     {
-        public int TotalUsers { get; set; }
-
-        public int TotalArtists { get; set; }
-
-        public int TotalSongs { get; set; }
-
         public int TotalListenings { get; set; }
 
         public List<AdminRecentUserViewModel> RecentUsers { get; set; } = [];
