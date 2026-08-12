@@ -111,6 +111,83 @@ namespace MusicProject.Services.Concrete
             return AdminUserStatusUpdateResult.Success;
         }
 
+        public AdminArtistsViewModel GetArtists(string? search)
+        {
+            var artists = _adminDashboardRepository
+                .GetArtists(search)
+                .Select(artist => new AdminArtistListItemViewModel
+                {
+                    Id = artist.Id,
+                    Name = artist.Name,
+                    Initial = GetInitial(artist.Name),
+                    CountryName = artist.CountryEntity?.Name ?? "Belirtilmedi",
+                    DebutYear = artist.DebutYear,
+                    HasLinkedUser = artist.User != null,
+                    LinkedUsername = artist.User?.Username ?? "Bağlı hesap yok",
+                    LinkedEmail = artist.User?.Email ?? "-",
+                    IsLinkedUserActive = artist.User?.IsActive ?? false,
+                    AlbumCount = artist.Albums.Count,
+                    SongCount = artist.SongArtists.Count,
+                    FollowerCount = artist.Followers.Count
+                })
+                .ToList();
+
+            var model = new AdminArtistsViewModel
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                DisplayedArtists = artists.Count,
+                LinkedAccounts = artists.Count(artist => artist.HasLinkedUser),
+                UnlinkedAccounts = artists.Count(artist => !artist.HasLinkedUser),
+                Artists = artists
+            };
+
+            FillLayoutData(model);
+
+            return model;
+        }
+
+        public AdminSongsViewModel GetSongs(string? search, PublicationStatus? status)
+        {
+            var songs = _adminDashboardRepository
+                .GetSongs(search, status)
+                .Select(song => new AdminSongListItemViewModel
+                {
+                    Id = song.Id,
+                    Title = song.Title,
+                    ArtistName = song.Album?.Artist?.Name ??
+                                 song.SongArtists
+                                     .Select(songArtist => songArtist.Artist.Name)
+                                     .FirstOrDefault() ??
+                                 "Sanatçı bilgisi yok",
+                    AlbumName = song.Album?.Name ?? "Single",
+                    LabelName = song.Label?.Name ?? "Bağımsız",
+                    PublicationStatus = song.PublicationStatus,
+                    CreatedAt = song.CreatedAt,
+                    ScheduledPublishAtUtc = song.ScheduledPublishAtUtc,
+                    PublishedAtUtc = song.PublishedAtUtc,
+                    TotalStreams = song.SongStat?.TotalStreams ?? 0,
+                    TotalLikes = song.SongStat?.TotalLikes ?? 0,
+                    PopularityScore = song.SongStat?.PopularityScore ?? 0
+                })
+                .ToList();
+
+            var model = new AdminSongsViewModel
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                StatusFilter = status,
+                DisplayedSongs = songs.Count,
+                PublishedSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Published),
+                ScheduledSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Scheduled),
+                DraftSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Draft),
+                ArchivedSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Archived),
+                Songs = songs
+            };
+
+            FillLayoutData(model);
+
+            return model;
+        }
+
         private void FillLayoutData(AdminLayoutViewModel model)
         {
             model.TotalUsers = _adminDashboardRepository.GetTotalUserCount();
@@ -170,16 +247,14 @@ namespace MusicProject.Services.Concrete
             return Math.Max(8, percentage);
         }
 
-        private string GetInitial(string username)
+        private string GetInitial(string value)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            if (string.IsNullOrWhiteSpace(value))
             {
                 return "?";
             }
 
-            return char
-                .ToUpperInvariant(username.Trim()[0])
-                .ToString();
+            return char.ToUpperInvariant(value.Trim()[0]).ToString();
         }
     }
 }

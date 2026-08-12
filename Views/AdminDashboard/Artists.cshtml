@@ -1,0 +1,660 @@
+﻿@model MusicProject.ViewModels.AdminDashboard.AdminArtistsViewModel
+
+@{
+    ViewData["Title"] = "Sanatçı Yönetimi";
+    ViewData["PageDescription"] = "Platformdaki sanatçı profillerini ve bağlı kullanıcı hesaplarını görüntüle.";
+    Layout = "_AdminLayout";
+}
+
+@section Styles {
+    <style>
+        .artists-content {
+            padding: 32px 34px 50px;
+        }
+
+        .artists-hero {
+            padding: 29px 31px;
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 21px;
+        }
+
+        .artists-hero-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .artists-hero-title {
+            margin-top: 7px;
+            color: #ffffff;
+            font-size: clamp(27px, 4vw, 38px);
+        }
+
+        .artists-hero-description {
+            max-width: 720px;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .artists-stat-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .artists-stat-card {
+            padding: 20px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 17px;
+        }
+
+        .artists-stat-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .artists-stat-value {
+            margin-top: 9px;
+            color: #ffffff;
+            font-size: 27px;
+            font-weight: 900;
+        }
+
+            .artists-stat-value.linked {
+                color: var(--primary);
+            }
+
+            .artists-stat-value.unlinked {
+                color: var(--warning);
+            }
+
+        .artists-panel {
+            margin-top: 22px;
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .artists-panel-header {
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .artists-panel-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .artists-panel-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .artist-search-form {
+            width: min(100%, 430px);
+            display: flex;
+            gap: 9px;
+        }
+
+        .artist-search-input {
+            min-width: 0;
+            min-height: 42px;
+            padding: 0 14px;
+            flex: 1;
+            color: #ffffff;
+            background-color: #0d110e;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            font-size: 12px;
+        }
+
+            .artist-search-input:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
+            }
+
+        .artist-search-button,
+        .artist-clear-button {
+            min-height: 42px;
+            padding: 0 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .artist-search-button {
+            color: #071008;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+            .artist-search-button:hover {
+                background-color: var(--primary-hover);
+            }
+
+        .artist-clear-button {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+            .artist-clear-button:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+            }
+
+        .artists-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .artists-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .artists-table th,
+            .artists-table td {
+                padding: 15px 18px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .artists-table th {
+                color: #69716c;
+                background-color: rgba(255, 255, 255, 0.015);
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .artists-table td {
+                color: #dbe0dc;
+                font-size: 12px;
+            }
+
+            .artists-table tbody tr {
+                transition: 0.2s;
+            }
+
+                .artists-table tbody tr:hover {
+                    background-color: rgba(255, 255, 255, 0.025);
+                }
+
+                .artists-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+        .artist-cell {
+            min-width: 190px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .artist-avatar {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #071008;
+            background: radial-gradient(circle at 35% 30%, #52ef8a, var(--primary) 42%, #0c6d30);
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .artist-name {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .artist-id {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .account-cell {
+            min-width: 200px;
+        }
+
+        .account-username {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .account-email {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .account-missing {
+            color: var(--warning);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .account-status {
+            margin-top: 6px;
+        }
+
+        .status-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .status-active {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .status-inactive {
+            color: var(--danger);
+            background-color: rgba(255, 92, 92, 0.10);
+        }
+
+        .status-unlinked {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.10);
+        }
+
+        .country-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            color: var(--info);
+            background-color: rgba(85, 170, 255, 0.09);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        .count-value {
+            color: #ffffff;
+            font-weight: 850;
+        }
+
+        .follower-value {
+            color: var(--primary);
+            font-weight: 850;
+        }
+
+        .debut-value {
+            color: #dbe0dc;
+        }
+
+        .not-specified {
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            padding: 55px 20px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            color: var(--primary);
+            font-size: 42px;
+        }
+
+        .empty-state-title {
+            margin-top: 13px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .empty-state-description {
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        @@media (max-width: 1050px) {
+            .artists-panel-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .artist-search-form {
+                width: 100%;
+            }
+        }
+
+        @@media (max-width: 700px) {
+            .artists-content {
+                padding: 20px 16px 35px;
+            }
+
+            .artists-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .artist-search-form {
+                flex-wrap: wrap;
+            }
+
+            .artist-search-input {
+                width: 100%;
+                flex-basis: 100%;
+            }
+
+            .artist-search-button,
+            .artist-clear-button {
+                flex: 1;
+            }
+
+            .artists-table {
+                min-width: 1050px;
+            }
+        }
+    </style>
+}
+
+<div class="artists-content">
+
+    <section class="artists-hero">
+
+        <p class="artists-hero-label">
+            Yönetim
+        </p>
+
+        <h2 class="artists-hero-title">
+            Sanatçılar
+        </h2>
+
+        <p class="artists-hero-description">
+            Platformdaki sanatçı profillerini, bağlı kullanıcı hesaplarını,
+            katalog büyüklüklerini ve takipçi sayılarını buradan görüntüleyebilirsin.
+        </p>
+
+    </section>
+
+    <section class="artists-stat-grid">
+
+        <article class="artists-stat-card">
+
+            <div class="artists-stat-label">
+                Görüntülenen Sanatçı
+            </div>
+
+            <div class="artists-stat-value">
+                @Model.DisplayedArtists
+            </div>
+
+        </article>
+
+        <article class="artists-stat-card">
+
+            <div class="artists-stat-label">
+                Kullanıcı Hesabı Bağlı
+            </div>
+
+            <div class="artists-stat-value linked">
+                @Model.LinkedAccounts
+            </div>
+
+        </article>
+
+        <article class="artists-stat-card">
+
+            <div class="artists-stat-label">
+                Bağlı Hesabı Olmayan
+            </div>
+
+            <div class="artists-stat-value unlinked">
+                @Model.UnlinkedAccounts
+            </div>
+
+        </article>
+
+    </section>
+
+    <section class="artists-panel">
+
+        <div class="artists-panel-header">
+
+            <div>
+
+                <h3 class="artists-panel-title">
+                    Sanatçı Listesi
+                </h3>
+
+                <p class="artists-panel-description">
+                    Sanatçı adı, kullanıcı hesabı, e-posta veya ülke bilgisine göre arama yapabilirsin.
+                </p>
+
+            </div>
+
+            <form asp-controller="AdminDashboard"
+                  asp-action="Artists"
+                  method="get"
+                  class="artist-search-form">
+
+                <input type="text"
+                       name="search"
+                       value="@Model.SearchTerm"
+                       class="artist-search-input"
+                       placeholder="Sanatçı, kullanıcı, e-posta veya ülke ara..." />
+
+                <button type="submit"
+                        class="artist-search-button">
+                    Ara
+                </button>
+
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <a asp-controller="AdminDashboard"
+                       asp-action="Artists"
+                       class="artist-clear-button">
+                        Temizle
+                    </a>
+                }
+
+            </form>
+
+        </div>
+
+        @if (Model.Artists.Count == 0)
+        {
+            <div class="empty-state">
+
+                <div class="empty-state-icon">
+                    ★
+                </div>
+
+                <h3 class="empty-state-title">
+                    Sanatçı bulunamadı
+                </h3>
+
+                <p class="empty-state-description">
+                    Arama kriterlerine uygun bir sanatçı profili bulunmuyor.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="artists-table-wrapper">
+
+                <table class="artists-table">
+
+                    <thead>
+                        <tr>
+                            <th>Sanatçı</th>
+                            <th>Bağlı Hesap</th>
+                            <th>Ülke</th>
+                            <th>Başlangıç</th>
+                            <th>Albüm</th>
+                            <th>Şarkı</th>
+                            <th>Takipçi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var artist in Model.Artists)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    <div class="artist-cell">
+
+                                        <div class="artist-avatar">
+                                            @artist.Initial
+                                        </div>
+
+                                        <div>
+
+                                            <div class="artist-name">
+                                                @artist.Name
+                                            </div>
+
+                                            <div class="artist-id">
+                                                Sanatçı ID: @artist.Id
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    @if (artist.HasLinkedUser)
+                                    {
+                                        <div class="account-cell">
+
+                                            <div class="account-username">
+                                                @artist.LinkedUsername
+                                            </div>
+
+                                            <div class="account-email">
+                                                @artist.LinkedEmail
+                                            </div>
+
+                                            <div class="account-status">
+
+                                                @if (artist.IsLinkedUserActive)
+                                                {
+                                                    <span class="status-badge status-active">
+                                                        Aktif Hesap
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge status-inactive">
+                                                        Pasif Hesap
+                                                    </span>
+                                                }
+
+                                            </div>
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="account-cell">
+
+                                            <div class="account-missing">
+                                                Bağlı kullanıcı yok
+                                            </div>
+
+                                            <div class="account-status">
+
+                                                <span class="status-badge status-unlinked">
+                                                    Bağlantısız
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <span class="country-badge">
+                                        @artist.CountryName
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    @if (artist.DebutYear.HasValue)
+                                    {
+                                        <span class="debut-value">
+                                            @artist.DebutYear.Value
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="not-specified">
+                                            Belirtilmedi
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    <span class="count-value">
+                                        @artist.AlbumCount
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="count-value">
+                                        @artist.SongCount
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="follower-value">
+                                        @artist.FollowerCount.ToString("N0")
+                                    </span>
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </section>
+
+</div>

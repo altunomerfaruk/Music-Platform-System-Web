@@ -1,0 +1,728 @@
+﻿@using MusicProject.Models.Enums
+@model MusicProject.ViewModels.AdminDashboard.AdminSongsViewModel
+
+@{
+    ViewData["Title"] = "Şarkı Yönetimi";
+    ViewData["PageDescription"] = "Platformdaki şarkıları ve yayın durumlarını görüntüle.";
+    Layout = "_AdminLayout";
+}
+
+@section Styles {
+    <style>
+        .songs-content {
+            padding: 32px 34px 50px;
+        }
+
+        .songs-hero {
+            padding: 29px 31px;
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
+            border: 1px solid rgba(30, 215, 96, 0.20);
+            border-radius: 21px;
+        }
+
+        .songs-hero-label {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .songs-hero-title {
+            margin-top: 7px;
+            color: #ffffff;
+            font-size: clamp(27px, 4vw, 38px);
+        }
+
+        .songs-hero-description {
+            max-width: 720px;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .songs-stat-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .songs-stat-card {
+            padding: 19px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .songs-stat-label {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        .songs-stat-value {
+            margin-top: 9px;
+            color: #ffffff;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+            .songs-stat-value.published {
+                color: var(--primary);
+            }
+
+            .songs-stat-value.scheduled {
+                color: var(--warning);
+            }
+
+            .songs-stat-value.draft {
+                color: var(--info);
+            }
+
+            .songs-stat-value.archived {
+                color: var(--danger);
+            }
+
+        .songs-panel {
+            margin-top: 22px;
+            overflow: hidden;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .songs-panel-header {
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .songs-panel-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .songs-panel-description {
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .songs-filter-form {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .songs-search-input {
+            width: 260px;
+            min-height: 42px;
+            padding: 0 14px;
+            color: #ffffff;
+            background-color: #0d110e;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .songs-status-select {
+            min-width: 145px;
+            min-height: 42px;
+            padding: 0 12px;
+            color: #ffffff;
+            background-color: #0d110e;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            font-size: 11px;
+        }
+
+            .songs-search-input:focus,
+            .songs-status-select:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
+            }
+
+        .songs-filter-button,
+        .songs-clear-button {
+            min-height: 42px;
+            padding: 0 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .songs-filter-button {
+            color: #071008;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+            .songs-filter-button:hover {
+                background-color: var(--primary-hover);
+            }
+
+        .songs-clear-button {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+            .songs-clear-button:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+            }
+
+        .songs-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .songs-table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+        }
+
+            .songs-table th,
+            .songs-table td {
+                padding: 15px 17px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .songs-table th {
+                color: #69716c;
+                background-color: rgba(255, 255, 255, 0.015);
+                font-size: 10px;
+                font-weight: 850;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+            }
+
+            .songs-table td {
+                color: #dbe0dc;
+                font-size: 12px;
+            }
+
+            .songs-table tbody tr {
+                transition: 0.2s;
+            }
+
+                .songs-table tbody tr:hover {
+                    background-color: rgba(255, 255, 255, 0.025);
+                }
+
+                .songs-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+        .song-cell {
+            min-width: 210px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .song-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background: linear-gradient(135deg, #1d3324, #0c110e);
+            border-radius: 11px;
+            font-size: 17px;
+        }
+
+        .song-title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .song-id {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .artist-name {
+            color: #ffffff;
+            font-weight: 750;
+        }
+
+        .album-name,
+        .label-name {
+            color: #c8ceca;
+        }
+
+        .status-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .status-published {
+            color: var(--primary);
+            background-color: rgba(30, 215, 96, 0.10);
+        }
+
+        .status-scheduled {
+            color: var(--warning);
+            background-color: rgba(255, 189, 61, 0.10);
+        }
+
+        .status-draft {
+            color: var(--info);
+            background-color: rgba(85, 170, 255, 0.10);
+        }
+
+        .status-archived {
+            color: var(--danger);
+            background-color: rgba(255, 92, 92, 0.10);
+        }
+
+        .performance-value {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .publication-date {
+            min-width: 150px;
+        }
+
+        .publication-date-main {
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .publication-date-label {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 9px;
+        }
+
+        .no-date {
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            padding: 55px 20px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            color: var(--primary);
+            font-size: 42px;
+        }
+
+        .empty-state-title {
+            margin-top: 13px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .empty-state-description {
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        @@media (max-width: 1200px) {
+            .songs-stat-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .songs-panel-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .songs-filter-form {
+                width: 100%;
+            }
+
+            .songs-search-input {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+
+        @@media (max-width: 750px) {
+            .songs-content {
+                padding: 20px 16px 35px;
+            }
+
+            .songs-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .songs-filter-form {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .songs-search-input,
+            .songs-status-select {
+                width: 100%;
+            }
+
+            .songs-filter-button,
+            .songs-clear-button {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+<div class="songs-content">
+
+    <section class="songs-hero">
+
+        <p class="songs-hero-label">
+            Yönetim
+        </p>
+
+        <h2 class="songs-hero-title">
+            Şarkılar
+        </h2>
+
+        <p class="songs-hero-description">
+            Platformdaki tüm şarkıları, sanatçılarını, albümlerini,
+            yayın durumlarını ve performans verilerini buradan takip edebilirsin.
+        </p>
+
+    </section>
+
+    <section class="songs-stat-grid">
+
+        <article class="songs-stat-card">
+
+            <div class="songs-stat-label">
+                Görüntülenen
+            </div>
+
+            <div class="songs-stat-value">
+                @Model.DisplayedSongs
+            </div>
+
+        </article>
+
+        <article class="songs-stat-card">
+
+            <div class="songs-stat-label">
+                Yayında
+            </div>
+
+            <div class="songs-stat-value published">
+                @Model.PublishedSongs
+            </div>
+
+        </article>
+
+        <article class="songs-stat-card">
+
+            <div class="songs-stat-label">
+                Planlandı
+            </div>
+
+            <div class="songs-stat-value scheduled">
+                @Model.ScheduledSongs
+            </div>
+
+        </article>
+
+        <article class="songs-stat-card">
+
+            <div class="songs-stat-label">
+                Taslak
+            </div>
+
+            <div class="songs-stat-value draft">
+                @Model.DraftSongs
+            </div>
+
+        </article>
+
+        <article class="songs-stat-card">
+
+            <div class="songs-stat-label">
+                Arşivlendi
+            </div>
+
+            <div class="songs-stat-value archived">
+                @Model.ArchivedSongs
+            </div>
+
+        </article>
+
+    </section>
+
+    <section class="songs-panel">
+
+        <div class="songs-panel-header">
+
+            <div>
+
+                <h3 class="songs-panel-title">
+                    Şarkı Listesi
+                </h3>
+
+                <p class="songs-panel-description">
+                    Şarkı, sanatçı, albüm veya plak şirketine göre arayabilir ve yayın durumuna göre filtreleyebilirsin.
+                </p>
+
+            </div>
+
+            <form asp-controller="AdminDashboard"
+                  asp-action="Songs"
+                  method="get"
+                  class="songs-filter-form">
+
+                <input type="text"
+                       name="search"
+                       value="@Model.SearchTerm"
+                       class="songs-search-input"
+                       placeholder="Şarkı, sanatçı, albüm veya label ara..." />
+
+                <select name="status"
+                        class="songs-status-select">
+
+                    <option value="">
+                        Tüm Durumlar
+                    </option>
+
+                    <option value="Published"
+                            selected="@(Model.StatusFilter == PublicationStatus.Published ? "selected" : null)">
+                        Yayında
+                    </option>
+
+                    <option value="Scheduled"
+                            selected="@(Model.StatusFilter == PublicationStatus.Scheduled ? "selected" : null)">
+                        Planlandı
+                    </option>
+
+                    <option value="Draft"
+                            selected="@(Model.StatusFilter == PublicationStatus.Draft ? "selected" : null)">
+                        Taslak
+                    </option>
+
+                    <option value="Archived"
+                            selected="@(Model.StatusFilter == PublicationStatus.Archived ? "selected" : null)">
+                        Arşivlendi
+                    </option>
+
+                </select>
+
+                <button type="submit"
+                        class="songs-filter-button">
+                    Filtrele
+                </button>
+
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.StatusFilter.HasValue)
+                {
+                    <a asp-controller="AdminDashboard"
+                       asp-action="Songs"
+                       class="songs-clear-button">
+                        Temizle
+                    </a>
+                }
+
+            </form>
+
+        </div>
+
+        @if (Model.Songs.Count == 0)
+        {
+            <div class="empty-state">
+
+                <div class="empty-state-icon">
+                    ♫
+                </div>
+
+                <h3 class="empty-state-title">
+                    Şarkı bulunamadı
+                </h3>
+
+                <p class="empty-state-description">
+                    Arama veya filtre kriterlerine uygun şarkı bulunmuyor.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="songs-table-wrapper">
+
+                <table class="songs-table">
+
+                    <thead>
+                        <tr>
+                            <th>Şarkı</th>
+                            <th>Sanatçı</th>
+                            <th>Albüm</th>
+                            <th>Label</th>
+                            <th>Durum</th>
+                            <th>Yayın Bilgisi</th>
+                            <th>Dinlenme</th>
+                            <th>Beğeni</th>
+                            <th>Popülerlik</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var song in Model.Songs)
+                        {
+                            var statusText = song.PublicationStatus switch
+                            {
+                                PublicationStatus.Published => "Yayında",
+                                PublicationStatus.Scheduled => "Planlandı",
+                                PublicationStatus.Draft => "Taslak",
+                                PublicationStatus.Archived => "Arşivlendi",
+                                _ => "Bilinmiyor"
+                            };
+
+                            var statusClass = song.PublicationStatus switch
+                            {
+                                PublicationStatus.Published => "status-published",
+                                PublicationStatus.Scheduled => "status-scheduled",
+                                PublicationStatus.Draft => "status-draft",
+                                PublicationStatus.Archived => "status-archived",
+                                _ => "status-draft"
+                            };
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="song-cell">
+
+                                        <div class="song-icon">
+                                            ♪
+                                        </div>
+
+                                        <div>
+
+                                            <div class="song-title">
+                                                @song.Title
+                                            </div>
+
+                                            <div class="song-id">
+                                                Şarkı ID: @song.Id
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    <span class="artist-name">
+                                        @song.ArtistName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="album-name">
+                                        @song.AlbumName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="label-name">
+                                        @song.LabelName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="status-badge @statusClass">
+                                        @statusText
+                                    </span>
+                                </td>
+
+                                <td>
+
+                                    <div class="publication-date">
+
+                                        @if (song.PublicationStatus == PublicationStatus.Scheduled &&
+                                             song.ScheduledPublishAtUtc.HasValue)
+                                        {
+                                            <div class="publication-date-main">
+                                                @song.ScheduledPublishAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                            </div>
+
+                                            <div class="publication-date-label">
+                                                Planlanan yayın
+                                            </div>
+                                        }
+                                        else if (song.PublicationStatus == PublicationStatus.Published &&
+                                                 song.PublishedAtUtc.HasValue)
+                                        {
+                                            <div class="publication-date-main">
+                                                @song.PublishedAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                            </div>
+
+                                            <div class="publication-date-label">
+                                                Yayınlandı
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-date">
+                                                -
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    <span class="performance-value">
+                                        @song.TotalStreams.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="performance-value">
+                                        @song.TotalLikes.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="performance-value">
+                                        @song.PopularityScore.ToString("N0")
+                                    </span>
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </section>
+
+</div>

@@ -1,4 +1,5 @@
 ﻿using MusicProject.Models.Concrete;
+using MusicProject.Models.Enums;
 
 namespace MusicProject.Repositories.Interface
 {
@@ -23,5 +24,9 @@ namespace MusicProject.Repositories.Interface
         User? GetUserById(int userId);
 
         void UpdateUser(User user);
+
+        IEnumerable<Artist> GetArtists(string? search);
+
+        IEnumerable<Song> GetSongs(string? search, PublicationStatus? status);
     }
 }

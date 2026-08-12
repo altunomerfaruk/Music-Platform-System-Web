@@ -65,6 +65,21 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(Users), new { search });
         }
+        [HttpGet]
+        public IActionResult Songs(string? search, PublicationStatus? status)
+        {
+            var model = _adminDashboardService.GetSongs(search, status);
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Artists(string? search)
+        {
+            var model = _adminDashboardService.GetArtists(search);
+
+            return View(model);
+        }
 
         private bool TryGetCurrentUserId(out int userId)
         {
