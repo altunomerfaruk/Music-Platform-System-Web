@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Responses.ArtistDashboard;
 using MusicProject.Controllers.Base;
 using MusicProject.Services.Interface;
 using MusicProject.ViewModels.ArtistDashboard;
@@ -16,13 +17,21 @@ namespace MusicProject.Controllers
         private readonly ISongService _songService;
         private readonly IGenreService _genreService;
         private readonly ICountryService _countryService;
-        private readonly IPublicationService _publicationService;
-        private readonly IPublicationJobScheduler _publicationJobScheduler;
-        private readonly IAudioStorageService _audioStorageService;
 
-        public ArtistDashboardController(IArtistService artistService, IAlbumService albumService, ISongService songService,
-            IPublicationJobScheduler publicationJobScheduler, IGenreService genreService, ICountryService countryService,
-            IPublicationService publicationService, IAudioStorageService audioStorageService)
+        private readonly IPublicationService _publicationService;
+
+        private readonly IArtistSongWorkflowService _artistSongWorkflowService;
+        private readonly IArtistAlbumWorkflowService _artistAlbumWorkflowService;
+
+        public ArtistDashboardController(
+            IArtistService artistService,
+            IAlbumService albumService,
+            ISongService songService,
+            IGenreService genreService,
+            ICountryService countryService,
+            IPublicationService publicationService,
+            IArtistSongWorkflowService artistSongWorkflowService,
+            IArtistAlbumWorkflowService artistAlbumWorkflowService)
         {
             _artistService = artistService;
             _albumService = albumService;
@@ -30,29 +39,34 @@ namespace MusicProject.Controllers
             _genreService = genreService;
             _countryService = countryService;
             _publicationService = publicationService;
-            _publicationJobScheduler = publicationJobScheduler;
-            _audioStorageService = audioStorageService;
+            _artistSongWorkflowService = artistSongWorkflowService;
+            _artistAlbumWorkflowService = artistAlbumWorkflowService;
         }
 
         [HttpGet]
         public IActionResult Index()
         {
-            if (!TryGetCurrentUserId(out var userId))
+            if (!TryGetDashboard(out var dashboard, out _, out var error))
             {
-                return RedirectToLogin();
+                return error!;
             }
 
-            var dashboard = _artistService.GetArtistDashboard(userId);
-
-            if (dashboard == null)
+            var model = new ArtistDashboardViewModel
             {
-                return View(ProfileNotFoundView);
-            }
+                PopularSongs = dashboard.PopularSongs,
+                RecentAlbums = dashboard.RecentAlbums,
+                TotalStreams = dashboard.TotalStreams,
+                TotalLikes = dashboard.TotalLikes,
+                MonthlyListeners = dashboard.MonthlyListeners,
+                TotalFollowers = dashboard.TotalFollowers
+            };
 
-            return View(dashboard);
+            FillArtistLayoutData(model, dashboard);
+
+            return View(model);
         }
 
-        private bool TryGetDashboard(out ArtistDashboardViewModel dashboard, out int userId, out IActionResult? errorResult)
+        private bool TryGetDashboard(out ArtistDashboardDto dashboard, out int userId, out IActionResult? errorResult)
         {
             dashboard = null!;
             errorResult = null;
@@ -75,12 +89,22 @@ namespace MusicProject.Controllers
             return true;
         }
 
-        private static void FillArtistLayoutData(ArtistLayoutViewModel model, ArtistDashboardViewModel dashboard)
+        private static void FillArtistLayoutData(ArtistLayoutViewModel model, ArtistDashboardDto dashboard)
         {
             model.Artist = dashboard.Artist;
-            model.ArtistInitial = dashboard.ArtistInitial;
+            model.ArtistInitial = GetInitial(dashboard.Artist.Name);
             model.TotalAlbums = dashboard.TotalAlbums;
             model.TotalSongs = dashboard.TotalSongs;
+        }
+
+        private static string GetInitial(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return "?";
+            }
+
+            return char.ToUpperInvariant(value.Trim()[0]).ToString();
         }
     }
 }

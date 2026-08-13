@@ -991,15 +991,15 @@
 
                         @foreach (var song in Model.Songs)
                         {
-                            var isLiked = Model.LikedSongIds.Contains(song.Id);
+                            var isLiked = Model.LikedSongIds.Contains(song.SongId);
 
-                            var artist = song.Album?.Artist ??
-                                         song.SongArtists
-                                             .Select(songArtist => songArtist.Artist)
-                                             .FirstOrDefault();
+                            var artistName = string.IsNullOrWhiteSpace(song.ArtistName)
+                                ? "Sanatçı bilgisi yok"
+                                : song.ArtistName;
 
-                            var artistName = artist?.Name ?? "Sanatçı bilgisi yok";
-                            var albumName = song.Album?.Name ?? "Single";
+                            var albumName = string.IsNullOrWhiteSpace(song.AlbumName)
+                                ? "Single"
+                                : song.AlbumName;
 
                             var likeButtonClass = isLiked
                                 ? "like-button liked"
@@ -1031,7 +1031,7 @@
 
                                             <a asp-controller="UserDashboard"
                                                asp-action="SongDetails"
-                                               asp-route-songId="@song.Id"
+                                               asp-route-songId="@song.SongId"
                                                class="song-details-link">
 
                                                 <div class="song-title">
@@ -1052,11 +1052,11 @@
 
                                 <td>
 
-                                    @if (artist != null)
+                                    @if (song.ArtistId.HasValue)
                                     {
                                         <a asp-controller="UserDashboard"
                                            asp-action="ArtistDetails"
-                                           asp-route-artistId="@artist.Id"
+                                           asp-route-artistId="@song.ArtistId"
                                            class="artist-link">
                                             @artistName
                                         </a>
@@ -1087,14 +1087,14 @@
                                 </td>
 
                                 <td class="song-streams">
-                                    @(song.SongStat?.TotalStreams ?? 0)
+                                    @song.TotalStreams
                                 </td>
 
                                 <td>
 
                                     <button type="button"
                                             class="play-button"
-                                            data-song-id="@song.Id"
+                                            data-song-id="@song.SongId"
                                             title="@song.Title şarkısını oynat">
                                         ▶
                                     </button>
@@ -1112,7 +1112,7 @@
 
                                         <input type="hidden"
                                                name="songId"
-                                               value="@song.Id" />
+                                               value="@song.SongId" />
 
                                         <input type="hidden"
                                                name="returnUrl"

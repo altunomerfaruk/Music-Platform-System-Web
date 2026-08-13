@@ -1,4 +1,6 @@
-﻿namespace MusicProject.ViewModels.AdminDashboard
+﻿using MusicProject.Contracts.Responses.AdminDashboard;
+
+namespace MusicProject.ViewModels.AdminDashboard
 {
     public class AdminUsersViewModel : AdminLayoutViewModel
     {
@@ -10,29 +12,6 @@
 
         public int InactiveUsers { get; set; }
 
-        public List<AdminUserListItemViewModel> Users { get; set; } = [];
-    }
-
-    public class AdminUserListItemViewModel
-    {
-        public int Id { get; set; }
-
-        public string Username { get; set; } = string.Empty;
-
-        public string Email { get; set; } = string.Empty;
-
-        public string RoleName { get; set; } = string.Empty;
-
-        public bool IsActive { get; set; }
-
-        public bool IsPremium { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public string Initial { get; set; } = string.Empty;
-
-        public bool CanChangeStatus { get; set; }
-
-        public bool CanPromoteToArtist { get; set; }
+        public List<AdminUserListItemDto> Users { get; set; } = [];
     }
 }

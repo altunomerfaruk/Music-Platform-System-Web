@@ -33,9 +33,6 @@ namespace MusicProject.Repositories.Concrete
                 .ToList();
         }
 
-        // DEĞİŞİKLİK:
-        // Kullanıcının aktif takip ettiği sanatçı kayıtlarını
-        // Artist bilgisiyle birlikte getirir.
         public IEnumerable<FollowedArtist> GetActiveFollowedArtistsByUser(int userId)
         {
             return _context.FollowedArtists
@@ -49,8 +46,6 @@ namespace MusicProject.Repositories.Concrete
                 .ToList();
         }
 
-        // DEĞİŞİKLİK:
-        // Sanatçının aktif takipçi sayısını getirir.
         public int GetActiveFollowerCountByArtist(int artistId)
         {
             return _context.FollowedArtists.Count(followedArtist =>

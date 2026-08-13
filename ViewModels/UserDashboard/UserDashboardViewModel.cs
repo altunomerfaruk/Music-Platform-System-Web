@@ -1,13 +1,14 @@
-using MusicProject.Contracts.Responses;
-using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {
     public class UserDashboardViewModel : UserLayoutViewModel
     {
-        public IEnumerable<Song> PopularSongs { get; set; } = new List<Song>();
+        public IEnumerable<SongListItemDto> PopularSongs { get; set; }
+            = new List<SongListItemDto>();
 
-        public IEnumerable<Artist> Artists { get; set; } = new List<Artist>();
+        public IEnumerable<ArtistListItemDto> Artists { get; set; }
+            = new List<ArtistListItemDto>();
 
         public HashSet<int> LikedSongIds { get; set; } = new();
 

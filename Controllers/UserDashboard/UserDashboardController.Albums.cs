@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Album detay aksiyonlari.
     public partial class UserDashboardController
     {
         [HttpGet]

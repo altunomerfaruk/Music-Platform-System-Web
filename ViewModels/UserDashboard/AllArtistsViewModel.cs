@@ -1,10 +1,11 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {
     public class AllArtistsViewModel : UserLayoutViewModel
     {
-        public IEnumerable<Artist> Artists { get; set; } = new List<Artist>();
+        public IEnumerable<ArtistListItemDto> Artists { get; set; }
+            = new List<ArtistListItemDto>();
 
         public HashSet<int> FollowedArtistIds { get; set; } = new();
 

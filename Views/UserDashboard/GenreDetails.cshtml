@@ -6,10 +6,7 @@
 
     var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
 
-    var songs = Model.Genre.SongGenres
-        .Select(songGenre => songGenre.Song)
-        .OrderBy(song => song.Title)
-        .ToList();
+    var songs = Model.Genre.Songs;
 }
 
 @section Styles {
@@ -447,7 +444,7 @@
                 <div class="genre-stat">
 
                     <div class="genre-stat-number">
-                        @songs.Count
+                        @songs.Count()
                     </div>
 
                     <div class="genre-stat-label">
@@ -505,15 +502,15 @@
 
                                     @foreach (var song in songs)
                                     {
-                                        var isLiked = Model.LikedSongIds.Contains(song.Id);
+                                        var isLiked = Model.LikedSongIds.Contains(song.SongId);
 
-                                        var artist = song.Album?.Artist ??
-                                                     song.SongArtists
-                                                         .Select(songArtist => songArtist.Artist)
-                                                         .FirstOrDefault();
+                                        var artistName = string.IsNullOrWhiteSpace(song.ArtistName)
+                                            ? "Sanatçı bilgisi yok"
+                                            : song.ArtistName;
 
-                                        var artistName = artist?.Name ?? "Sanatçı bilgisi yok";
-                                        var albumName = song.Album?.Name ?? "Single";
+                                        var albumName = string.IsNullOrWhiteSpace(song.AlbumName)
+                                            ? "Single"
+                                            : song.AlbumName;
 
                                         var likeButtonClass = isLiked
                                             ? "genre-like-button liked"
@@ -541,7 +538,7 @@
 
                                                         <a asp-controller="UserDashboard"
                                                            asp-action="SongDetails"
-                                                           asp-route-songId="@song.Id"
+                                                           asp-route-songId="@song.SongId"
                                                            class="genre-details-link">
 
                                                             <div class="genre-song-title">
@@ -581,7 +578,7 @@
                                             <td>
 
                                                 <span class="genre-stream-count">
-                                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                                    @song.TotalStreams dinlenme
                                                 </span>
 
                                             </td>
@@ -593,7 +590,7 @@
                                                     @* data-song-id ortak user-player.js tarafından yakalanır. *@
                                                     <button type="button"
                                                             class="genre-play-button"
-                                                            data-song-id="@song.Id"
+                                                            data-song-id="@song.SongId"
                                                             title="@song.Title şarkısını oynat">
                                                         ▶
                                                     </button>
@@ -607,7 +604,7 @@
 
                                                         <input type="hidden"
                                                                name="songId"
-                                                               value="@song.Id" />
+                                                               value="@song.SongId" />
 
                                                         <input type="hidden"
                                                                name="returnUrl"

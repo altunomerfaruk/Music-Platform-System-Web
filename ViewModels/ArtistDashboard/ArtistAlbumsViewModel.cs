@@ -1,11 +1,11 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.ArtistDashboard;
 
 namespace MusicProject.ViewModels.ArtistDashboard
 {
     public class ArtistAlbumsViewModel : ArtistLayoutViewModel
     {
-        public IEnumerable<Album> Albums { get; set; }
-            = new List<Album>();
+        public IEnumerable<ArtistAlbumListItemDto> Albums { get; set; }
+            = new List<ArtistAlbumListItemDto>();
 
         public int TotalAlbumStreams { get; set; }
 

@@ -44,6 +44,25 @@ namespace MusicProject.Repositories.Concrete
                 .ToList();
         }
 
+        public IEnumerable<Album> SearchVisibleAlbumsByText(string query, int? maxResults)
+        {
+            var search = query.Trim();
+
+            var albums = _context.Albums
+                .AsNoTracking()
+                .Where(album =>
+                    !album.IsAdminHidden &&
+                    album.PublicationStatus == PublicationStatus.Published &&
+                    (album.Name.Contains(search) ||
+                     album.Artist.Name.Contains(search)))
+                .Include(album => album.Artist)
+                .OrderBy(album => album.Name);
+
+            return maxResults.HasValue
+                ? albums.Take(maxResults.Value).ToList()
+                : albums.ToList();
+        }
+
         public IEnumerable<Album> GetAlbumsByArtistId(int artistId)
         {
             return _context.Albums

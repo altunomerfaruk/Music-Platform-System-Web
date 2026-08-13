@@ -1,4 +1,4 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {

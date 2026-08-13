@@ -409,7 +409,7 @@
 
                     @foreach (var song in Model.PopularSongs)
                     {
-                        var isLiked = Model.LikedSongIds.Contains(song.Id);
+                        var isLiked = Model.LikedSongIds.Contains(song.SongId);
 
                         var likeButtonClass = isLiked
                             ? "like-button liked"
@@ -431,7 +431,7 @@
 
                                 <button type="button"
                                         class="song-play-button"
-                                        data-song-id="@song.Id"
+                                        data-song-id="@song.SongId"
                                         title="@song.Title şarkısını oynat">
                                     ▶
                                 </button>
@@ -440,7 +440,7 @@
 
                             <a asp-controller="UserDashboard"
                                asp-action="SongDetails"
-                               asp-route-songId="@song.Id"
+                               asp-route-songId="@song.SongId"
                                class="song-details-link">
 
                                 <h4 class="song-name">
@@ -448,7 +448,9 @@
                                 </h4>
 
                                 <p class="song-artist">
-                                    @(song.Album?.Name ?? "Albüm bilgisi yok")
+                                    @(string.IsNullOrWhiteSpace(song.AlbumName)
+                                        ? "Albüm bilgisi yok"
+                                        : song.AlbumName)
                                 </p>
 
                             </a>
@@ -456,7 +458,7 @@
                             <div class="song-card-footer">
 
                                 <span class="song-duration">
-                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                    @song.TotalStreams dinlenme
                                 </span>
 
                                 <form asp-controller="UserDashboard"
@@ -468,7 +470,7 @@
 
                                     <input type="hidden"
                                            name="songId"
-                                           value="@song.Id" />
+                                           value="@song.SongId" />
 
                                     <input type="hidden"
                                            name="returnUrl"
@@ -535,7 +537,7 @@
 
                     @foreach (var artist in Model.Artists.Take(6))
                     {
-                        var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+                        var isFollowed = Model.FollowedArtistIds.Contains(artist.ArtistId);
 
                         var followButtonClass = isFollowed
                             ? "follow-button followed"
@@ -553,7 +555,7 @@
 
                             <a asp-controller="UserDashboard"
                                asp-action="ArtistDetails"
-                               asp-route-artistId="@artist.Id"
+                               asp-route-artistId="@artist.ArtistId"
                                class="artist-details-link">
 
                                 <div class="artist-image">
@@ -581,7 +583,7 @@
 
                                 <input type="hidden"
                                        name="artistId"
-                                       value="@artist.Id" />
+                                       value="@artist.ArtistId" />
 
                                 <input type="hidden"
                                        name="returnUrl"

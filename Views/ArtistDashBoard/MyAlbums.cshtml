@@ -517,8 +517,8 @@
 
             @foreach (var album in Model.Albums)
             {
-                var totalStreams = album.Songs.Sum(song => song.SongStat?.TotalStreams ?? 0);
-                var hasSongs = album.Songs.Any();
+                var totalStreams = album.TotalStreams;
+                var hasSongs = album.SongCount > 0;
 
                 <article class="album-card @(album.IsAdminHidden ? "admin-hidden" : "")">
 
@@ -580,7 +580,7 @@
                         <div class="album-card-meta">
 
                             <span class="album-card-song-count">
-                                @album.Songs.Count şarkı
+                                @album.SongCount şarkı
                             </span>
 
                             <span class="album-card-streams">
@@ -593,14 +593,14 @@
 
                             <a asp-controller="ArtistDashboard"
                                asp-action="AlbumDetails"
-                               asp-route-albumId="@album.Id"
+                               asp-route-albumId="@album.AlbumId"
                                class="album-detail-button">
                                 Detay
                             </a>
 
                             <a asp-controller="ArtistDashboard"
                                asp-action="EditAlbum"
-                               asp-route-albumId="@album.Id"
+                               asp-route-albumId="@album.AlbumId"
                                class="album-edit-button">
                                 Düzenle
                             </a>
@@ -615,7 +615,7 @@
 
                                 <input type="hidden"
                                        name="albumId"
-                                       value="@album.Id" />
+                                       value="@album.AlbumId" />
 
                                 <button type="submit"
                                         class="album-delete-button"

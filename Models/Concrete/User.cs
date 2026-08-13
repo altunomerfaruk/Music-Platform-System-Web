@@ -1,5 +1,4 @@
 ﻿using MusicProject.Models.Core;
-// DEĞİŞİKLİK: BaseEntities sınıfını kullanabilmek için eklendi.
 
 using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
@@ -21,9 +20,7 @@ namespace MusicProject.Models.Concrete
         [MaxLength(500)]
         public string Password { get; set; } = string.Empty;
 
-
         public UserRole Role { get; set; } = UserRole.User;
-
 
         public bool IsActive { get; set; } = true;
 

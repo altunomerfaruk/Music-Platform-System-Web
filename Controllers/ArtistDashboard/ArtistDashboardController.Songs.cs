@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.ArtistDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
 using MusicProject.ViewModels.ArtistDashboard;
@@ -17,19 +19,19 @@ namespace MusicProject.Controllers
             }
 
             var songs = _songService
-                .GetSongsByArtistId(dashboard.Artist.Id)
+                .GetSongsByArtistId(dashboard.Artist.ArtistId)
                 .ToList();
 
             var model = new ArtistSongsViewModel
             {
-                Artist = dashboard.Artist,
-                ArtistInitial = dashboard.ArtistInitial,
-                TotalAlbums = dashboard.TotalAlbums,
-                TotalSongs = dashboard.TotalSongs,
-                Songs = songs,
+                Songs = songs
+                    .Select(ToArtistSongListItem)
+                    .ToList(),
                 TotalStreams = songs.Sum(song => song.SongStat?.TotalStreams ?? 0),
                 TotalLikes = songs.Sum(song => song.SongStat?.TotalLikes ?? 0)
             };
+
+            FillArtistLayoutData(model, dashboard);
 
             return View(model);
         }
@@ -46,7 +48,7 @@ namespace MusicProject.Controllers
             {
                 var selectedAlbum = _albumService.GetArtistAlbumDetails(
                     albumId.Value,
-                    dashboard.Artist.Id);
+                    dashboard.Artist.ArtistId);
 
                 if (selectedAlbum == null)
                 {
@@ -63,7 +65,7 @@ namespace MusicProject.Controllers
             };
 
             FillArtistLayoutData(model, dashboard);
-            FillCreateSongOptions(model, dashboard.Artist.Id);
+            FillCreateSongOptions(model, dashboard.Artist.ArtistId);
 
             return View(model);
         }
@@ -80,24 +82,15 @@ namespace MusicProject.Controllers
             model.SelectedGenreIds ??= new List<int>();
 
             FillArtistLayoutData(model, dashboard);
-            FillCreateSongOptions(model, dashboard.Artist.Id);
+            FillCreateSongOptions(model, dashboard.Artist.ArtistId);
 
             ValidateSongSelection(
                 model.SelectedGenreIds,
                 model.AlbumId,
-                dashboard.Artist.Id,
+                dashboard.Artist.ArtistId,
                 nameof(model.SelectedGenreIds),
                 nameof(model.AlbumId),
                 "Seçilen albüm bu sanatçı hesabına ait değil.");
-
-            Album? selectedAlbum = null;
-
-            if (model.AlbumId.HasValue)
-            {
-                selectedAlbum = _albumService.GetArtistAlbumDetails(
-                    model.AlbumId.Value,
-                    dashboard.Artist.Id);
-            }
 
             if (model.AlbumId == null &&
                 model.PublicationStatus == PublicationStatus.Archived)
@@ -112,137 +105,40 @@ namespace MusicProject.Controllers
                 return View(model);
             }
 
-            DateTime? scheduledPublishAtUtc = null;
-            DateTime? publishedAtUtc = null;
-            var publicationStatus = PublicationStatus.Draft;
-
-            if (selectedAlbum != null)
-            {
-                switch (selectedAlbum.PublicationStatus)
+            var result = await _artistSongWorkflowService.CreateSongAsync(
+                new CreateArtistSongRequest
                 {
-                    case PublicationStatus.Published:
-                        publicationStatus = PublicationStatus.Published;
-                        publishedAtUtc = DateTime.UtcNow;
-                        break;
+                    ArtistId = dashboard.Artist.ArtistId,
+                    Title = model.Title,
+                    AlbumId = model.AlbumId,
+                    LabelId = model.LabelId,
+                    GenreIds = model.SelectedGenreIds,
+                    RequestedStatus = model.PublicationStatus,
+                    ScheduledPublishAtLocal = model.ScheduledPublishAtLocal,
+                    AudioFile = model.AudioFile!
+                });
 
-                    case PublicationStatus.Draft:
-                    case PublicationStatus.Scheduled:
-                    case PublicationStatus.Archived:
-                        publicationStatus = PublicationStatus.Draft;
-                        break;
-                }
-            }
-            else
+            if (!result.Succeeded)
             {
-                publicationStatus = model.PublicationStatus;
-
-                try
-                {
-                    scheduledPublishAtUtc =
-                        _publicationService.ValidateAndConvertToUtc(
-                            model.PublicationStatus,
-                            model.ScheduledPublishAtLocal);
-                }
-                catch (InvalidOperationException exception)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.ScheduledPublishAtLocal),
-                        exception.Message);
-
-                    return View(model);
-                }
-
-                if (publicationStatus == PublicationStatus.Published)
-                {
-                    publishedAtUtc = DateTime.UtcNow;
-                }
-            }
-
-            string storedAudioFileName;
-
-            try
-            {
-                storedAudioFileName =
-                    await _audioStorageService.SaveMp3Async(model.AudioFile!);
-            }
-            catch (InvalidOperationException exception)
-            {
-                ModelState.AddModelError(
-                    nameof(model.AudioFile),
-                    exception.Message);
-
-                return View(model);
-            }
-
-            var song = new Song
-            {
-                Title = model.Title.Trim(),
-                AudioFileName = storedAudioFileName,
-                AlbumId = model.AlbumId,
-                LabelId = model.LabelId,
-                PublicationStatus = publicationStatus,
-                ScheduledPublishAtUtc = scheduledPublishAtUtc,
-                PublishedAtUtc = publishedAtUtc
-            };
-
-            var songCreated = false;
-
-            try
-            {
-                _songService.AddSongWithRelations(
-                    song,
-                    dashboard.Artist.Id,
-                    model.SelectedGenreIds);
-
-                songCreated = true;
-
-                if (song.AlbumId == null &&
-                    song.PublicationStatus == PublicationStatus.Scheduled &&
-                    song.ScheduledPublishAtUtc.HasValue)
-                {
-                    song.PublicationJobId =
-                        _publicationJobScheduler.ScheduleSongPublication(
-                            song.Id,
-                            song.ScheduledPublishAtUtc.Value);
-
-                    _songService.UpdatePublication(song);
-                }
-            }
-            catch (InvalidOperationException exception)
-            {
-                if (!songCreated)
-                {
-                    _audioStorageService.Delete(storedAudioFileName);
-                }
-
-                ModelState.AddModelError(
+                return HandleSongWorkflowFailure(
+                    result,
+                    model,
                     nameof(model.Title),
-                    exception.Message);
-
-                return View(model);
-            }
-            catch
-            {
-                if (!songCreated)
-                {
-                    _audioStorageService.Delete(storedAudioFileName);
-                }
-
-                throw;
+                    nameof(model.AudioFile),
+                    nameof(model.ScheduledPublishAtLocal));
             }
 
-            TempData["SuccessMessage"] = GetSongCreationMessage(song);
+            TempData["SuccessMessage"] = result.SuccessMessage;
 
-            if (song.AlbumId.HasValue)
+            if (result.AlbumId.HasValue)
             {
                 return RedirectToAction(
                     nameof(AlbumDetails),
-                    new { albumId = song.AlbumId.Value });
+                    new { albumId = result.AlbumId.Value });
             }
 
             return RedirectToAction(nameof(MySongs));
         }
-
 
         [HttpGet]
         public IActionResult EditSong(int songId)
@@ -254,7 +150,7 @@ namespace MusicProject.Controllers
 
             var song = _songService.GetArtistSongForEdit(
                 songId,
-                dashboard.Artist.Id);
+                dashboard.Artist.ArtistId);
 
             if (song == null)
             {
@@ -271,12 +167,12 @@ namespace MusicProject.Controllers
                 AlbumId = song.AlbumId,
                 LabelId = song.LabelId,
                 SelectedGenreIds = song.SongGenres
-                                        .Select(songGenre => songGenre.GenreId)
-                                        .ToList(),
+                    .Select(songGenre => songGenre.GenreId)
+                    .ToList(),
                 PublicationStatus = song.PublicationStatus,
                 ScheduledPublishAtLocal = song.ScheduledPublishAtUtc.HasValue
-                ? _publicationService.ConvertUtcToTurkeyTime(song.ScheduledPublishAtUtc.Value)
-                : null,
+                    ? _publicationService.ConvertUtcToTurkeyTime(song.ScheduledPublishAtUtc.Value)
+                    : null,
                 HasAudioFile = !string.IsNullOrWhiteSpace(song.AudioFileName),
                 IsAdminHidden = song.IsAdminHidden,
                 AdminHiddenReason = song.AdminHiddenReason,
@@ -287,7 +183,7 @@ namespace MusicProject.Controllers
             };
 
             FillArtistLayoutData(model, dashboard);
-            FillEditSongOptions(model, dashboard.Artist.Id);
+            FillEditSongOptions(model, dashboard.Artist.ArtistId);
 
             return View(model);
         }
@@ -304,11 +200,11 @@ namespace MusicProject.Controllers
             model.SelectedGenreIds ??= new List<int>();
 
             FillArtistLayoutData(model, dashboard);
-            FillEditSongOptions(model, dashboard.Artist.Id);
+            FillEditSongOptions(model, dashboard.Artist.ArtistId);
 
             var existingSong = _songService.GetArtistSongForEdit(
                 model.SongId,
-                dashboard.Artist.Id);
+                dashboard.Artist.ArtistId);
 
             if (existingSong == null)
             {
@@ -331,200 +227,44 @@ namespace MusicProject.Controllers
             model.AlbumAdminHiddenReason =
                 existingSong.Album?.AdminHiddenReason;
 
-            var oldPublicationJobId =
-                existingSong.PublicationJobId;
-
             ValidateSongSelection(
                 model.SelectedGenreIds,
                 model.AlbumId,
-                dashboard.Artist.Id,
+                dashboard.Artist.ArtistId,
                 nameof(model.SelectedGenreIds),
                 nameof(model.AlbumId),
                 "Seçilen albüm bu sanatçı hesabına ait değil.");
-
-            Album? selectedAlbum = null;
-
-            if (model.AlbumId.HasValue)
-            {
-                selectedAlbum = _albumService.GetArtistAlbumDetails(
-                    model.AlbumId.Value,
-                    dashboard.Artist.Id);
-            }
 
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            DateTime? scheduledPublishAtUtc = null;
-            DateTime? publishedAtUtc = existingSong.PublishedAtUtc;
-
-            var publicationStatus = PublicationStatus.Draft;
-
-            if (selectedAlbum != null)
-            {
-                publicationStatus = selectedAlbum.PublicationStatus switch
+            var result = await _artistSongWorkflowService.UpdateSongAsync(
+                new UpdateArtistSongRequest
                 {
-                    PublicationStatus.Published =>
-                        PublicationStatus.Published,
-
-                    _ =>
-                        PublicationStatus.Draft
-                };
-
-                if (publicationStatus == PublicationStatus.Published &&
-                    !publishedAtUtc.HasValue)
-                {
-                    publishedAtUtc = DateTime.UtcNow;
-                }
-            }
-            else
-            {
-                publicationStatus = model.PublicationStatus;
-
-                try
-                {
-                    scheduledPublishAtUtc =
-                        _publicationService.ValidateAndConvertToUtc(
-                            model.PublicationStatus,
-                            model.ScheduledPublishAtLocal);
-                }
-                catch (InvalidOperationException exception)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.ScheduledPublishAtLocal),
-                        exception.Message);
-
-                    return View(model);
-                }
-
-                if (publicationStatus == PublicationStatus.Published &&
-                    !publishedAtUtc.HasValue)
-                {
-                    publishedAtUtc = DateTime.UtcNow;
-                }
-            }
-
-            var oldAudioFileName =
-                existingSong.AudioFileName;
-
-            var newAudioFileName =
-                oldAudioFileName;
-
-            if (model.AudioFile != null &&
-                model.AudioFile.Length > 0)
-            {
-                try
-                {
-                    newAudioFileName =
-                        await _audioStorageService.SaveMp3Async(
-                            model.AudioFile);
-                }
-                catch (InvalidOperationException exception)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.AudioFile),
-                        exception.Message);
-
-                    return View(model);
-                }
-            }
-
-            string? newPublicationJobId = null;
-
-            try
-            {
-                if (selectedAlbum == null &&
-                    publicationStatus == PublicationStatus.Scheduled &&
-                    scheduledPublishAtUtc.HasValue)
-                {
-                    newPublicationJobId =
-                        _publicationJobScheduler.ScheduleSongPublication(
-                            model.SongId,
-                            scheduledPublishAtUtc.Value);
-                }
-
-                var song = new Song
-                {
-                    Id = model.SongId,
+                    SongId = model.SongId,
+                    ArtistId = dashboard.Artist.ArtistId,
                     Title = model.Title,
-                    AudioFileName = newAudioFileName,
                     AlbumId = model.AlbumId,
                     LabelId = model.LabelId,
-                    PublicationStatus = publicationStatus,
-                    ScheduledPublishAtUtc = scheduledPublishAtUtc,
-                    PublishedAtUtc = publishedAtUtc,
-                    PublicationJobId = newPublicationJobId
-                };
+                    GenreIds = model.SelectedGenreIds,
+                    RequestedStatus = model.PublicationStatus,
+                    ScheduledPublishAtLocal = model.ScheduledPublishAtLocal,
+                    AudioFile = model.AudioFile
+                });
 
-                _songService.UpdateArtistSong(
-                    song,
-                    dashboard.Artist.Id,
-                    model.SelectedGenreIds);
-
-                if (!string.IsNullOrWhiteSpace(oldPublicationJobId) &&
-                    oldPublicationJobId != newPublicationJobId)
-                {
-                    _publicationJobScheduler.Cancel(
-                        oldPublicationJobId);
-                }
-
-                if (!string.Equals(
-                    oldAudioFileName,
-                    newAudioFileName,
-                    StringComparison.Ordinal))
-                {
-                    _audioStorageService.Delete(
-                        oldAudioFileName);
-                }
-            }
-            catch (InvalidOperationException exception)
+            if (!result.Succeeded)
             {
-                if (!string.IsNullOrWhiteSpace(newPublicationJobId))
-                {
-                    _publicationJobScheduler.Cancel(
-                        newPublicationJobId);
-                }
-
-                if (!string.Equals(
-                    oldAudioFileName,
-                    newAudioFileName,
-                    StringComparison.Ordinal))
-                {
-                    _audioStorageService.Delete(
-                        newAudioFileName);
-                }
-
-                ModelState.AddModelError(
+                return HandleSongWorkflowFailure(
+                    result,
+                    model,
                     nameof(model.Title),
-                    exception.Message);
-
-                return View(model);
-            }
-            catch
-            {
-                if (!string.IsNullOrWhiteSpace(newPublicationJobId))
-                {
-                    _publicationJobScheduler.Cancel(
-                        newPublicationJobId);
-                }
-
-                if (!string.Equals(
-                    oldAudioFileName,
-                    newAudioFileName,
-                    StringComparison.Ordinal))
-                {
-                    _audioStorageService.Delete(
-                        newAudioFileName);
-                }
-
-                throw;
+                    nameof(model.AudioFile),
+                    nameof(model.ScheduledPublishAtLocal));
             }
 
-            TempData["SuccessMessage"] = GetSongUpdateMessage(
-                model.Title,
-                publicationStatus,
-                scheduledPublishAtUtc);
+            TempData["SuccessMessage"] = result.SuccessMessage;
 
             return RedirectToAction(nameof(MySongs));
         }
@@ -538,41 +278,82 @@ namespace MusicProject.Controllers
                 return error!;
             }
 
-            var song = _songService.GetArtistSongForEdit(
+            var result = _artistSongWorkflowService.DeleteSong(
                 songId,
-                dashboard.Artist.Id);
+                dashboard.Artist.ArtistId);
 
-            if (song == null)
+            if (result.Succeeded)
             {
-                TempData["ErrorMessage"] =
-                    "Şarkı bulunamadı veya bu şarkıyı silme yetkiniz yok.";
-
-                return RedirectToAction(nameof(MySongs));
+                TempData["SuccessMessage"] = result.SuccessMessage;
             }
-
-            var publicationJobId = song.PublicationJobId;
-            var audioFileName = song.AudioFileName;
-            try
+            else
             {
-                _songService.DeleteArtistSong(
-                    songId,
-                    dashboard.Artist.Id);
-
-                _publicationJobScheduler.Cancel(publicationJobId);
-                _audioStorageService.Delete(audioFileName);
-
-                TempData["SuccessMessage"] =
-                    "Şarkı başarıyla silindi.";
-            }
-            catch (InvalidOperationException exception)
-            {
-                TempData["ErrorMessage"] = exception.Message;
+                TempData["ErrorMessage"] = result.ErrorMessage;
             }
 
             return RedirectToAction(nameof(MySongs));
         }
 
-        private void ValidateSongSelection(List<int> selectedGenreIds, int? albumId, int artistId, string genreFieldName, string albumFieldName, string albumErrorMessage)
+        private static ArtistSongListItemDto ToArtistSongListItem(Song song)
+        {
+            return new ArtistSongListItemDto
+            {
+                SongId = song.Id,
+                Title = song.Title,
+                AlbumId = song.AlbumId,
+                AlbumName = song.Album?.Name ?? string.Empty,
+                TotalStreams = song.SongStat?.TotalStreams ?? 0,
+                TotalLikes = song.SongStat?.TotalLikes ?? 0,
+                PopularityScore = song.SongStat?.PopularityScore ?? 0,
+                PublicationStatus = song.PublicationStatus,
+                CreatedAt = song.CreatedAt,
+                IsAdminHidden = song.IsAdminHidden,
+                AdminHiddenReason = song.AdminHiddenReason,
+                IsHiddenByAlbum = song.Album?.IsAdminHidden ?? false,
+                AlbumAdminHiddenReason = song.Album?.AdminHiddenReason,
+                GenreNames = song.SongGenres
+                    .Where(songGenre => songGenre.Genre != null)
+                    .Select(songGenre => songGenre.Genre.Name)
+                    .Distinct()
+                    .OrderBy(genreName => genreName)
+                    .ToList()
+            };
+        }
+
+        private IActionResult HandleSongWorkflowFailure(
+            ArtistSongWorkflowResult result,
+            object model,
+            string titleFieldName,
+            string audioFileFieldName,
+            string scheduledPublishFieldName)
+        {
+            var fieldName = result.ErrorField switch
+            {
+                ArtistSongWorkflowField.Title => titleFieldName,
+                ArtistSongWorkflowField.AudioFile => audioFileFieldName,
+                ArtistSongWorkflowField.ScheduledPublishAt => scheduledPublishFieldName,
+                _ => null
+            };
+
+            if (fieldName == null)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+
+                return RedirectToAction(nameof(MySongs));
+            }
+
+            ModelState.AddModelError(fieldName, result.ErrorMessage!);
+
+            return View(model);
+        }
+
+        private void ValidateSongSelection(
+            List<int> selectedGenreIds,
+            int? albumId,
+            int artistId,
+            string genreFieldName,
+            string albumFieldName,
+            string albumErrorMessage)
         {
             if (selectedGenreIds.Count == 0)
             {
@@ -589,108 +370,49 @@ namespace MusicProject.Controllers
 
                 if (selectedAlbum == null)
                 {
-                    ModelState.AddModelError(
-                        albumFieldName,
-                        albumErrorMessage);
+                    ModelState.AddModelError(albumFieldName, albumErrorMessage);
                 }
             }
         }
 
         private void FillCreateSongOptions(CreateSongViewModel model, int artistId)
         {
-            model.AlbumOptions = _albumService
-                .GetAlbumsByArtistId(artistId)
-                .Select(album => new SelectListItem
-                {
-                    Value = album.Id.ToString(),
-                    Text = album.Name,
-                    Selected = model.AlbumId == album.Id
-                })
-                .ToList();
-
-            model.GenreOptions = _genreService
-                .GetAllGenres()
-                .Select(genre => new SelectListItem
-                {
-                    Value = genre.Id.ToString(),
-                    Text = genre.Name,
-                    Selected = model.SelectedGenreIds.Contains(genre.Id)
-                })
-                .ToList();
+            model.AlbumOptions = BuildAlbumOptions(artistId, model.AlbumId);
+            model.GenreOptions = BuildGenreOptions(model.SelectedGenreIds);
         }
 
         private void FillEditSongOptions(EditSongViewModel model, int artistId)
         {
-            var albums = _albumService
+            model.AlbumOptions = BuildAlbumOptions(artistId, model.AlbumId);
+            model.GenreOptions = BuildGenreOptions(model.SelectedGenreIds);
+        }
+
+        private List<SelectListItem> BuildAlbumOptions(int artistId, int? selectedAlbumId)
+        {
+            return _albumService
                 .GetAlbumsByArtistId(artistId)
                 .OrderBy(album => album.Name)
-                .ToList();
-
-            var genres = _genreService
-                .GetAllGenres()
-                .OrderBy(genre => genre.Name)
-                .ToList();
-
-            model.AlbumOptions = albums
                 .Select(album => new SelectListItem
                 {
                     Value = album.Id.ToString(),
                     Text = album.Name,
-                    Selected = model.AlbumId == album.Id
+                    Selected = selectedAlbumId == album.Id
                 })
                 .ToList();
+        }
 
-            model.GenreOptions = genres
+        private List<SelectListItem> BuildGenreOptions(ICollection<int> selectedGenreIds)
+        {
+            return _genreService
+                .GetAllGenres()
+                .OrderBy(genre => genre.Name)
                 .Select(genre => new SelectListItem
                 {
                     Value = genre.Id.ToString(),
                     Text = genre.Name,
-                    Selected = model.SelectedGenreIds.Contains(genre.Id)
+                    Selected = selectedGenreIds.Contains(genre.Id)
                 })
                 .ToList();
-        }
-
-        private string GetSongCreationMessage(Song song)
-        {
-            return song.PublicationStatus switch
-            {
-                PublicationStatus.Draft =>
-                    $"'{song.Title}' şarkısı taslak olarak kaydedildi.",
-
-                PublicationStatus.Scheduled when song.ScheduledPublishAtUtc.HasValue =>
-                    $"'{song.Title}' şarkısı " +
-                    $"{_publicationService.ConvertUtcToTurkeyTime(song.ScheduledPublishAtUtc.Value):dd.MM.yyyy HH:mm} " +
-                    "tarihine planlandı.",
-
-                PublicationStatus.Published =>
-                    $"'{song.Title}' şarkısı yayınlandı.",
-
-                _ =>
-                    $"'{song.Title}' şarkısı başarıyla oluşturuldu."
-            };
-        }
-
-        private string GetSongUpdateMessage(string title, PublicationStatus publicationStatus, DateTime? scheduledPublishAtUtc)
-        {
-            return publicationStatus switch
-            {
-                PublicationStatus.Draft =>
-                    $"'{title.Trim()}' şarkısı taslak olarak güncellendi.",
-
-                PublicationStatus.Scheduled when scheduledPublishAtUtc.HasValue =>
-                    $"'{title.Trim()}' şarkısı " +
-                    $"{_publicationService.ConvertUtcToTurkeyTime(scheduledPublishAtUtc.Value):dd.MM.yyyy HH:mm} " +
-                    "tarihine planlandı.",
-
-                PublicationStatus.Published =>
-                    $"'{title.Trim()}' şarkısı yayınlandı.",
-
-                PublicationStatus.Archived =>
-                    $"'{title.Trim()}' şarkısı arşivlendi.",
-
-                _ =>
-                    $"'{title.Trim()}' şarkısı başarıyla güncellendi."
-            };
         }
     }
 }

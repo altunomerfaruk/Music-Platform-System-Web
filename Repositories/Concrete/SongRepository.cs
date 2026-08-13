@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MusicProject.Contracts.Requests;
 using MusicProject.Data;
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
@@ -38,6 +39,129 @@ namespace MusicProject.Repositories.Concrete
                 .OrderBy(song => song.Title)
                 .ThenByDescending(song => song.AlbumId)
                 .ToList();
+        }
+
+        public IEnumerable<Song> SearchSongs(SongSearchRequest request)
+        {
+            var query = VisibleSongs();
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                var search = request.Search.Trim();
+
+                query = query.Where(song =>
+                    song.Title.Contains(search) ||
+                    (song.Album != null && song.Album.Name.Contains(search)) ||
+                    (song.Album != null && song.Album.Artist.Name.Contains(search)) ||
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.Artist.Name.Contains(search)));
+            }
+
+            if (request.ArtistId.HasValue)
+            {
+                query = query.Where(song =>
+                    (song.Album != null && song.Album.ArtistId == request.ArtistId.Value) ||
+                    song.SongArtists.Any(songArtist =>
+                        songArtist.ArtistId == request.ArtistId.Value));
+            }
+
+            if (request.AlbumId.HasValue)
+            {
+                query = query.Where(song => song.AlbumId == request.AlbumId.Value);
+            }
+
+            if (request.GenreId.HasValue)
+            {
+                query = query.Where(song =>
+                    song.SongGenres.Any(songGenre =>
+                        songGenre.GenreId == request.GenreId.Value));
+            }
+
+            if (request.LikedOnly)
+            {
+                query = query.Where(song =>
+                    _context.LikedSongs.Any(likedSong =>
+                        likedSong.SongId == song.Id &&
+                        likedSong.UserId == request.UserId &&
+                        likedSong.IsActive));
+            }
+
+            query = request.Sort switch
+            {
+                "name-desc" => query
+                    .OrderByDescending(song => song.Title),
+
+                "streams-desc" => query
+                    .OrderByDescending(song => song.SongStat!.TotalStreams)
+                    .ThenBy(song => song.Title),
+
+                "streams-asc" => query
+                    .OrderBy(song => song.SongStat!.TotalStreams)
+                    .ThenBy(song => song.Title),
+
+                "newest" => query
+                    .OrderByDescending(song => song.CreatedAt)
+                    .ThenBy(song => song.Title),
+
+                "oldest" => query
+                    .OrderBy(song => song.CreatedAt)
+                    .ThenBy(song => song.Title),
+
+                _ => query.OrderBy(song => song.Title)
+            };
+
+            return query
+                .AsSplitQuery()
+                .Include(song => song.Album)
+                    .ThenInclude(album => album!.Artist)
+                .Include(song => song.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Artist)
+                .Include(song => song.SongGenres)
+                    .ThenInclude(songGenre => songGenre.Genre)
+                .Include(song => song.SongStat)
+                .ToList();
+        }
+
+        public int GetVisibleSongCount()
+        {
+            return VisibleSongs().Count();
+        }
+
+        public IEnumerable<Song> SearchVisibleSongsByText(string query, int? maxResults)
+        {
+            var search = query.Trim();
+
+            var songs = VisibleSongs()
+                .Where(song =>
+                    song.Title.Contains(search) ||
+                    (song.Album != null && song.Album.Name.Contains(search)))
+                .OrderBy(song => song.Title)
+                .ThenByDescending(song => song.AlbumId);
+
+            var limited = maxResults.HasValue
+                ? songs.Take(maxResults.Value)
+                : songs;
+
+            return limited
+                .AsSplitQuery()
+                .Include(song => song.Album)
+                    .ThenInclude(album => album!.Artist)
+                .Include(song => song.SongArtists)
+                    .ThenInclude(songArtist => songArtist.Artist)
+                .Include(song => song.SongStat)
+                .ToList();
+        }
+
+        private IQueryable<Song> VisibleSongs()
+        {
+            return _dbSet
+                .AsNoTracking()
+                .Where(song =>
+                    !song.IsAdminHidden &&
+                    song.PublicationStatus == PublicationStatus.Published &&
+                    (song.AlbumId == null ||
+                     (song.Album!.PublicationStatus == PublicationStatus.Published &&
+                      !song.Album.IsAdminHidden)));
         }
 
         public IEnumerable<Song> GetSongsByArtistId(int artistId)

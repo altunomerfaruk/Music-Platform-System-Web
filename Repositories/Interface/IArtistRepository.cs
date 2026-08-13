@@ -1,10 +1,21 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Models.Concrete;
 
 namespace MusicProject.Repositories.Interface
 {
     public interface IArtistRepository
     {
         IEnumerable<Artist> GetAll();
+
+        IEnumerable<Artist> SearchArtists(ArtistSearchRequest request);
+
+        int GetArtistCount();
+
+        IEnumerable<Artist> SearchArtistsByText(string query, int? maxResults);
+
+        IEnumerable<Artist> GetFeaturedArtists(int count);
+
+        IEnumerable<string> GetUsedCountryNames();
 
         Artist? GetByID(int id);
 

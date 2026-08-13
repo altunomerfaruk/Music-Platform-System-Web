@@ -1,6 +1,7 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.ArtistDashboard;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
-using MusicProject.ViewModels.ArtistDashboard;
 
 namespace MusicProject.Services.Interface
 {
@@ -8,13 +9,23 @@ namespace MusicProject.Services.Interface
     {
         IEnumerable<Artist> GetAllArtists();
 
+        IEnumerable<Artist> SearchArtists(ArtistSearchRequest request);
+
+        int GetArtistCount();
+
+        IEnumerable<Artist> SearchArtistsByText(string query, int? maxResults);
+
+        IEnumerable<Artist> GetFeaturedArtists(int count);
+
+        IEnumerable<string> GetUsedCountryNames();
+
         Artist? GetArtistById(int id);
 
         void AddArtist(Artist artist);
 
         void UpdateArtist(Artist artist);
 
-        ArtistDashboardViewModel? GetArtistDashboard(int userId);
+        ArtistDashboardDto? GetArtistDashboard(int userId);
 
         void DeleteArtist(int id);
 

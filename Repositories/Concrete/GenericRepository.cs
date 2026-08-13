@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicProject.Data;
 using MusicProject.Models.Core;
+using MusicProject.Repositories.Interface;
 using System.Linq.Expressions;
 
-namespace MusicProject.Repositories.Interface
+namespace MusicProject.Repositories.Concrete
 {
     public class GenericRepository<T> : IGenericRepository<T>
         where T : BaseEntities

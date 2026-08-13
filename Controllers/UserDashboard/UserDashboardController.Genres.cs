@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Muzik turu listeleme / detay aksiyonlari.
     public partial class UserDashboardController
     {
         [HttpGet]
@@ -19,6 +19,12 @@ namespace MusicProject.Controllers
                 Genres = _genreService
                     .GetAllGenres()
                     .OrderBy(genre => genre.Name)
+                    .Select(genre => new GenreListItemDto
+                    {
+                        GenreId = genre.Id,
+                        Name = genre.Name,
+                        SongCount = genre.SongGenres.Count
+                    })
                     .ToList()
             };
 
@@ -27,9 +33,6 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Secilen muzik turunu ve o ture bagli sarkilari gosterir.
-        /// </summary>
         [HttpGet]
         public IActionResult GenreDetails(int genreId)
         {
@@ -52,7 +55,16 @@ namespace MusicProject.Controllers
 
             var model = new GenreDetailsViewModel
             {
-                Genre = genre,
+                Genre = new GenreDetailsDto
+                {
+                    GenreId = genre.Id,
+                    Name = genre.Name,
+                    Songs = genre.SongGenres
+                        .Select(songGenre => songGenre.Song)
+                        .OrderBy(song => song.Title)
+                        .Select(ToSongListItem)
+                        .ToList()
+                },
 
                 LikedSongIds = _likedSongService
                     .GetActiveLikedSongIds(userId)

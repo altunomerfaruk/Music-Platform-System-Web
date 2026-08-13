@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicProject.Controllers.Base;
 using MusicProject.Services.Interface;
@@ -10,6 +10,8 @@ namespace MusicProject.Controllers
     [Authorize(Roles = "User,Artist")]
     public partial class UserDashboardController : DashboardControllerBase
     {
+        private const int FeaturedArtistCount = 6;
+
         private readonly ISongService _songService;
         private readonly IArtistService _artistService;
         private readonly IAlbumService _albumService;
@@ -52,11 +54,14 @@ namespace MusicProject.Controllers
 
             var model = new UserDashboardViewModel
             {
-                PopularSongs = _songService.GetPopularSongs(),
+                PopularSongs = _songService
+                    .GetPopularSongs()
+                    .Select(ToSongListItem)
+                    .ToList(),
 
                 Artists = _artistService
-                    .GetAllArtists()
-                    .Take(6)
+                    .GetFeaturedArtists(FeaturedArtistCount)
+                    .Select(ToArtistListItem)
                     .ToList(),
 
                 LikedSongIds = _likedSongService

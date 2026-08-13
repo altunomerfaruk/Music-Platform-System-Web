@@ -458,7 +458,7 @@
 
                         @foreach (var song in Model.Songs)
                         {
-                            var isLiked = Model.LikedSongIds.Contains(song.Id);
+                            var isLiked = Model.LikedSongIds.Contains(song.SongId);
                             var likeButtonClass = isLiked
                                 ? "search-like-button liked"
                                 : "search-like-button";
@@ -471,7 +471,7 @@
 
                                 <a asp-controller="UserDashboard"
                                    asp-action="SongDetails"
-                                   asp-route-songId="@song.Id"
+                                   asp-route-songId="@song.SongId"
                                    class="search-result-link">
 
                                     <div class="search-song-info">
@@ -487,7 +487,9 @@
                                             </div>
 
                                             <div class="search-song-album">
-                                                @(song.Album?.Name ?? "Single")
+                                                @(string.IsNullOrWhiteSpace(song.AlbumName)
+                                                    ? "Single"
+                                                    : song.AlbumName)
                                             </div>
 
                                         </div>
@@ -497,12 +499,12 @@
                                 </a>
 
                                 <div class="search-song-streams">
-                                    @(song.SongStat?.TotalStreams ?? 0) dinlenme
+                                    @song.TotalStreams dinlenme
                                 </div>
 
                                 <button type="button"
                                         class="search-play-button"
-                                        data-song-id="@song.Id">
+                                        data-song-id="@song.SongId">
                                     ▶
                                 </button>
 
@@ -515,7 +517,7 @@
 
                                     <input type="hidden"
                                            name="songId"
-                                           value="@song.Id" />
+                                           value="@song.SongId" />
 
                                     <input type="hidden"
                                            name="returnUrl"
@@ -557,7 +559,7 @@
 
                         @foreach (var artist in Model.Artists)
                         {
-                            var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+                            var isFollowed = Model.FollowedArtistIds.Contains(artist.ArtistId);
                             var followButtonClass = isFollowed
                                 ? "search-follow-button followed"
                                 : "search-follow-button";
@@ -572,7 +574,7 @@
 
                                 <a asp-controller="UserDashboard"
                                    asp-action="ArtistDetails"
-                                   asp-route-artistId="@artist.Id"
+                                   asp-route-artistId="@artist.ArtistId"
                                    class="search-result-link">
 
                                     <div class="search-artist-image">
@@ -600,7 +602,7 @@
 
                                     <input type="hidden"
                                            name="artistId"
-                                           value="@artist.Id" />
+                                           value="@artist.ArtistId" />
 
                                     <input type="hidden"
                                            name="returnUrl"
@@ -646,7 +648,7 @@
 
                                 <a asp-controller="UserDashboard"
                                    asp-action="AlbumDetails"
-                                   asp-route-albumId="@album.Id"
+                                   asp-route-albumId="@album.AlbumId"
                                    class="search-result-link">
 
                                     <div class="search-album-image">
@@ -658,7 +660,7 @@
                                     </h4>
 
                                     <p class="search-card-description">
-                                        @album.Artist.Name
+                                        @album.ArtistName
                                     </p>
 
                                 </a>

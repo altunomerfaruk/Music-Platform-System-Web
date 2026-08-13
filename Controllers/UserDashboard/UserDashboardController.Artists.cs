@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Sanatci listeleme / detay / takip aksiyonlari.
     public partial class UserDashboardController
     {
         [HttpGet]
@@ -82,41 +83,32 @@ namespace MusicProject.Controllers
             country = country?.Trim() ?? string.Empty;
             sort = string.IsNullOrWhiteSpace(sort) ? "name-asc" : sort;
 
-            var allArtists = _artistService
-                .GetAllArtists()
-                .ToList();
-
             var followedArtistIds = _followedArtistService
                 .GetActiveFollowedArtistIds(userId)
                 .ToHashSet();
 
-            var countries = allArtists
-                .Select(artist => artist.CountryEntity?.Name)
-                .Where(countryName => !string.IsNullOrWhiteSpace(countryName))
-                .Select(countryName => countryName!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(countryName => countryName)
-                .ToList();
-
-            var filteredArtists = ApplyArtistFilters(
-                allArtists,
-                search,
-                country,
-                followedOnly,
-                followedArtistIds);
-
-            filteredArtists = ApplyArtistSort(filteredArtists, sort);
+            var artists = _artistService.SearchArtists(new ArtistSearchRequest
+            {
+                Search = search,
+                Country = country,
+                Sort = sort,
+                FollowedOnly = followedOnly,
+                UserId = userId
+            });
 
             var model = new AllArtistsViewModel
             {
-                Artists = filteredArtists.ToList(),
+                Artists = artists
+                    .Select(ToArtistListItem)
+                    .ToList(),
+
                 FollowedArtistIds = followedArtistIds,
                 Search = search,
                 Country = country,
                 Sort = sort,
                 FollowedOnly = followedOnly,
-                Countries = countries,
-                TotalArtistCount = allArtists.Count
+                Countries = _artistService.GetUsedCountryNames().ToList(),
+                TotalArtistCount = _artistService.GetArtistCount()
             };
 
             FillLayoutData(model, userId);
@@ -143,56 +135,14 @@ namespace MusicProject.Controllers
             return RedirectBack(returnUrl);
         }
 
-        private static IEnumerable<Artist> ApplyArtistFilters(
-            IEnumerable<Artist> artists,
-            string search,
-            string country,
-            bool followedOnly,
-            HashSet<int> followedArtistIds)
+        private static ArtistListItemDto ToArtistListItem(Artist artist)
         {
-            if (!string.IsNullOrWhiteSpace(search))
+            return new ArtistListItemDto
             {
-                artists = artists.Where(artist =>
-                    artist.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrWhiteSpace(country))
-            {
-                artists = artists.Where(artist =>
-                    artist.CountryEntity != null &&
-                    artist.CountryEntity.Name.Equals(
-                        country,
-                        StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (followedOnly)
-            {
-                artists = artists.Where(artist =>
-                    followedArtistIds.Contains(artist.Id));
-            }
-
-            return artists;
-        }
-
-        private static IEnumerable<Artist> ApplyArtistSort(
-            IEnumerable<Artist> artists,
-            string sort)
-        {
-            return sort switch
-            {
-                "name-desc" => artists.OrderByDescending(artist => artist.Name),
-
-                "year-newest" => artists
-                    .OrderByDescending(artist => artist.DebutYear.HasValue)
-                    .ThenByDescending(artist => artist.DebutYear)
-                    .ThenBy(artist => artist.Name),
-
-                "year-oldest" => artists
-                    .OrderByDescending(artist => artist.DebutYear.HasValue)
-                    .ThenBy(artist => artist.DebutYear)
-                    .ThenBy(artist => artist.Name),
-
-                _ => artists.OrderBy(artist => artist.Name)
+                ArtistId = artist.Id,
+                Name = artist.Name,
+                Country = artist.CountryEntity?.Name ?? string.Empty,
+                DebutYear = artist.DebutYear
             };
         }
     }

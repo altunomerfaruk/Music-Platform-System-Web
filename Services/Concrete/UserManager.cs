@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
-using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Services.Concrete
 {
@@ -71,7 +72,7 @@ namespace MusicProject.Services.Concrete
             return true;
         }
 
-        public UserSettingsViewModel? GetUserSettings(int userId)
+        public UserSettingsDto? GetUserSettings(int userId)
         {
             var user = _userRepository.GetById(userId);
 
@@ -80,17 +81,17 @@ namespace MusicProject.Services.Concrete
                 return null;
             }
 
-            return new UserSettingsViewModel
+            return new UserSettingsDto
             {
                 UserId = user.Id,
                 Username = user.Username,
                 Email = user.Email,
                 IsPremium = user.IsPremium ?? false,
-                RoleName = user.Role.ToString()
+                Role = user.Role
             };
         }
 
-        public UserSettingsResult UpdateUserSettings(int userId, UserSettingsViewModel model)
+        public UserSettingsResult UpdateUserSettings(int userId, UpdateUserSettingsRequest request)
         {
             var user = _userRepository.GetById(userId);
 
@@ -99,8 +100,8 @@ namespace MusicProject.Services.Concrete
                 return UserSettingsResult.UserNotFound;
             }
 
-            var normalizedUsername = model.Username.Trim();
-            var normalizedEmail = model.Email.Trim();
+            var normalizedUsername = request.Username.Trim();
+            var normalizedEmail = request.Email.Trim();
 
             var usernameExists = _userRepository.UsernameExists(normalizedUsername, userId);
 
@@ -117,30 +118,30 @@ namespace MusicProject.Services.Concrete
             }
 
             var wantsToChangePassword =
-                !string.IsNullOrWhiteSpace(model.CurrentPassword) ||
-                !string.IsNullOrWhiteSpace(model.NewPassword) ||
-                !string.IsNullOrWhiteSpace(model.ConfirmNewPassword);
+                !string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+                !string.IsNullOrWhiteSpace(request.NewPassword) ||
+                !string.IsNullOrWhiteSpace(request.ConfirmNewPassword);
 
             if (wantsToChangePassword)
             {
-                if (string.IsNullOrWhiteSpace(model.CurrentPassword))
+                if (string.IsNullOrWhiteSpace(request.CurrentPassword))
                 {
                     return UserSettingsResult.CurrentPasswordIncorrect;
                 }
 
-                var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, model.CurrentPassword);
+                var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, request.CurrentPassword);
 
                 if (verificationResult == PasswordVerificationResult.Failed)
                 {
                     return UserSettingsResult.CurrentPasswordIncorrect;
                 }
 
-                if (string.IsNullOrWhiteSpace(model.NewPassword))
+                if (string.IsNullOrWhiteSpace(request.NewPassword))
                 {
                     return UserSettingsResult.NewPasswordRequired;
                 }
 
-                user.Password = _passwordHasher.HashPassword(user, model.NewPassword);
+                user.Password = _passwordHasher.HashPassword(user, request.NewPassword);
             }
 
             user.Username = normalizedUsername;

@@ -9,6 +9,8 @@ namespace MusicProject.Repositories.Interface
 
         IEnumerable<Album> GetAllAlbums();
 
+        IEnumerable<Album> SearchVisibleAlbumsByText(string query, int? maxResults);
+
         IEnumerable<Album> GetAlbumsByArtistId(int artistId);
 
         Album? GetArtistAlbumDetails(int albumId, int artistId);

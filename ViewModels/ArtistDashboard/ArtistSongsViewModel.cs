@@ -1,14 +1,14 @@
 ﻿namespace MusicProject.ViewModels.ArtistDashboard;
-using MusicProject.Models.Concrete;
+using MusicProject.Contracts.Responses.ArtistDashboard;
 
 
 public class ArtistSongsViewModel: ArtistLayoutViewModel
     {
-     public IEnumerable<Song> Songs { get; set; } = new List<Song>();
+     public IEnumerable<ArtistSongListItemDto> Songs { get; set; }
+         = new List<ArtistSongListItemDto>();
 
      public int TotalStreams {  get; set; }
 
      public int TotalLikes { get; set; }
 
     }
-

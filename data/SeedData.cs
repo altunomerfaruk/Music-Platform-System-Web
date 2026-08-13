@@ -4,12 +4,10 @@ namespace MusicProject.Data
 {
     public static class SeedData
     {
-        // Seed sanatçılarının ülkesi. Countries tablosundan IsoCode ile bulunur.
         private const string DefaultCountryIsoCode = "TR";
 
         public static void Initialize(AppDbContext context)
         {
-            // Yeni: Countries tablosundaki ülke kayıtlarını oluşturur.
             CountrySeedData.AddCountries(context);
 
             var defaultCountryId = GetCountryIdByIsoCode(
@@ -24,10 +22,6 @@ namespace MusicProject.Data
             context.SaveChanges();
         }
 
-        /// <summary>
-        /// Ülkeyi ISO koduna gore bulur. Ad yerine ISO kullaniliyor cunku
-        /// ulke adlari sunucunun kultur ayarina gore degisebiliyor.
-        /// </summary>
         private static int? GetCountryIdByIsoCode(
             AppDbContext context,
             string isoCode)
@@ -88,7 +82,6 @@ namespace MusicProject.Data
             {
                 Name = "Atlas",
 
-                // Ülke artık Countries tablosuna FK ile bağlı.
                 CountryId = countryId,
 
                 DebutYear = 2018,
@@ -147,7 +140,6 @@ namespace MusicProject.Data
             {
                 Name = "Elif Kaya",
 
-                // Ülke artık Countries tablosuna FK ile bağlı.
                 CountryId = countryId,
 
                 DebutYear = 2020,
@@ -206,7 +198,6 @@ namespace MusicProject.Data
             {
                 Name = "Mavi",
 
-                // Ülke artık Countries tablosuna FK ile bağlı.
                 CountryId = countryId,
 
                 DebutYear = 2019,

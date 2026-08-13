@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Sarki listeleme / detay / begenme / dinleme aksiyonlari.
     public partial class UserDashboardController
     {
         [HttpGet]
@@ -79,28 +80,27 @@ namespace MusicProject.Controllers
             search = search?.Trim() ?? string.Empty;
             sort = string.IsNullOrWhiteSpace(sort) ? "name-asc" : sort;
 
-            var allSongs = _songService
-                .GetSongsSortedByAlphabet()
-                .ToList();
-
             var likedSongIds = _likedSongService
                 .GetActiveLikedSongIds(userId)
                 .ToHashSet();
 
-            var filteredSongs = ApplySongFilters(
-                allSongs,
-                search,
-                artistId,
-                albumId,
-                genreId,
-                likedOnly,
-                likedSongIds);
-
-            filteredSongs = ApplySongSort(filteredSongs, sort);
+            var songs = _songService.SearchSongs(new SongSearchRequest
+            {
+                Search = search,
+                ArtistId = artistId,
+                AlbumId = albumId,
+                GenreId = genreId,
+                Sort = sort,
+                LikedOnly = likedOnly,
+                UserId = userId
+            });
 
             var model = new AllSongsViewModel
             {
-                Songs = filteredSongs.ToList(),
+                Songs = songs
+                    .Select(ToSongListItem)
+                    .ToList(),
+
                 LikedSongIds = likedSongIds,
 
                 Search = search,
@@ -113,19 +113,34 @@ namespace MusicProject.Controllers
                 Artists = _artistService
                     .GetAllArtists()
                     .OrderBy(artist => artist.Name)
+                    .Select(artist => new FilterOptionDto
+                    {
+                        Id = artist.Id,
+                        Name = artist.Name
+                    })
                     .ToList(),
 
                 Albums = _albumService
                     .GetAllAlbums()
                     .OrderBy(album => album.Name)
+                    .Select(album => new FilterOptionDto
+                    {
+                        Id = album.Id,
+                        Name = album.Name
+                    })
                     .ToList(),
 
                 Genres = _genreService
                     .GetAllGenres()
                     .OrderBy(genre => genre.Name)
+                    .Select(genre => new FilterOptionDto
+                    {
+                        Id = genre.Id,
+                        Name = genre.Name
+                    })
                     .ToList(),
 
-                TotalSongCount = allSongs.Count
+                TotalSongCount = _songService.GetVisibleSongCount()
             };
 
             FillLayoutData(model, userId);
@@ -240,86 +255,22 @@ namespace MusicProject.Controllers
                 enableRangeProcessing: true);
         }
 
-        private static IEnumerable<Song> ApplySongFilters(
-            IEnumerable<Song> songs,
-            string search,
-            int? artistId,
-            int? albumId,
-            int? genreId,
-            bool likedOnly,
-            HashSet<int> likedSongIds)
+        private static SongListItemDto ToSongListItem(Song song)
         {
-            if (!string.IsNullOrWhiteSpace(search))
+            var artist = song.Album?.Artist ??
+                         song.SongArtists
+                             .Select(songArtist => songArtist.Artist)
+                             .FirstOrDefault();
+
+            return new SongListItemDto
             {
-                songs = songs.Where(song =>
-                    song.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    (song.Album != null &&
-                     song.Album.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
-                    (song.Album?.Artist != null &&
-                     song.Album.Artist.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.Artist.Name.Contains(
-                            search,
-                            StringComparison.OrdinalIgnoreCase
-                        )));
-            }
-
-            if (artistId.HasValue)
-            {
-                songs = songs.Where(song =>
-                    song.Album?.ArtistId == artistId.Value ||
-                    song.SongArtists.Any(songArtist =>
-                        songArtist.ArtistId == artistId.Value));
-            }
-
-            if (albumId.HasValue)
-            {
-                songs = songs.Where(song =>
-                    song.AlbumId == albumId.Value);
-            }
-
-            if (genreId.HasValue)
-            {
-                songs = songs.Where(song =>
-                    song.SongGenres.Any(songGenre =>
-                        songGenre.GenreId == genreId.Value));
-            }
-
-            if (likedOnly)
-            {
-                songs = songs.Where(song =>
-                    likedSongIds.Contains(song.Id));
-            }
-
-            return songs;
-        }
-
-        private static IEnumerable<Song> ApplySongSort(
-            IEnumerable<Song> songs,
-            string sort)
-        {
-            return sort switch
-            {
-                "name-desc" => songs
-                    .OrderByDescending(song => song.Title),
-
-                "streams-desc" => songs
-                    .OrderByDescending(song => song.SongStat?.TotalStreams ?? 0)
-                    .ThenBy(song => song.Title),
-
-                "streams-asc" => songs
-                    .OrderBy(song => song.SongStat?.TotalStreams ?? 0)
-                    .ThenBy(song => song.Title),
-
-                "newest" => songs
-                    .OrderByDescending(song => song.CreatedAt)
-                    .ThenBy(song => song.Title),
-
-                "oldest" => songs
-                    .OrderBy(song => song.CreatedAt)
-                    .ThenBy(song => song.Title),
-
-                _ => songs.OrderBy(song => song.Title)
+                SongId = song.Id,
+                Title = song.Title,
+                AlbumId = song.AlbumId,
+                AlbumName = song.Album?.Name ?? string.Empty,
+                ArtistId = artist?.Id,
+                ArtistName = artist?.Name ?? string.Empty,
+                TotalStreams = song.SongStat?.TotalStreams ?? 0
             };
         }
     }

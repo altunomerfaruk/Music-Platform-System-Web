@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using MusicProject.Models.Concrete;
+using MusicProject.Contracts.Responses.ArtistDashboard;
 
 namespace MusicProject.ViewModels.ArtistDashboard
 {
     public class ArtistLayoutViewModel
     {
         [ValidateNever]
-        public Artist Artist { get; set; } = null!;
+        public ArtistProfileDto Artist { get; set; } = null!;
 
         [ValidateNever]
         public int TotalAlbums { get; set; }

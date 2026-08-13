@@ -1,4 +1,4 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
@@ -18,6 +18,16 @@ namespace MusicProject.Services.Concrete
         public IEnumerable<Album> GetAllAlbums()
         {
             return _albumRepository.GetAllAlbums();
+        }
+
+        public IEnumerable<Album> SearchAlbumsByText(string query, int? maxResults)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return [];
+            }
+
+            return _albumRepository.SearchVisibleAlbumsByText(query, maxResults);
         }
 
         public IEnumerable<Album> GetAlbumsByArtistId(int artistId)

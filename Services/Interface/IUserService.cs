@@ -1,6 +1,7 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
+using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
-using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Services.Interface
 {
@@ -10,8 +11,8 @@ namespace MusicProject.Services.Interface
 
         bool Register(User user);
 
-        UserSettingsViewModel? GetUserSettings(int userId);
+        UserSettingsDto? GetUserSettings(int userId);
 
-        UserSettingsResult UpdateUserSettings(int userId, UserSettingsViewModel model);
+        UserSettingsResult UpdateUserSettings(int userId, UpdateUserSettingsRequest request);
     }
 }

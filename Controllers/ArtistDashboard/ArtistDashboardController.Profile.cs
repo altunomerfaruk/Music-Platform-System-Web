@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicProject.ViewModels.ArtistDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Sanatci profil ayarlari.
     public partial class ArtistDashboardController
     {
         [HttpGet]

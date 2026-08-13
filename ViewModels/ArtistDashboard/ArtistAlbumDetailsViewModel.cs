@@ -1,10 +1,10 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.ArtistDashboard;
 
 namespace MusicProject.ViewModels.ArtistDashboard
 {
     public class ArtistAlbumDetailsViewModel : ArtistLayoutViewModel
     {
-        public Album Album { get; set; } = null!;
+        public ArtistAlbumDetailsDto Album { get; set; } = null!;
 
         public int SongCount { get; set; }
 

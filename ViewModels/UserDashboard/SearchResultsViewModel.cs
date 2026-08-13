@@ -1,4 +1,4 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {
@@ -6,11 +6,14 @@ namespace MusicProject.ViewModels.UserDashboard
     {
         public string Query { get; set; } = string.Empty;
 
-        public IEnumerable<Song> Songs { get; set; } = new List<Song>();
+        public IEnumerable<SongListItemDto> Songs { get; set; }
+            = new List<SongListItemDto>();
 
-        public IEnumerable<Artist> Artists { get; set; } = new List<Artist>();
+        public IEnumerable<ArtistListItemDto> Artists { get; set; }
+            = new List<ArtistListItemDto>();
 
-        public IEnumerable<Album> Albums { get; set; } = new List<Album>();
+        public IEnumerable<AlbumListItemDto> Albums { get; set; }
+            = new List<AlbumListItemDto>();
 
         public HashSet<int> LikedSongIds { get; set; } = new();
 

@@ -1,4 +1,5 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 
 namespace MusicProject.Services.Interface
@@ -22,6 +23,12 @@ namespace MusicProject.Services.Interface
         List<Song> GetSongsByAlbum(int albumId);
 
         IEnumerable<Song> GetSongsSortedByAlphabet();
+
+        IEnumerable<Song> SearchSongs(SongSearchRequest request);
+
+        int GetVisibleSongCount();
+
+        IEnumerable<Song> SearchSongsByText(string query, int? maxResults);
 
         SongDetailsDto? GetSongDetails(int songId);
 

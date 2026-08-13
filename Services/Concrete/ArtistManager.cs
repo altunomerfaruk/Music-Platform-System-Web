@@ -1,6 +1,7 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.ArtistDashboard;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
-using MusicProject.ViewModels.ArtistDashboard;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
@@ -20,6 +21,36 @@ namespace MusicProject.Services.Concrete
             _artistRepository = artistRepository;
             _songRepository = songRepository;
             _countryRepository = countryRepository;
+        }
+
+        public IEnumerable<Artist> SearchArtists(ArtistSearchRequest request)
+        {
+            return _artistRepository.SearchArtists(request);
+        }
+
+        public int GetArtistCount()
+        {
+            return _artistRepository.GetArtistCount();
+        }
+
+        public IEnumerable<Artist> SearchArtistsByText(string query, int? maxResults)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return [];
+            }
+
+            return _artistRepository.SearchArtistsByText(query, maxResults);
+        }
+
+        public IEnumerable<Artist> GetFeaturedArtists(int count)
+        {
+            return count <= 0 ? [] : _artistRepository.GetFeaturedArtists(count);
+        }
+
+        public IEnumerable<string> GetUsedCountryNames()
+        {
+            return _artistRepository.GetUsedCountryNames();
         }
 
         public IEnumerable<Artist> GetAllArtists()
@@ -99,7 +130,6 @@ namespace MusicProject.Services.Concrete
                 ArtistId = artist.Id,
                 Name = artist.Name,
 
-                // Yeni: Ülke adı ilişkili Countries tablosundan okunuyor.
                 Country = artist.CountryEntity?.Name
                     ?? "Ülke bilgisi yok",
 
@@ -137,7 +167,7 @@ namespace MusicProject.Services.Concrete
                 debutYear);
         }
 
-        public ArtistDashboardViewModel? GetArtistDashboard(int userId)
+        public ArtistDashboardDto? GetArtistDashboard(int userId)
         {
             var artist =
                 _artistRepository.GetArtistDashboardByUserId(userId);
@@ -174,21 +204,53 @@ namespace MusicProject.Services.Concrete
                     song.SongStat?.TotalStreams ?? 0)
                 .ThenBy(song => song.Title)
                 .Take(5)
+                .Select(song => new ArtistSongListItemDto
+                {
+                    SongId = song.Id,
+                    Title = song.Title,
+                    AlbumId = song.AlbumId,
+                    AlbumName = song.Album?.Name ?? string.Empty,
+                    TotalStreams = song.SongStat?.TotalStreams ?? 0,
+                    TotalLikes = song.SongStat?.TotalLikes ?? 0,
+                    PopularityScore = song.SongStat?.PopularityScore ?? 0,
+                    PublicationStatus = song.PublicationStatus,
+                    CreatedAt = song.CreatedAt,
+                    IsAdminHidden = song.IsAdminHidden,
+                    AdminHiddenReason = song.AdminHiddenReason,
+                    IsHiddenByAlbum = song.Album?.IsAdminHidden ?? false,
+                    AlbumAdminHiddenReason = song.Album?.AdminHiddenReason
+                })
                 .ToList();
 
             var recentAlbums = artist.Albums
                 .OrderByDescending(album => album.ReleaseDate)
                 .Take(4)
+                .Select(album => new ArtistAlbumListItemDto
+                {
+                    AlbumId = album.Id,
+                    Name = album.Name,
+                    Description = album.Description,
+                    CoverImageUrl = album.CoverImageUrl,
+                    ReleaseDate = album.ReleaseDate,
+                    SongCount = album.Songs.Count,
+                    TotalStreams = album.Songs
+                        .Sum(song => song.SongStat?.TotalStreams ?? 0),
+                    IsAdminHidden = album.IsAdminHidden,
+                    AdminHiddenReason = album.AdminHiddenReason,
+                    AdminHiddenAtUtc = album.AdminHiddenAtUtc
+                })
                 .ToList();
 
-            var artistInitial =
-                string.IsNullOrWhiteSpace(artist.Name)
-                    ? "?"
-                    : artist.Name[..1].ToUpper();
-
-            return new ArtistDashboardViewModel
+            return new ArtistDashboardDto
             {
-                Artist = artist,
+                Artist = new ArtistProfileDto
+                {
+                    ArtistId = artist.Id,
+                    Name = artist.Name,
+                    CountryId = artist.CountryId,
+                    Country = artist.CountryEntity?.Name ?? string.Empty,
+                    DebutYear = artist.DebutYear
+                },
                 PopularSongs = popularSongs,
                 RecentAlbums = recentAlbums,
                 TotalAlbums = artist.Albums.Count,
@@ -198,8 +260,7 @@ namespace MusicProject.Services.Concrete
                 MonthlyListeners =
                     artist.ArtistStat?.MonthlyListeners ?? 0,
                 TotalFollowers = artist.Followers
-                    .Count(follower => follower.IsActive),
-                ArtistInitial = artistInitial
+                    .Count(follower => follower.IsActive)
             };
         }
     }

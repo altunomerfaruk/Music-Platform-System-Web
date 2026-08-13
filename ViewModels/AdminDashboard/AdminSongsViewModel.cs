@@ -1,4 +1,5 @@
-﻿using MusicProject.Models.Enums;
+﻿using MusicProject.Contracts.Responses.AdminDashboard;
+using MusicProject.Models.Enums;
 
 namespace MusicProject.ViewModels.AdminDashboard
 {
@@ -18,43 +19,6 @@ namespace MusicProject.ViewModels.AdminDashboard
 
         public int ArchivedSongs { get; set; }
 
-        public List<AdminSongListItemViewModel> Songs { get; set; } = [];
-    }
-
-    public class AdminSongListItemViewModel
-    {
-        public int Id { get; set; }
-
-        public string Title { get; set; } = string.Empty;
-
-        public string ArtistName { get; set; } = string.Empty;
-
-        public string AlbumName { get; set; } = string.Empty;
-
-        public string LabelName { get; set; } = string.Empty;
-
-        public PublicationStatus PublicationStatus { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime? ScheduledPublishAtUtc { get; set; }
-
-        public DateTime? PublishedAtUtc { get; set; }
-
-        public int TotalStreams { get; set; }
-
-        public int TotalLikes { get; set; }
-
-        public int PopularityScore { get; set; }
-
-        public bool IsAdminHidden { get; set; }
-
-        public string? AdminHiddenReason { get; set; }
-
-        public DateTime? AdminHiddenAtUtc { get; set; }
-
-        public bool IsHiddenByAlbum { get; set; }
-
-        public string? AlbumAdminHiddenReason { get; set; }
+        public List<AdminSongListItemDto> Songs { get; set; } = [];
     }
 }

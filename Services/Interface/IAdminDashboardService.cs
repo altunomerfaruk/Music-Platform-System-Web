@@ -1,20 +1,24 @@
-﻿using MusicProject.Models.Enums;
-using MusicProject.ViewModels.AdminDashboard;
+﻿using MusicProject.Contracts.Responses.AdminDashboard;
+using MusicProject.Models.Enums;
 
 namespace MusicProject.Services.Interface
 {
     public interface IAdminDashboardService
     {
-        AdminDashboardViewModel GetDashboard();
+        AdminLayoutTotalsDto GetLayoutTotals();
 
-        AdminUsersViewModel GetUsers(string? search, int currentAdminUserId);
+        AdminDashboardDto GetDashboard();
+
+        IReadOnlyList<AdminUserListItemDto> GetUsers(string? search);
 
         AdminUserStatusUpdateResult SetUserActiveStatus(int userId, int currentAdminUserId, bool isActive);
 
-        AdminArtistsViewModel GetArtists(string? search);
+        AdminUserArtistPromotionResult PromoteUserToArtist(int userId, int currentAdminUserId);
 
-        AdminAlbumsViewModel GetAlbums(string? search, PublicationStatus? status);
+        IReadOnlyList<AdminArtistListItemDto> GetArtists(string? search);
 
-        AdminSongsViewModel GetSongs(string? search, PublicationStatus? status);
+        IReadOnlyList<AdminAlbumListItemDto> GetAlbums(string? search, PublicationStatus? status);
+
+        IReadOnlyList<AdminSongListItemDto> GetSongs(string? search, PublicationStatus? status);
     }
 }

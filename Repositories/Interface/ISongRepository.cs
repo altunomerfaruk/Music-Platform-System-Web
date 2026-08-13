@@ -1,4 +1,5 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Models.Concrete;
 
 namespace MusicProject.Repositories.Interface
 {
@@ -15,6 +16,12 @@ namespace MusicProject.Repositories.Interface
         void Delete(int id);
 
         IEnumerable<Song> GetSongsSortedByAlphabet();
+
+        IEnumerable<Song> SearchSongs(SongSearchRequest request);
+
+        int GetVisibleSongCount();
+
+        IEnumerable<Song> SearchVisibleSongsByText(string query, int? maxResults);
 
         IEnumerable<Song> GetSongsByArtistId(int artistId);
 

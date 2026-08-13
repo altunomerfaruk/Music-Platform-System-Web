@@ -1,13 +1,13 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Requests;
 using MusicProject.Models.Enums;
 using MusicProject.ViewModels.UserDashboard;
 using System.Security.Claims;
 
 namespace MusicProject.Controllers
 {
-    // Hesap ayarlari ve dinleme gecmisi.
     public partial class UserDashboardController
     {
         [HttpGet]
@@ -18,12 +18,21 @@ namespace MusicProject.Controllers
                 return RedirectToLogin();
             }
 
-            var model = _userService.GetUserSettings(userId);
+            var settings = _userService.GetUserSettings(userId);
 
-            if (model == null)
+            if (settings == null)
             {
                 return NotFound("Kullanıcı bulunamadı.");
             }
+
+            var model = new UserSettingsViewModel
+            {
+                UserId = settings.UserId,
+                Username = settings.Username,
+                Email = settings.Email,
+                IsPremium = settings.IsPremium,
+                RoleName = settings.Role.ToString()
+            };
 
             FillLayoutData(model, userId);
 
@@ -47,7 +56,16 @@ namespace MusicProject.Controllers
                 return View(model);
             }
 
-            var result = _userService.UpdateUserSettings(userId, model);
+            var result = _userService.UpdateUserSettings(
+                userId,
+                new UpdateUserSettingsRequest
+                {
+                    Username = model.Username,
+                    Email = model.Email,
+                    CurrentPassword = model.CurrentPassword,
+                    NewPassword = model.NewPassword,
+                    ConfirmNewPassword = model.ConfirmNewPassword
+                });
 
             switch (result)
             {
@@ -125,9 +143,6 @@ namespace MusicProject.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Kullanici adi / e-posta degistiginde cookie icindeki claim'leri tazeler.
-        /// </summary>
         private async Task RefreshUserClaimsAsync(
             int userId,
             UserSettingsViewModel model)

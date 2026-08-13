@@ -672,7 +672,7 @@
 
                 @foreach (var artist in Model.Artists)
                 {
-                    var isFollowed = Model.FollowedArtistIds.Contains(artist.Id);
+                    var isFollowed = Model.FollowedArtistIds.Contains(artist.ArtistId);
 
                     var followButtonClass = isFollowed
                         ? "follow-button followed"
@@ -690,7 +690,7 @@
 
                         <a asp-controller="UserDashboard"
                            asp-action="ArtistDetails"
-                           asp-route-artistId="@artist.Id"
+                           asp-route-artistId="@artist.ArtistId"
                            class="all-artist-link">
 
                             <div class="all-artist-image">
@@ -709,10 +709,10 @@
 
                             <div class="all-artist-meta">
 
-                                @if (!string.IsNullOrWhiteSpace(artist.CountryEntity?.Name))
+                                @if (!string.IsNullOrWhiteSpace(artist.Country))
                                 {
                                     <span class="artist-meta-badge">
-                                        @artist.CountryEntity!.Name
+                                        @artist.Country
                                     </span>
                                 }
 
@@ -736,7 +736,7 @@
 
                             <input type="hidden"
                                    name="artistId"
-                                   value="@artist.Id" />
+                                   value="@artist.ArtistId" />
 
                             <input type="hidden"
                                    name="returnUrl"

@@ -52,7 +52,6 @@ namespace MusicProject.Controllers
                 new (ClaimTypes.Email, user.Email),
 
                 new (ClaimTypes.Role, user.Role.ToString())
-
             };
 
             var identity = new ClaimsIdentity(
@@ -66,7 +65,6 @@ namespace MusicProject.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal
             );
-
 
             switch (user.Role)
             {
@@ -124,8 +122,6 @@ namespace MusicProject.Controllers
                 Password = model.Password,
 
                 Role = UserRole.User
-                // DEĞİŞİKLİK: Yeni kayıt olan kullanıcıların rolü
-                // varsayılan olarak User yapıldı.
             };
 
             var registrationSuccessful = _userService.Register(user);

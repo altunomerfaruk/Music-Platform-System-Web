@@ -104,6 +104,17 @@ namespace MusicProject.Repositories.Concrete
             _context.SaveChanges();
         }
 
+        public bool ArtistProfileExistsForUser(int userId)
+        {
+            return _context.Artists.Any(artist => artist.UserId == userId);
+        }
+
+        public void CreateArtistProfile(Artist artist)
+        {
+            _context.Artists.Add(artist);
+            _context.SaveChanges();
+        }
+
         public IEnumerable<Artist> GetArtists(string? search)
         {
             var query = _context.Artists

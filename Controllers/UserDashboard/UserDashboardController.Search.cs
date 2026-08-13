@@ -1,11 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicProject.Contracts.Responses.UserDashboard;
+using MusicProject.Models.Concrete;
 using MusicProject.ViewModels.UserDashboard;
 
 namespace MusicProject.Controllers
 {
-    // Arama sayfasi ve canli arama onerileri (JSON).
     public partial class UserDashboardController
     {
+        private const int SuggestionLimit = 4;
+
         [HttpGet]
         public IActionResult Search(string? query)
         {
@@ -32,30 +35,18 @@ namespace MusicProject.Controllers
             if (!string.IsNullOrWhiteSpace(query))
             {
                 model.Songs = _songService
-                    .GetSongsSortedByAlphabet()
-                    .Where(song =>
-                        song.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                        (song.Album != null &&
-                         song.Album.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                    .SearchSongsByText(query, maxResults: null)
+                    .Select(ToSongListItem)
                     .ToList();
 
                 model.Artists = _artistService
-                    .GetAllArtists()
-                    .Where(artist =>
-                        artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                        (artist.CountryEntity != null &&
-                         artist.CountryEntity.Name.Contains(
-                             query,
-                             StringComparison.OrdinalIgnoreCase)))
-                    .OrderBy(artist => artist.Name)
+                    .SearchArtistsByText(query, maxResults: null)
+                    .Select(ToArtistListItem)
                     .ToList();
 
                 model.Albums = _albumService
-                    .GetAllAlbums()
-                    .Where(album =>
-                        album.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                        album.Artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    .OrderBy(album => album.Name)
+                    .SearchAlbumsByText(query, maxResults: null)
+                    .Select(ToAlbumListItem)
                     .ToList();
             }
 
@@ -80,12 +71,7 @@ namespace MusicProject.Controllers
             }
 
             var songs = _songService
-                .GetSongsSortedByAlphabet()
-                .Where(song =>
-                    song.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    (song.Album != null &&
-                     song.Album.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
-                .Take(4)
+                .SearchSongsByText(query, SuggestionLimit)
                 .Select(song => new
                 {
                     id = song.Id,
@@ -96,11 +82,7 @@ namespace MusicProject.Controllers
                 .ToList();
 
             var artists = _artistService
-                .GetAllArtists()
-                .Where(artist =>
-                    artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(artist => artist.Name)
-                .Take(4)
+                .SearchArtistsByText(query, SuggestionLimit)
                 .Select(artist => new
                 {
                     id = artist.Id,
@@ -111,12 +93,7 @@ namespace MusicProject.Controllers
                 .ToList();
 
             var albums = _albumService
-                .GetAllAlbums()
-                .Where(album =>
-                    album.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    album.Artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(album => album.Name)
-                .Take(4)
+                .SearchAlbumsByText(query, SuggestionLimit)
                 .Select(album => new
                 {
                     id = album.Id,
@@ -132,6 +109,16 @@ namespace MusicProject.Controllers
                 artists,
                 albums
             });
+        }
+
+        private static AlbumListItemDto ToAlbumListItem(Album album)
+        {
+            return new AlbumListItemDto
+            {
+                AlbumId = album.Id,
+                Name = album.Name,
+                ArtistName = album.Artist.Name
+            };
         }
     }
 }

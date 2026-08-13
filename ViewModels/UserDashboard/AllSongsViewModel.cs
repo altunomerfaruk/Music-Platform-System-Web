@@ -1,10 +1,11 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {
     public class AllSongsViewModel : UserLayoutViewModel
     {
-        public IEnumerable<Song> Songs { get; set; } = new List<Song>();
+        public IEnumerable<SongListItemDto> Songs { get; set; }
+            = new List<SongListItemDto>();
 
         public HashSet<int> LikedSongIds { get; set; } = new();
 
@@ -20,9 +21,15 @@ namespace MusicProject.ViewModels.UserDashboard
 
         public bool LikedOnly { get; set; }
 
-        public IEnumerable<Artist> Artists { get; set; } = new List<Artist>();
-        public IEnumerable<Album> Albums { get; set; } = new List<Album>();
-        public IEnumerable<Genre> Genres { get; set; } = new List<Genre>();
+        public IEnumerable<FilterOptionDto> Artists { get; set; }
+            = new List<FilterOptionDto>();
+
+        public IEnumerable<FilterOptionDto> Albums { get; set; }
+            = new List<FilterOptionDto>();
+
+        public IEnumerable<FilterOptionDto> Genres { get; set; }
+            = new List<FilterOptionDto>();
+
         public int TotalSongCount { get; set; }
     }
 }

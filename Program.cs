@@ -17,27 +17,15 @@ var connectionString =
         "DefaultConnection"
     );
 
-// ==========================================
-// 1. VERİTABANI BAĞLANTISI
-// ==========================================
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString)
 );
 
-// ==========================================
-// 2. DEPENDENCY INJECTION
-// ==========================================
-
-// Generic Repository kaydı
 builder.Services.AddScoped(
     typeof(IGenericRepository<>),
     typeof(GenericRepository<>)
 );
 
-// ==========================================
-// REPOSITORY KAYITLARI
-// ==========================================
 builder.Services.AddScoped< IArtistRepository,ArtistRepository>();
 builder.Services.AddScoped<ISongRepository,SongRepository>();
 builder.Services.AddScoped< IUserRepository,UserRepository>();
@@ -49,16 +37,13 @@ builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>(
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IAdminContentModerationRepository, AdminContentModerationRepository>();
 
-// ==========================================
-// SERVICE KAYITLARI
-// ==========================================
 builder.Services.AddScoped<IAdminContentModerationService, AdminContentModerationManager>();
 builder.Services.AddScoped<ISongService, SongManager>();
 builder.Services.AddScoped<IArtistService,ArtistManager>();
 builder.Services.AddScoped<IUserService,UserManager>();
-builder.Services.AddScoped<ILikedSongService,LikedSongService>();
-builder.Services.AddScoped<ISongStatService,SongStatService>();
-builder.Services.AddScoped<IFollowedArtistService,FollowedArtistService>();
+builder.Services.AddScoped<ILikedSongService,LikedSongManager>();
+builder.Services.AddScoped<ISongStatService,SongStatManager>();
+builder.Services.AddScoped<IFollowedArtistService,FollowedArtistManager>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardManager>();
 builder.Services.AddScoped<IAlbumService, AlbumManager>();
 builder.Services.AddScoped<IPublicationService, PublicationManager>();
@@ -70,6 +55,8 @@ builder.Services.AddScoped<ICountryService, CountryManager>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPublicationJobScheduler, PublicationJobScheduler>();
 builder.Services.AddScoped<IAudioStorageService, LocalAudioStorageManager>();
+builder.Services.AddScoped<IArtistSongWorkflowService, ArtistSongWorkflowManager>();
+builder.Services.AddScoped<IArtistAlbumWorkflowService, ArtistAlbumWorkflowManager>();
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
@@ -77,13 +64,6 @@ builder.Services.AddHangfire(configuration => configuration
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddHangfireServer();
 builder.Services.AddScoped<PublicationJob>();
-
-
-
-
-// ==========================================
-// 3. MVC VE GÜVENLİK SERVİSLERİ
-// ==========================================
 
 builder.Services.AddControllersWithViews();
 
@@ -93,21 +73,14 @@ builder.Services
     )
     .AddCookie(options =>
     {
-        // Yetkisiz kullanıcıların yönlendirileceği sayfa
         options.LoginPath = "/Auth/Login";
 
-        // Tarayıcıda tutulacak cookie adı
         options.Cookie.Name = "MusicProjectCookie";
 
-        // Oturumun açık kalma süresi
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
     });
 
 var app = builder.Build();
-
-// ==========================================
-// 4. ÖRNEK VERİLERİ EKLEME
-// ==========================================
 
 using (var scope = app.Services.CreateScope())
 {
@@ -119,19 +92,11 @@ using (var scope = app.Services.CreateScope())
     SeedData.Initialize(context);
 }
 
-// ==========================================
-// 5. HATA YÖNETİMİ
-// ==========================================
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-
-// ==========================================
-// 6. MIDDLEWARE
-// ==========================================
 
 app.UseHttpsRedirection();
 
@@ -139,10 +104,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Önce kullanıcının kimliği kontrol edilir.
 app.UseAuthentication();
 
-// Sonra yetkisi kontrol edilir.
 app.UseAuthorization();
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
@@ -152,9 +115,6 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
         new HangfireDashboardAuthorizationFilter()
     }
 });
-// ==========================================
-// 7. ROTA AYARLARI
-// ==========================================
 
 app.MapControllerRoute(
     name: "default",

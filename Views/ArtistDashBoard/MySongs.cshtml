@@ -582,18 +582,16 @@
 
                             @foreach (var song in Model.Songs)
                             {
-                                var albumName = song.Album?.Name ?? "Single";
-                                var totalStreams = song.SongStat?.TotalStreams ?? 0;
-                                var totalLikes = song.SongStat?.TotalLikes ?? 0;
-                                var popularityScore = song.SongStat?.PopularityScore ?? 0;
-                                var isHiddenByAlbum = song.Album?.IsAdminHidden ?? false;
+                                var albumName = string.IsNullOrWhiteSpace(song.AlbumName)
+                                    ? "Single"
+                                    : song.AlbumName;
 
-                                var genreNames = song.SongGenres
-                                    .Where(songGenre => songGenre.Genre != null)
-                                    .Select(songGenre => songGenre.Genre.Name)
-                                    .Distinct()
-                                    .OrderBy(genreName => genreName)
-                                    .ToList();
+                                var totalStreams = song.TotalStreams;
+                                var totalLikes = song.TotalLikes;
+                                var popularityScore = song.PopularityScore;
+                                var isHiddenByAlbum = song.IsHiddenByAlbum;
+
+                                var genreNames = song.GenreNames;
 
                                 var statusText = song.PublicationStatus switch
                                 {
@@ -710,9 +708,9 @@
 
                                             <div class="moderation-reason">
                                                 Neden:
-                                                @(string.IsNullOrWhiteSpace(song.Album?.AdminHiddenReason)
+                                                @(string.IsNullOrWhiteSpace(song.AlbumAdminHiddenReason)
                                                     ? "Albüm admin tarafından gizlendi."
-                                                    : song.Album.AdminHiddenReason)
+                                                    : song.AlbumAdminHiddenReason)
                                             </div>
                                         }
                                         else
@@ -730,7 +728,7 @@
 
                                             <a asp-controller="ArtistDashboard"
                                                asp-action="EditSong"
-                                               asp-route-songId="@song.Id"
+                                               asp-route-songId="@song.SongId"
                                                class="song-action-button">
                                                 Düzenle
                                             </a>
@@ -745,7 +743,7 @@
 
                                                 <input type="hidden"
                                                        name="songId"
-                                                       value="@song.Id" />
+                                                       value="@song.SongId" />
 
                                                 <button type="submit"
                                                         class="song-action-button danger">

@@ -1,8 +1,8 @@
-﻿using System.Globalization;
+﻿using MusicProject.Contracts.Responses.AdminDashboard;
+using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
-using MusicProject.ViewModels.AdminDashboard;
 
 namespace MusicProject.Services.Concrete
 {
@@ -15,79 +15,66 @@ namespace MusicProject.Services.Concrete
             _adminDashboardRepository = adminDashboardRepository;
         }
 
-        public AdminDashboardViewModel GetDashboard()
+        public AdminLayoutTotalsDto GetLayoutTotals()
+        {
+            return new AdminLayoutTotalsDto
+            {
+                TotalUsers = _adminDashboardRepository.GetTotalUserCount(),
+                TotalArtists = _adminDashboardRepository.GetTotalArtistCount(),
+                TotalAlbums = _adminDashboardRepository.GetTotalAlbumCount(),
+                TotalSongs = _adminDashboardRepository.GetTotalSongCount()
+            };
+        }
+
+        public AdminDashboardDto GetDashboard()
         {
             var recentUsers = _adminDashboardRepository
                 .GetRecentUsers(5)
-                .Select(user => new AdminRecentUserViewModel
+                .Select(user => new AdminRecentUserDto
                 {
                     Id = user.Id,
                     Username = user.Username,
                     Email = user.Email,
-                    RoleName = user.Role.ToString(),
-                    IsActive = user.IsActive,
-                    Initial = GetInitial(user.Username)
+                    Role = user.Role,
+                    IsActive = user.IsActive
                 })
                 .ToList();
 
             var topSongs = _adminDashboardRepository
                 .GetTopSongsByStreams(5)
-                .Select(song => new AdminTopSongViewModel
+                .Select(song => new AdminTopSongDto
                 {
                     Id = song.Id,
                     Title = song.Title,
-                    ArtistName = song.Album?.Artist?.Name ??
-                                 song.SongArtists
-                                     .Select(songArtist => songArtist.Artist.Name)
-                                     .FirstOrDefault() ??
-                                 "Sanatçı bilgisi yok",
+                    ArtistName = GetPrimaryArtistName(song),
                     TotalStreams = song.SongStat?.TotalStreams ?? 0
                 })
                 .ToList();
 
-            var model = new AdminDashboardViewModel
+            return new AdminDashboardDto
             {
                 TotalListenings = _adminDashboardRepository.GetTotalListeningCount(),
                 RecentUsers = recentUsers,
                 TopSongs = topSongs,
                 WeeklyListenings = GetWeeklyListenings()
             };
-
-            FillLayoutData(model);
-
-            return model;
         }
 
-        public AdminUsersViewModel GetUsers(string? search, int currentAdminUserId)
+        public IReadOnlyList<AdminUserListItemDto> GetUsers(string? search)
         {
-            var users = _adminDashboardRepository
+            return _adminDashboardRepository
                 .GetUsers(search)
-                .Select(user => new AdminUserListItemViewModel
+                .Select(user => new AdminUserListItemDto
                 {
                     Id = user.Id,
                     Username = user.Username,
                     Email = user.Email,
-                    RoleName = user.Role.ToString(),
+                    Role = user.Role,
                     IsActive = user.IsActive,
                     IsPremium = user.IsPremium ?? false,
-                    CreatedAt = user.CreatedAt,
-                    Initial = GetInitial(user.Username),
-                    CanChangeStatus = user.Id != currentAdminUserId
+                    CreatedAt = user.CreatedAt
                 })
                 .ToList();
-
-            var model = new AdminUsersViewModel
-            {
-                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
-                DisplayedUsers = users.Count,
-                ActiveUsers = users.Count(user => user.IsActive),
-                InactiveUsers = users.Count(user => !user.IsActive),
-                Users = users
-            };
-
-            FillLayoutData(model);
-
-            return model;
         }
 
         public AdminUserStatusUpdateResult SetUserActiveStatus(int userId, int currentAdminUserId, bool isActive)
@@ -111,46 +98,72 @@ namespace MusicProject.Services.Concrete
             return AdminUserStatusUpdateResult.Success;
         }
 
-        public AdminArtistsViewModel GetArtists(string? search)
+        public AdminUserArtistPromotionResult PromoteUserToArtist(
+            int userId,
+            int currentAdminUserId)
         {
-            var artists = _adminDashboardRepository
+            if (userId == currentAdminUserId)
+            {
+                return AdminUserArtistPromotionResult.InvalidRole;
+            }
+
+            var user = _adminDashboardRepository.GetUserById(userId);
+
+            if (user == null)
+            {
+                return AdminUserArtistPromotionResult.UserNotFound;
+            }
+
+            if (user.Role == UserRole.Admin)
+            {
+                return AdminUserArtistPromotionResult.InvalidRole;
+            }
+
+            if (user.Role == UserRole.Artist ||
+                _adminDashboardRepository.ArtistProfileExistsForUser(userId))
+            {
+                return AdminUserArtistPromotionResult.AlreadyArtist;
+            }
+
+            user.Role = UserRole.Artist;
+
+            _adminDashboardRepository.UpdateUser(user);
+
+            _adminDashboardRepository.CreateArtistProfile(new Artist
+            {
+                Name = user.Username,
+                UserId = user.Id
+            });
+
+            return AdminUserArtistPromotionResult.Success;
+        }
+
+        public IReadOnlyList<AdminArtistListItemDto> GetArtists(string? search)
+        {
+            return _adminDashboardRepository
                 .GetArtists(search)
-                .Select(artist => new AdminArtistListItemViewModel
+                .Select(artist => new AdminArtistListItemDto
                 {
                     Id = artist.Id,
                     Name = artist.Name,
-                    Initial = GetInitial(artist.Name),
-                    CountryName = artist.CountryEntity?.Name ?? "Belirtilmedi",
+                    CountryName = artist.CountryEntity?.Name ?? string.Empty,
                     DebutYear = artist.DebutYear,
                     HasLinkedUser = artist.User != null,
-                    LinkedUsername = artist.User?.Username ?? "Bağlı hesap yok",
-                    LinkedEmail = artist.User?.Email ?? "-",
+                    LinkedUsername = artist.User?.Username ?? string.Empty,
+                    LinkedEmail = artist.User?.Email ?? string.Empty,
                     IsLinkedUserActive = artist.User?.IsActive ?? false,
                     AlbumCount = artist.Albums.Count,
                     SongCount = artist.SongArtists.Count,
                     FollowerCount = artist.Followers.Count
                 })
                 .ToList();
-
-            var model = new AdminArtistsViewModel
-            {
-                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
-                DisplayedArtists = artists.Count,
-                LinkedAccounts = artists.Count(artist => artist.HasLinkedUser),
-                UnlinkedAccounts = artists.Count(artist => !artist.HasLinkedUser),
-                Artists = artists
-            };
-
-            FillLayoutData(model);
-
-            return model;
         }
 
-        public AdminAlbumsViewModel GetAlbums(string? search, PublicationStatus? status)
+        public IReadOnlyList<AdminAlbumListItemDto> GetAlbums(string? search, PublicationStatus? status)
         {
-            var albums = _adminDashboardRepository
+            return _adminDashboardRepository
                 .GetAlbums(search, status)
-                .Select(album => new AdminAlbumListItemViewModel
+                .Select(album => new AdminAlbumListItemDto
                 {
                     Id = album.Id,
                     Name = album.Name,
@@ -161,42 +174,26 @@ namespace MusicProject.Services.Concrete
                     PublicationStatus = album.PublicationStatus,
                     ScheduledPublishAtUtc = album.ScheduledPublishAtUtc,
                     PublishedAtUtc = album.PublishedAtUtc,
-                    SongCount = album.Songs.Count
+                    SongCount = album.Songs.Count,
+
+                    IsAdminHidden = album.IsAdminHidden,
+                    AdminHiddenReason = album.AdminHiddenReason,
+                    AdminHiddenAtUtc = album.AdminHiddenAtUtc
                 })
                 .ToList();
-
-            var model = new AdminAlbumsViewModel
-            {
-                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
-                StatusFilter = status,
-                DisplayedAlbums = albums.Count,
-                PublishedAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Published),
-                ScheduledAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Scheduled),
-                DraftAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Draft),
-                ArchivedAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Archived),
-                Albums = albums
-            };
-
-            FillLayoutData(model);
-
-            return model;
         }
 
-        public AdminSongsViewModel GetSongs(string? search, PublicationStatus? status)
+        public IReadOnlyList<AdminSongListItemDto> GetSongs(string? search, PublicationStatus? status)
         {
-            var songs = _adminDashboardRepository
+            return _adminDashboardRepository
                 .GetSongs(search, status)
-                .Select(song => new AdminSongListItemViewModel
+                .Select(song => new AdminSongListItemDto
                 {
                     Id = song.Id,
                     Title = song.Title,
-                    ArtistName = song.Album?.Artist?.Name ??
-                                 song.SongArtists
-                                     .Select(songArtist => songArtist.Artist.Name)
-                                     .FirstOrDefault() ??
-                                 "Sanatçı bilgisi yok",
-                    AlbumName = song.Album?.Name ?? "Single",
-                    LabelName = song.Label?.Name ?? "Bağımsız",
+                    ArtistName = GetPrimaryArtistName(song),
+                    AlbumName = song.Album?.Name ?? string.Empty,
+                    LabelName = song.Label?.Name ?? string.Empty,
                     PublicationStatus = song.PublicationStatus,
                     CreatedAt = song.CreatedAt,
                     ScheduledPublishAtUtc = song.ScheduledPublishAtUtc,
@@ -213,33 +210,18 @@ namespace MusicProject.Services.Concrete
                     AlbumAdminHiddenReason = song.Album?.AdminHiddenReason
                 })
                 .ToList();
-
-            var model = new AdminSongsViewModel
-            {
-                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
-                StatusFilter = status,
-                DisplayedSongs = songs.Count,
-                PublishedSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Published),
-                ScheduledSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Scheduled),
-                DraftSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Draft),
-                ArchivedSongs = songs.Count(song => song.PublicationStatus == PublicationStatus.Archived),
-                Songs = songs
-            };
-
-            FillLayoutData(model);
-
-            return model;
         }
 
-        private void FillLayoutData(AdminLayoutViewModel model)
+        private static string GetPrimaryArtistName(Song song)
         {
-            model.TotalUsers = _adminDashboardRepository.GetTotalUserCount();
-            model.TotalArtists = _adminDashboardRepository.GetTotalArtistCount();
-            model.TotalAlbums = _adminDashboardRepository.GetTotalAlbumCount();
-            model.TotalSongs = _adminDashboardRepository.GetTotalSongCount();
+            return song.Album?.Artist?.Name ??
+                   song.SongArtists
+                       .Select(songArtist => songArtist.Artist.Name)
+                       .FirstOrDefault() ??
+                   string.Empty;
         }
 
-        private List<AdminDailyListeningViewModel> GetWeeklyListenings()
+        private List<AdminDailyListeningDto> GetWeeklyListenings()
         {
             var todayUtc = DateTime.UtcNow.Date;
             var startUtc = todayUtc.AddDays(-6);
@@ -252,53 +234,19 @@ namespace MusicProject.Services.Concrete
                 .GroupBy(history => history.ListenedAt.Date)
                 .ToDictionary(group => group.Key, group => group.Count());
 
-            var dailyCounts = Enumerable
+            return Enumerable
                 .Range(0, 7)
                 .Select(dayOffset =>
                 {
                     var date = startUtc.AddDays(dayOffset);
 
-                    return new
+                    return new AdminDailyListeningDto
                     {
                         Date = date,
-                        Count = countsByDate.GetValueOrDefault(date)
+                        ListeningCount = countsByDate.GetValueOrDefault(date)
                     };
                 })
                 .ToList();
-
-            var maximumListeningCount = dailyCounts.Max(day => day.Count);
-            var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
-
-            return dailyCounts
-                .Select(day => new AdminDailyListeningViewModel
-                {
-                    DayLabel = day.Date.ToString("ddd", turkishCulture),
-                    ListeningCount = day.Count,
-                    BarHeightPercent = CalculateBarHeight(day.Count, maximumListeningCount)
-                })
-                .ToList();
-        }
-
-        private int CalculateBarHeight(int listeningCount, int maximumListeningCount)
-        {
-            if (listeningCount == 0 || maximumListeningCount == 0)
-            {
-                return 0;
-            }
-
-            var percentage = (int)Math.Round(listeningCount * 100d / maximumListeningCount);
-
-            return Math.Max(8, percentage);
-        }
-
-        private string GetInitial(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return "?";
-            }
-
-            return char.ToUpperInvariant(value.Trim()[0]).ToString();
         }
     }
 }

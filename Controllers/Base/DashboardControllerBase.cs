@@ -1,12 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace MusicProject.Controllers.Base
 {
-    /// <summary>
-    /// Oturum acmis kullaniciyla calisan tum dashboard controller'lari icin
-    /// ortak yardimcilar. (User + Artist)
-    /// </summary>
     public abstract class DashboardControllerBase : Controller
     {
         protected bool TryGetCurrentUserId(out int userId)

@@ -280,11 +280,11 @@
 
                     @foreach (var genre in Model.Genres)
                     {
-                        var songCount = genre.SongGenres?.Count ?? 0;
+                        var songCount = genre.SongCount;
 
                         <a asp-controller="UserDashboard"
                            asp-action="GenreDetails"
-                           asp-route-genreId="@genre.Id"
+                           asp-route-genreId="@genre.GenreId"
                            class="genre-card">
 
                             <div class="genre-card-decoration"></div>

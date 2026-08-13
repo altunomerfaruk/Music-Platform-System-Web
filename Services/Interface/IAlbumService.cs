@@ -1,5 +1,5 @@
 ﻿using MusicProject.Contracts.Requests;
-using MusicProject.Contracts.Responses;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 
 namespace MusicProject.Services.Interface
@@ -9,6 +9,8 @@ namespace MusicProject.Services.Interface
         AlbumDetailsDto? GetAlbumDetails(int albumId);
 
         IEnumerable<Album> GetAllAlbums();
+
+        IEnumerable<Album> SearchAlbumsByText(string query, int? maxResults);
 
         Album? GetArtistAlbumDetails(int albumId, int artistId);
 
@@ -23,6 +25,5 @@ namespace MusicProject.Services.Interface
         Album? GetAlbumById(int albumId);
 
         bool UpdatePublication(Album album);
-
     }
 }

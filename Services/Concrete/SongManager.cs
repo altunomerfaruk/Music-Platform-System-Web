@@ -1,4 +1,5 @@
-﻿using MusicProject.Contracts.Responses;
+﻿using MusicProject.Contracts.Requests;
+using MusicProject.Contracts.Responses.UserDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
@@ -218,6 +219,26 @@ namespace MusicProject.Services.Concrete
         public List<Song> GetSongsByAlbum(int albumId)
         {
             return _songRepository.GetSongsByAlbum(albumId);
+        }
+
+        public IEnumerable<Song> SearchSongs(SongSearchRequest request)
+        {
+            return _songRepository.SearchSongs(request);
+        }
+
+        public int GetVisibleSongCount()
+        {
+            return _songRepository.GetVisibleSongCount();
+        }
+
+        public IEnumerable<Song> SearchSongsByText(string query, int? maxResults)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return [];
+            }
+
+            return _songRepository.SearchVisibleSongsByText(query, maxResults);
         }
 
         public IEnumerable<Song> GetSongsSortedByAlphabet()

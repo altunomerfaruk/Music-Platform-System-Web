@@ -1,9 +1,10 @@
-﻿using MusicProject.Models.Concrete;
+﻿using MusicProject.Contracts.Responses.UserDashboard;
 
 namespace MusicProject.ViewModels.UserDashboard
 {
     public class AllGenresViewModel : UserLayoutViewModel
     {
-        public IEnumerable<Genre> Genres { get; set; } = new List<Genre>();
+        public IEnumerable<GenreListItemDto> Genres { get; set; }
+            = new List<GenreListItemDto>();
     }
 }
