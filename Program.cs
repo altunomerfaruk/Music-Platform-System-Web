@@ -72,7 +72,8 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
-
+builder.Services.AddScoped<IAdminContentModerationRepository, AdminContentModerationRepository>();
+builder.Services.AddScoped<IAdminContentModerationService, AdminContentModerationManager>();
 // ==========================================
 // SERVICE KAYITLARI
 // ==========================================

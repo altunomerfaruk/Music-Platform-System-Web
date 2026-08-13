@@ -38,21 +38,29 @@ namespace MusicProject.Repositories.Concrete
                 .AsSplitQuery()
                 .Include(artist => artist.CountryEntity)
                 .Include(artist => artist.Albums
-                    .Where(album => album.PublicationStatus == PublicationStatus.Published))
+                    .Where(album =>
+                        !album.IsAdminHidden &&
+                        album.PublicationStatus == PublicationStatus.Published))
                     .ThenInclude(album => album.Songs
-                        .Where(song => song.PublicationStatus == PublicationStatus.Published))
+                        .Where(song =>
+                            !song.IsAdminHidden &&
+                            song.PublicationStatus == PublicationStatus.Published))
                 .Include(artist => artist.SongArtists
                     .Where(songArtist =>
+                        !songArtist.Song.IsAdminHidden &&
                         songArtist.Song.PublicationStatus == PublicationStatus.Published &&
                         (songArtist.Song.AlbumId == null ||
-                         songArtist.Song.Album!.PublicationStatus == PublicationStatus.Published)))
+                         (!songArtist.Song.Album!.IsAdminHidden &&
+                          songArtist.Song.Album.PublicationStatus == PublicationStatus.Published))))
                     .ThenInclude(songArtist => songArtist.Song)
                         .ThenInclude(song => song.SongStat)
                 .Include(artist => artist.SongArtists
                     .Where(songArtist =>
+                        !songArtist.Song.IsAdminHidden &&
                         songArtist.Song.PublicationStatus == PublicationStatus.Published &&
                         (songArtist.Song.AlbumId == null ||
-                         songArtist.Song.Album!.PublicationStatus == PublicationStatus.Published)))
+                         (!songArtist.Song.Album!.IsAdminHidden &&
+                          songArtist.Song.Album.PublicationStatus == PublicationStatus.Published))))
                     .ThenInclude(songArtist => songArtist.Song)
                         .ThenInclude(song => song.Album)
                 .Include(artist => artist.Followers)

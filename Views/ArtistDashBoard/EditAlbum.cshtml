@@ -61,6 +61,43 @@
             line-height: 1.6;
         }
 
+        .admin-hidden-alert {
+            margin-top: 20px;
+            padding: 18px;
+            color: #eacaca;
+            background-color: rgba(255, 92, 92, 0.08);
+            border: 1px solid rgba(255, 92, 92, 0.30);
+            border-radius: 14px;
+        }
+
+        .admin-hidden-alert-title {
+            color: #ff7474;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .admin-hidden-alert-description {
+            margin-top: 7px;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .admin-hidden-reason {
+            margin-top: 11px;
+            padding: 11px 13px;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.18);
+            border-radius: 9px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .admin-hidden-date {
+            margin-top: 8px;
+            color: #a68a8a;
+            font-size: 9px;
+        }
+
         .edit-album-card {
             margin-top: 22px;
             padding: 28px;
@@ -363,6 +400,7 @@
         </div>
 
         <div>
+
             <p class="edit-album-header-label">
                 Albüm yönetimi
             </p>
@@ -375,9 +413,42 @@
                 Albüm bilgilerini güncelleyebilir, cuma günü için planlayabilir
                 veya yayından kaldırabilirsin.
             </p>
+
         </div>
 
     </section>
+
+    @if (Model.IsAdminHidden)
+    {
+        <section class="admin-hidden-alert">
+
+            <div class="admin-hidden-alert-title">
+                🔒 Bu albüm admin tarafından platformdan gizlendi
+            </div>
+
+            <div class="admin-hidden-alert-description">
+                Albüm bilgilerini ve kendi yayın durumunu değiştirebilirsin.
+                Ancak yönetici gizliliği kaldırana kadar albüm ve albüme bağlı
+                şarkılar normal kullanıcılar tarafından görülemez.
+            </div>
+
+            <div class="admin-hidden-reason">
+                <strong>Neden:</strong>
+                @(string.IsNullOrWhiteSpace(Model.AdminHiddenReason)
+                    ? "Neden belirtilmedi."
+                    : Model.AdminHiddenReason)
+            </div>
+
+            @if (Model.AdminHiddenAtUtc.HasValue)
+            {
+                <div class="admin-hidden-date">
+                    Gizlenme zamanı:
+                    @Model.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+            }
+
+        </section>
+    }
 
     <section class="edit-album-card">
 
@@ -482,6 +553,7 @@
                              alt="Albüm kapak önizlemesi" />
 
                         <div>
+
                             <p class="edit-album-preview-title">
                                 Kapak görseli önizlemesi
                             </p>
@@ -489,6 +561,7 @@
                             <p class="edit-album-preview-description">
                                 Bağlantı geçerliyse seçtiğin görsel burada gösterilir.
                             </p>
+
                         </div>
 
                     </div>
@@ -502,8 +575,7 @@
                     </h3>
 
                     <p class="publication-section-description">
-                        Albümün yayın durumunu yönet. Henüz yayınlanmamış albümler
-                        yalnızca gelecek bir cuma günü için planlanabilir.
+                        Albümün kendi yayın durumunu yönet. Admin moderasyonu bu ayardan bağımsızdır.
                     </p>
 
                     <div class="publication-grid">
@@ -617,6 +689,7 @@
             const scheduledStatus = "@((int)PublicationStatus.Scheduled)";
             const publishedStatus = "@((int)PublicationStatus.Published)";
             const archivedStatus = "@((int)PublicationStatus.Archived)";
+            const isAdminHidden = @(Model.IsAdminHidden.ToString().ToLowerInvariant());
 
             const publicationStatusSelect =
                 document.getElementById("publicationStatusSelect");
@@ -647,6 +720,16 @@
                     ? publicationStatusSelect.value
                     : null;
 
+            function appendAdminHiddenMessage(message) {
+                if (!isAdminHidden) {
+                    return message;
+                }
+
+                return message +
+                    "<br><br><strong style='color:#ff8585;'>Admin moderasyonu:</strong> " +
+                    "Albüm admin tarafından gizli olduğu için bu yayın durumu normal kullanıcıların erişimini açmaz.";
+            }
+
             function updatePublicationFields(clearScheduledValue) {
                 if (!publicationStatusSelect ||
                     !scheduledPublishGroup ||
@@ -665,12 +748,13 @@
                     scheduledPublishGroup.classList.add("visible");
                     scheduledPublishInput.required = true;
 
-                    publicationInfo.innerHTML =
-                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır.";
+                    publicationInfo.innerHTML = appendAdminHiddenMessage(
+                        "<strong>Planlı yayın:</strong> Albüm seçilen cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır."
+                    );
 
                     editAlbumButton.textContent = "Albümü Planla";
-
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
@@ -682,12 +766,13 @@
                 }
 
                 if (selectedStatus === publishedStatus) {
-                    publicationInfo.innerHTML =
-                        "<strong>Yayında:</strong> Albüm zaten yayınlanmış durumda. Bilgilerini değiştirebilir veya albümü arşivleyebilirsin.";
+                    publicationInfo.innerHTML = appendAdminHiddenMessage(
+                        "<strong>Yayında:</strong> Albüm yayın durumunda. Bilgilerini değiştirebilir veya albümü arşivleyebilirsin."
+                    );
 
                     editAlbumButton.textContent = "Değişiklikleri Kaydet";
-
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
@@ -699,17 +784,17 @@
                         "<strong>Arşivlendi:</strong> Albüm veritabanında kalır ancak normal kullanıcıların sayfalarında görünmez.";
 
                     editAlbumButton.textContent = "Albümü Arşivle";
-
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
                 if (selectedStatus === draftStatus) {
-                    publicationInfo.innerHTML =
-                        "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra gelecek bir cuma günü için planlanabilir.";
+                    publicationInfo.innerHTML = appendAdminHiddenMessage(
+                        "<strong>Taslak:</strong> Albüm yalnızca sanatçı panelinde görünür ve daha sonra gelecek bir cuma günü için planlanabilir."
+                    );
 
                     editAlbumButton.textContent = "Taslak Olarak Kaydet";
-
                     previousPublicationStatus = selectedStatus;
                 }
             }
@@ -724,6 +809,7 @@
                 if (!imageUrl) {
                     preview.classList.remove("visible");
                     previewImage.removeAttribute("src");
+
                     return;
                 }
 

@@ -29,12 +29,18 @@ namespace MusicProject.Models.Concrete
 
         public DateTime? PublishedAtUtc { get; set; }
 
+        public bool IsAdminHidden { get; set; } = false;
+
+        [MaxLength(300)]
+        public string? AdminHiddenReason { get; set; }
+
+        public DateTime? AdminHiddenAtUtc { get; set; }
+
         public int ArtistId { get; set; }
 
         [ForeignKey(nameof(ArtistId))]
         public virtual Artist Artist { get; set; } = null!;
 
-        public virtual ICollection<Song> Songs { get; set; }
-            = [];
+        public virtual ICollection<Song> Songs { get; set; } = [];
     }
 }

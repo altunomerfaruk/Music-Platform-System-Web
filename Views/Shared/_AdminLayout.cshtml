@@ -18,6 +18,7 @@
     var isDashboard = action == "Index";
     var isUsers = action == "Users";
     var isArtists = action == "Artists";
+    var isAlbums = action == "Albums";
     var isSongs = action == "Songs";
 }
 
@@ -457,6 +458,26 @@
 
                             <span class="admin-navigation-badge">
                                 @Model.TotalArtists
+                            </span>
+
+                        </a>
+
+                    </li>
+
+                    <li class="admin-navigation-item">
+
+                        <a asp-controller="AdminDashboard"
+                           asp-action="Albums"
+                           class="admin-navigation-link @(isAlbums ? "active" : "")">
+
+                            <span class="admin-navigation-icon">
+                                ◉
+                            </span>
+
+                            Albümler
+
+                            <span class="admin-navigation-badge">
+                                @Model.TotalAlbums
                             </span>
 
                         </a>

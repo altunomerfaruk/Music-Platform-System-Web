@@ -24,6 +24,13 @@ namespace MusicProject.Models.Concrete
 
         public DateTime? PublishedAtUtc { get; set; }
 
+        public bool IsAdminHidden { get; set; } = false;
+
+        [MaxLength(300)]
+        public string? AdminHiddenReason { get; set; }
+
+        public DateTime? AdminHiddenAtUtc { get; set; }
+
         [ForeignKey(nameof(AlbumId))]
         public virtual Album? Album { get; set; }
 

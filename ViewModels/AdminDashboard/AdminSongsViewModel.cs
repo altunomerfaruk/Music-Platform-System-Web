@@ -46,5 +46,15 @@ namespace MusicProject.ViewModels.AdminDashboard
         public int TotalLikes { get; set; }
 
         public int PopularityScore { get; set; }
+
+        public bool IsAdminHidden { get; set; }
+
+        public string? AdminHiddenReason { get; set; }
+
+        public DateTime? AdminHiddenAtUtc { get; set; }
+
+        public bool IsHiddenByAlbum { get; set; }
+
+        public string? AlbumAdminHiddenReason { get; set; }
     }
 }

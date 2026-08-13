@@ -19,7 +19,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 24px;
-            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65% );
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -86,6 +86,59 @@
                 background-color: var(--primary);
                 border-color: var(--primary);
             }
+
+        .moderation-alert {
+            margin-top: 20px;
+            padding: 17px 18px;
+            border-radius: 14px;
+        }
+
+            .moderation-alert.direct {
+                color: #ebc6c6;
+                background-color: rgba(255, 92, 92, 0.08);
+                border: 1px solid rgba(255, 92, 92, 0.30);
+            }
+
+            .moderation-alert.album {
+                color: #e4d2aa;
+                background-color: rgba(255, 189, 61, 0.07);
+                border: 1px solid rgba(255, 189, 61, 0.25);
+            }
+
+        .moderation-alert-title {
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .moderation-alert.direct .moderation-alert-title {
+            color: #ff7777;
+        }
+
+        .moderation-alert.album .moderation-alert-title {
+            color: var(--warning);
+        }
+
+        .moderation-alert-description {
+            margin-top: 7px;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .moderation-alert-reason {
+            margin-top: 10px;
+            padding: 10px 12px;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.18);
+            border-radius: 9px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .moderation-alert-date {
+            margin-top: 7px;
+            color: #a68e8e;
+            font-size: 9px;
+        }
 
         .edit-song-grid {
             margin-top: 24px;
@@ -160,12 +213,23 @@
                 background-color: #111612;
             }
 
+            .form-control:disabled {
+                color: #a8aea9;
+                background-color: rgba(255, 189, 61, 0.035);
+                border-color: rgba(255, 189, 61, 0.20);
+                cursor: not-allowed;
+            }
+
         .form-hint {
             margin-top: 7px;
             display: block;
             color: var(--text-secondary);
             font-size: 9px;
             line-height: 1.5;
+        }
+
+        .locked-hint {
+            color: var(--warning);
         }
 
         .artist-display {
@@ -308,7 +372,7 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             font-size: 10px;
-            line-height: 1.6;
+            line-height: 1.65;
         }
 
             .publication-info strong {
@@ -342,6 +406,16 @@
             .album-publication-info strong {
                 color: var(--primary);
             }
+
+        .album-publication-warning {
+            margin-top: 8px;
+            color: #ffcf70;
+        }
+
+        .direct-publication-warning {
+            margin-top: 8px;
+            color: #ff8585;
+        }
 
         .validation-message {
             margin-top: 7px;
@@ -435,7 +509,7 @@
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            background: radial-gradient( circle at center, rgba(30, 215, 96, 0.20), rgba(7, 12, 8, 0.98) 65% );
+            background: radial-gradient(circle at center, rgba(30, 215, 96, 0.20), rgba(7, 12, 8, 0.98) 65%);
             border: 1px solid rgba(30, 215, 96, 0.16);
             border-radius: 17px;
             font-size: 72px;
@@ -482,7 +556,7 @@
         }
 
             .preview-info-item strong {
-                max-width: 160px;
+                max-width: 165px;
                 overflow: hidden;
                 color: #ffffff;
                 font-weight: 800;
@@ -490,6 +564,14 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+
+                .preview-info-item strong.moderation-direct {
+                    color: #ff7777;
+                }
+
+                .preview-info-item strong.moderation-album {
+                    color: var(--warning);
+                }
 
         @@media (max-width: 930px) {
             .edit-song-grid {
@@ -551,6 +633,7 @@
             </div>
 
             <div>
+
                 <p class="edit-song-label">
                     Şarkı yönetimi
                 </p>
@@ -562,6 +645,7 @@
                 <p class="edit-song-description">
                     Şarkı bilgilerini, müzik türlerini ve yayın durumunu güncelle.
                 </p>
+
             </div>
 
         </div>
@@ -573,6 +657,62 @@
         </a>
 
     </section>
+
+    @if (Model.IsAdminHidden)
+    {
+        <section class="moderation-alert direct">
+
+            <div class="moderation-alert-title">
+                🔒 Bu şarkı admin tarafından platformdan gizlendi
+            </div>
+
+            <div class="moderation-alert-description">
+                Şarkının bilgilerini ve kendi yayın durumunu değiştirebilirsin.
+                Ancak yönetici gizliliği kaldırana kadar şarkı normal kullanıcılar
+                tarafından görülemez veya dinlenemez.
+            </div>
+
+            <div class="moderation-alert-reason">
+                <strong>Neden:</strong>
+                @(string.IsNullOrWhiteSpace(Model.AdminHiddenReason)
+                    ? "Neden belirtilmedi."
+                    : Model.AdminHiddenReason)
+            </div>
+
+            @if (Model.AdminHiddenAtUtc.HasValue)
+            {
+                <div class="moderation-alert-date">
+                    Gizlenme zamanı:
+                    @Model.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+            }
+
+        </section>
+    }
+
+    @if (Model.IsHiddenByAlbum)
+    {
+        <section class="moderation-alert album">
+
+            <div class="moderation-alert-title">
+                🔒 Bu şarkının bağlı olduğu albüm admin tarafından gizlendi
+            </div>
+
+            <div class="moderation-alert-description">
+                Albüm üzerindeki admin gizliliği kaldırılana kadar bu şarkı da normal
+                kullanıcılara kapalıdır. Gizlemeyi aşmak için şarkının albüm bağlantısı
+                değiştirilemez.
+            </div>
+
+            <div class="moderation-alert-reason">
+                <strong>Albüm gizleme nedeni:</strong>
+                @(string.IsNullOrWhiteSpace(Model.AlbumAdminHiddenReason)
+                    ? "Neden belirtilmedi."
+                    : Model.AlbumAdminHiddenReason)
+            </div>
+
+        </section>
+    }
 
     <div class="edit-song-grid">
 
@@ -622,21 +762,47 @@
                     <label asp-for="AlbumId"
                            class="form-label">
                         Albüm
+
                         <span class="form-label-note">
                             — Albümsüz bırakılabilir
                         </span>
                     </label>
 
-                    <select asp-for="AlbumId"
-                            asp-items="Model.AlbumOptions"
-                            id="albumSelect"
-                            class="form-control">
+                    @if (Model.IsHiddenByAlbum)
+                    {
+                        <input type="hidden"
+                               name="AlbumId"
+                               value="@Model.AlbumId" />
 
-                        <option value="">
-                            Single / Albümsüz
-                        </option>
+                        <select asp-for="AlbumId"
+                                asp-items="Model.AlbumOptions"
+                                id="albumSelect"
+                                class="form-control"
+                                disabled>
 
-                    </select>
+                            <option value="">
+                                Single / Albümsüz
+                            </option>
+
+                        </select>
+
+                        <span class="form-hint locked-hint">
+                            🔒 Bağlı albüm admin tarafından gizlendiği için albüm bağlantısı değiştirilemez.
+                        </span>
+                    }
+                    else
+                    {
+                        <select asp-for="AlbumId"
+                                asp-items="Model.AlbumOptions"
+                                id="albumSelect"
+                                class="form-control">
+
+                            <option value="">
+                                Single / Albümsüz
+                            </option>
+
+                        </select>
+                    }
 
                     <span asp-validation-for="AlbumId"
                           class="validation-message">
@@ -649,6 +815,7 @@
                     <label asp-for="LabelId"
                            class="form-label">
                         Plak Şirketi ID
+
                         <span class="form-label-note">
                             — İsteğe bağlı
                         </span>
@@ -756,8 +923,24 @@
 
                     <strong>Albüm yayını:</strong>
                     Bu şarkının bağımsız yayın ayarı kullanılmaz.
-                    Şarkının görünürlüğü seçtiğin albümün yayın durumuna göre yönetilir.
-                    Varsa eski single yayın planı kaydedildiğinde iptal edilir.
+                    Şarkının yayın durumu bağlı olduğu albüm tarafından yönetilir.
+
+                    @if (Model.IsHiddenByAlbum)
+                    {
+                        <div class="album-publication-warning">
+                            <strong>Admin moderasyonu:</strong>
+                            Albüm admin tarafından gizli olduğu için şarkı normal
+                            kullanıcılar tarafından görülemez.
+                        </div>
+                    }
+
+                    @if (Model.IsAdminHidden)
+                    {
+                        <div class="direct-publication-warning">
+                            <strong>Şarkı moderasyonu:</strong>
+                            Bu şarkı ayrıca doğrudan admin tarafından gizlenmiştir.
+                        </div>
+                    }
 
                 </div>
 
@@ -919,6 +1102,33 @@
 
                 </div>
 
+                <div class="preview-info-item">
+
+                    <span>
+                        Moderasyon
+                    </span>
+
+                    @if (Model.IsAdminHidden)
+                    {
+                        <strong class="moderation-direct">
+                            Admin gizli
+                        </strong>
+                    }
+                    else if (Model.IsHiddenByAlbum)
+                    {
+                        <strong class="moderation-album">
+                            Albüm nedeniyle gizli
+                        </strong>
+                    }
+                    else
+                    {
+                        <strong>
+                            Yok
+                        </strong>
+                    }
+
+                </div>
+
             </div>
 
         </aside>
@@ -937,29 +1147,73 @@
             const publishedStatus = "@((int)PublicationStatus.Published)";
             const archivedStatus = "@((int)PublicationStatus.Archived)";
 
+            const isAdminHidden = @Model.IsAdminHidden.ToString().ToLowerInvariant();
+            const isHiddenByAlbum = @Model.IsHiddenByAlbum.ToString().ToLowerInvariant();
+
             const titleInput = document.getElementById("songTitle");
             const albumSelect = document.getElementById("albumSelect");
             const genreSearch = document.getElementById("genreSearch");
             const genreOptions = document.querySelectorAll(".genre-option");
             const genreCheckboxes = document.querySelectorAll(".genre-checkbox");
 
-            const publicationSection = document.getElementById("publicationSection");
-            const albumPublicationInfo = document.getElementById("albumPublicationInfo");
-            const publicationStatusSelect = document.getElementById("publicationStatusSelect");
-            const scheduledPublishGroup = document.getElementById("scheduledPublishGroup");
-            const scheduledPublishInput = document.getElementById("scheduledPublishInput");
-            const publicationInfo = document.getElementById("publicationInfo");
-            const saveSongButton = document.getElementById("saveSongButton");
+            const publicationSection =
+                document.getElementById("publicationSection");
 
-            const previewTitle = document.getElementById("previewTitle");
-            const previewAlbum = document.getElementById("previewAlbum");
-            const previewGenreCount = document.getElementById("previewGenreCount");
-            const previewPublicationStatus = document.getElementById("previewPublicationStatus");
-            const selectedGenreCount = document.getElementById("selectedGenreCount");
+            const albumPublicationInfo =
+                document.getElementById("albumPublicationInfo");
 
-            let previousPublicationStatus = publicationStatusSelect
-                ? publicationStatusSelect.value
-                : null;
+            const publicationStatusSelect =
+                document.getElementById("publicationStatusSelect");
+
+            const scheduledPublishGroup =
+                document.getElementById("scheduledPublishGroup");
+
+            const scheduledPublishInput =
+                document.getElementById("scheduledPublishInput");
+
+            const publicationInfo =
+                document.getElementById("publicationInfo");
+
+            const saveSongButton =
+                document.getElementById("saveSongButton");
+
+            const previewTitle =
+                document.getElementById("previewTitle");
+
+            const previewAlbum =
+                document.getElementById("previewAlbum");
+
+            const previewGenreCount =
+                document.getElementById("previewGenreCount");
+
+            const previewPublicationStatus =
+                document.getElementById("previewPublicationStatus");
+
+            const selectedGenreCount =
+                document.getElementById("selectedGenreCount");
+
+            let previousPublicationStatus =
+                publicationStatusSelect
+                    ? publicationStatusSelect.value
+                    : null;
+
+            function appendModerationMessage(message) {
+                if (isAdminHidden) {
+                    message +=
+                        "<br><br><strong style='color:#ff7777;'>Admin moderasyonu:</strong> " +
+                        "Şarkı admin tarafından gizli olduğu için bu yayın durumu " +
+                        "normal kullanıcıların erişimini açmaz.";
+                }
+
+                if (isHiddenByAlbum) {
+                    message +=
+                        "<br><br><strong style='color:#ffbd3d;'>Albüm moderasyonu:</strong> " +
+                        "Bağlı albüm admin tarafından gizli olduğu için şarkı " +
+                        "normal kullanıcıların erişimine kapalıdır.";
+                }
+
+                return message;
+            }
 
             function updateTitlePreview() {
                 if (!titleInput || !previewTitle) {
@@ -968,9 +1222,10 @@
 
                 const title = titleInput.value.trim();
 
-                previewTitle.textContent = title.length > 0
-                    ? title
-                    : "Şarkı adı";
+                previewTitle.textContent =
+                    title.length > 0
+                        ? title
+                        : "Şarkı adı";
             }
 
             function updateAlbumPreview() {
@@ -978,7 +1233,8 @@
                     return;
                 }
 
-                const selectedOption = albumSelect.options[albumSelect.selectedIndex];
+                const selectedOption =
+                    albumSelect.options[albumSelect.selectedIndex];
 
                 previewAlbum.textContent =
                     selectedOption && selectedOption.value !== ""
@@ -1019,12 +1275,15 @@
                     scheduledPublishInput.required = true;
 
                     publicationInfo.innerHTML =
-                        "<strong>Planlı yayın:</strong> Single seçtiğin cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır.";
+                        appendModerationMessage(
+                            "<strong>Planlı yayın:</strong> Single seçtiğin cuma günü ve saatte Hangfire tarafından otomatik olarak yayına alınacaktır."
+                        );
 
                     saveSongButton.textContent = "Yayını Planla";
                     previewPublicationStatus.textContent = "Planlandı";
 
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
@@ -1037,12 +1296,15 @@
 
                 if (selectedStatus === publishedStatus) {
                     publicationInfo.innerHTML =
-                        "<strong>Yayında:</strong> Single kullanıcılar tarafından görülebilir.";
+                        appendModerationMessage(
+                            "<strong>Yayında:</strong> Şarkının yayın durumu yayındadır."
+                        );
 
                     saveSongButton.textContent = "Şarkıyı Yayınla";
                     previewPublicationStatus.textContent = "Yayında";
 
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
@@ -1057,11 +1319,14 @@
                     previewPublicationStatus.textContent = "Arşivlendi";
 
                     previousPublicationStatus = selectedStatus;
+
                     return;
                 }
 
                 publicationInfo.innerHTML =
-                    "<strong>Taslak:</strong> Single yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
+                    appendModerationMessage(
+                        "<strong>Taslak:</strong> Single yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir."
+                    );
 
                 saveSongButton.textContent = "Taslak Olarak Kaydet";
                 previewPublicationStatus.textContent = "Taslak";
@@ -1089,7 +1354,9 @@
                     saveSongButton.classList.remove("archived-button");
                     saveSongButton.textContent = "Değişiklikleri Kaydet";
 
-                    previewPublicationStatus.textContent = "Albümü takip ediyor";
+                    previewPublicationStatus.textContent =
+                        "Albümü takip ediyor";
+
                     return;
                 }
 
@@ -1100,10 +1367,13 @@
             }
 
             if (titleInput) {
-                titleInput.addEventListener("input", updateTitlePreview);
+                titleInput.addEventListener(
+                    "input",
+                    updateTitlePreview
+                );
             }
 
-            if (albumSelect) {
+            if (albumSelect && !albumSelect.disabled) {
                 albumSelect.addEventListener("change", function() {
                     updateAlbumPreview();
                     updateAlbumBehavior();
@@ -1111,17 +1381,22 @@
             }
 
             genreCheckboxes.forEach(function(checkbox) {
-                checkbox.addEventListener("change", updateGenreCount);
+                checkbox.addEventListener(
+                    "change",
+                    updateGenreCount
+                );
             });
 
             if (genreSearch) {
                 genreSearch.addEventListener("input", function() {
-                    const searchValue = genreSearch.value
-                        .trim()
-                        .toLowerCase();
+                    const searchValue =
+                        genreSearch.value
+                            .trim()
+                            .toLowerCase();
 
                     genreOptions.forEach(function(genreOption) {
-                        const genreName = genreOption.dataset.genreName;
+                        const genreName =
+                            genreOption.dataset.genreName;
 
                         genreOption.style.display =
                             genreName.includes(searchValue)
@@ -1137,7 +1412,9 @@
                         previousPublicationStatus === scheduledStatus &&
                         publicationStatusSelect.value !== scheduledStatus;
 
-                    updatePublicationFields(statusChangedFromScheduled);
+                    updatePublicationFields(
+                        statusChangedFromScheduled
+                    );
                 });
             }
 

@@ -59,6 +59,12 @@ namespace MusicProject.Services.Concrete
                     "Bu şarkıyı düzenleme yetkiniz bulunmuyor.");
             }
 
+            if (artistSong.Album?.IsAdminHidden == true && artistSong.AlbumId != song.AlbumId)
+            {
+                throw new InvalidOperationException(
+                    "Admin tarafından gizlenen albüme bağlı bir şarkının albüm bağlantısını değiştiremezsiniz.");
+            }
+
             var normalizedTitle = song.Title.Trim();
 
             var sameTitleExists = _songRepository.ExistsByTitleAndArtist(

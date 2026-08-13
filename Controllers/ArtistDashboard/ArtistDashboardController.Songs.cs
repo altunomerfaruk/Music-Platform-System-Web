@@ -235,13 +235,19 @@ namespace MusicProject.Controllers
                 AlbumId = song.AlbumId,
                 LabelId = song.LabelId,
                 SelectedGenreIds = song.SongGenres
-                    .Select(songGenre => songGenre.GenreId)
-                    .ToList(),
+                                        .Select(songGenre => songGenre.GenreId)
+                                        .ToList(),
                 PublicationStatus = song.PublicationStatus,
                 ScheduledPublishAtLocal = song.ScheduledPublishAtUtc.HasValue
-                    ? _publicationService.ConvertUtcToTurkeyTime(
-                        song.ScheduledPublishAtUtc.Value)
-                    : null
+                ? _publicationService.ConvertUtcToTurkeyTime(song.ScheduledPublishAtUtc.Value)
+                : null,
+
+                IsAdminHidden = song.IsAdminHidden,
+                AdminHiddenReason = song.AdminHiddenReason,
+                AdminHiddenAtUtc = song.AdminHiddenAtUtc,
+
+                IsHiddenByAlbum = song.Album?.IsAdminHidden ?? false,
+                AlbumAdminHiddenReason = song.Album?.AdminHiddenReason
             };
 
             FillArtistLayoutData(model, dashboard);
@@ -268,6 +274,7 @@ namespace MusicProject.Controllers
                 model.SongId,
                 dashboard.Artist.Id);
 
+
             if (existingSong == null)
             {
                 TempData["ErrorMessage"] =
@@ -276,7 +283,13 @@ namespace MusicProject.Controllers
                 return RedirectToAction(nameof(MySongs));
             }
 
-            // Update sırasında tracked entity değişeceği için eski job ID'yi önceden saklıyoruz.
+
+            model.IsAdminHidden = existingSong.IsAdminHidden;
+            model.AdminHiddenReason = existingSong.AdminHiddenReason;
+            model.AdminHiddenAtUtc = existingSong.AdminHiddenAtUtc;
+            model.IsHiddenByAlbum = existingSong.Album?.IsAdminHidden ?? false;
+            model.AlbumAdminHiddenReason = existingSong.Album?.AdminHiddenReason;
+
             var oldPublicationJobId = existingSong.PublicationJobId;
 
             ValidateSongSelection(

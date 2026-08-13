@@ -29,9 +29,11 @@ namespace MusicProject.Repositories.Concrete
                 .Where(likedSong =>
                     likedSong.UserId == userId &&
                     likedSong.IsActive &&
+                    !likedSong.Song.IsAdminHidden &&
                     likedSong.Song.PublicationStatus == PublicationStatus.Published &&
                     (likedSong.Song.AlbumId == null ||
-                     likedSong.Song.Album!.PublicationStatus == PublicationStatus.Published))
+                     (!likedSong.Song.Album!.IsAdminHidden &&
+                      likedSong.Song.Album.PublicationStatus == PublicationStatus.Published)))
                 .Select(likedSong => likedSong.SongId)
                 .ToList();
         }
@@ -50,9 +52,11 @@ namespace MusicProject.Repositories.Concrete
                 .Where(likedSong =>
                     likedSong.UserId == userId &&
                     likedSong.IsActive &&
+                    !likedSong.Song.IsAdminHidden &&
                     likedSong.Song.PublicationStatus == PublicationStatus.Published &&
                     (likedSong.Song.AlbumId == null ||
-                     likedSong.Song.Album!.PublicationStatus == PublicationStatus.Published))
+                     (!likedSong.Song.Album!.IsAdminHidden &&
+                      likedSong.Song.Album.PublicationStatus == PublicationStatus.Published)))
                 .Include(likedSong => likedSong.Song)
                     .ThenInclude(song => song.Album)
                 .Include(likedSong => likedSong.Song)

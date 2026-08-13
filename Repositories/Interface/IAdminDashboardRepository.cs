@@ -9,6 +9,8 @@ namespace MusicProject.Repositories.Interface
 
         int GetTotalArtistCount();
 
+        int GetTotalAlbumCount();
+
         int GetTotalSongCount();
 
         int GetTotalListeningCount();
@@ -26,6 +28,8 @@ namespace MusicProject.Repositories.Interface
         void UpdateUser(User user);
 
         IEnumerable<Artist> GetArtists(string? search);
+
+        IEnumerable<Album> GetAlbums(string? search, PublicationStatus? status);
 
         IEnumerable<Song> GetSongs(string? search, PublicationStatus? status);
     }

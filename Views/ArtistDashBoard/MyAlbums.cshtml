@@ -158,6 +158,7 @@
 
         .album-card {
             overflow: hidden;
+            position: relative;
             background-color: var(--card);
             border: 1px solid var(--border);
             border-radius: 18px;
@@ -170,6 +171,44 @@
                 transform: translateY(-4px);
             }
 
+            .album-card.admin-hidden {
+                border-color: rgba(255, 92, 92, 0.35);
+            }
+
+                .album-card.admin-hidden:hover {
+                    border-color: rgba(255, 92, 92, 0.55);
+                }
+
+        .admin-hidden-banner {
+            padding: 11px 14px;
+            color: #ff8d8d;
+            background-color: rgba(255, 92, 92, 0.10);
+            border-bottom: 1px solid rgba(255, 92, 92, 0.22);
+            font-size: 10px;
+            font-weight: 850;
+            line-height: 1.5;
+        }
+
+        .admin-hidden-banner-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ff7373;
+        }
+
+        .admin-hidden-banner-reason {
+            margin-top: 5px;
+            color: #d8aaaa;
+            font-weight: 600;
+        }
+
+        .admin-hidden-banner-date {
+            margin-top: 4px;
+            color: #8f7474;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
         .album-card-cover {
             height: 160px;
             display: flex;
@@ -179,6 +218,10 @@
             color: var(--primary);
             background: radial-gradient(circle at top right, rgba(30, 215, 96, 0.22), transparent 45%), linear-gradient(135deg, #18241c, #0c110e);
             font-size: 55px;
+        }
+
+        .album-card.admin-hidden .album-card-cover {
+            opacity: 0.65;
         }
 
         .album-card-cover-image {
@@ -397,7 +440,7 @@
                 </h2>
 
                 <p class="albums-hero-description">
-                    Yayınladığın albümleri görüntüle, düzenle ve şarkılarını yönet.
+                    Albümlerini görüntüle, düzenle ve şarkılarını yönet.
                 </p>
 
             </div>
@@ -457,11 +500,11 @@
         <div>
 
             <h3 class="albums-section-title">
-                Yayınlanan albümler
+                Albüm kataloğu
             </h3>
 
             <p class="albums-section-description">
-                En yeni albüm ilk sırada gösterilir.
+                Admin tarafından gizlenen albümler burada görünmeye devam eder ancak normal kullanıcılara kapalıdır.
             </p>
 
         </div>
@@ -477,7 +520,31 @@
                 var totalStreams = album.Songs.Sum(song => song.SongStat?.TotalStreams ?? 0);
                 var hasSongs = album.Songs.Any();
 
-                <article class="album-card">
+                <article class="album-card @(album.IsAdminHidden ? "admin-hidden" : "")">
+
+                    @if (album.IsAdminHidden)
+                    {
+                        <div class="admin-hidden-banner">
+
+                            <div class="admin-hidden-banner-title">
+                                🔒 Admin tarafından gizlendi
+                            </div>
+
+                            <div class="admin-hidden-banner-reason">
+                                Neden: @(string.IsNullOrWhiteSpace(album.AdminHiddenReason)
+                                                                    ? "Neden belirtilmedi."
+                                                                    : album.AdminHiddenReason)
+                            </div>
+
+                            @if (album.AdminHiddenAtUtc.HasValue)
+                            {
+                                <div class="admin-hidden-banner-date">
+                                    @album.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            }
+
+                        </div>
+                    }
 
                     <div class="album-card-cover">
 

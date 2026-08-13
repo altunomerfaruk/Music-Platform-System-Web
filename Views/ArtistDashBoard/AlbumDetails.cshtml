@@ -40,6 +40,43 @@
                 border-color: rgba(30, 215, 96, 0.30);
             }
 
+        .admin-hidden-alert {
+            margin-bottom: 18px;
+            padding: 17px 18px;
+            color: #f0c7c7;
+            background-color: rgba(255, 92, 92, 0.08);
+            border: 1px solid rgba(255, 92, 92, 0.30);
+            border-radius: 14px;
+        }
+
+        .admin-hidden-alert-title {
+            color: #ff7474;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .admin-hidden-alert-description {
+            margin-top: 7px;
+            font-size: 11px;
+            line-height: 1.65;
+        }
+
+        .admin-hidden-alert-reason {
+            margin-top: 10px;
+            padding: 10px 12px;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.18);
+            border-radius: 9px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .admin-hidden-alert-date {
+            margin-top: 8px;
+            color: #a78d8d;
+            font-size: 9px;
+        }
+
         .album-details-hero {
             padding: 30px;
             display: grid;
@@ -49,6 +86,11 @@
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 22px;
         }
+
+            .album-details-hero.admin-hidden {
+                background: linear-gradient(125deg, rgba(255, 92, 92, 0.10), rgba(18, 23, 19, 0.97) 67%);
+                border-color: rgba(255, 92, 92, 0.25);
+            }
 
         .album-details-cover {
             width: 220px;
@@ -128,6 +170,12 @@
             font-size: 11px;
             font-weight: 700;
         }
+
+            .album-details-meta-item.admin-hidden {
+                color: #ff8a8a;
+                background-color: rgba(255, 92, 92, 0.08);
+                border-color: rgba(255, 92, 92, 0.25);
+            }
 
         .album-details-actions {
             margin-top: 22px;
@@ -293,6 +341,13 @@
             font-size: 10px;
         }
 
+        .song-admin-hidden {
+            margin-top: 5px;
+            color: #ff7777;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
         .album-song-stat {
             color: #cbd1cd;
             font-size: 11px;
@@ -429,7 +484,39 @@
         ← Albümlerime Dön
     </a>
 
-    <section class="album-details-hero">
+    @if (Model.Album.IsAdminHidden)
+    {
+        <div class="admin-hidden-alert">
+
+            <div class="admin-hidden-alert-title">
+                🔒 Bu albüm admin tarafından platformdan gizlendi
+            </div>
+
+            <div class="admin-hidden-alert-description">
+                Albüm sanatçı panelinde görünmeye devam eder ancak normal kullanıcılar
+                albümü ve albüme bağlı şarkıları göremez. Bu moderasyon durumunu yalnızca
+                yönetici kaldırabilir.
+            </div>
+
+            <div class="admin-hidden-alert-reason">
+                <strong>Neden:</strong>
+                @(string.IsNullOrWhiteSpace(Model.Album.AdminHiddenReason)
+                    ? "Neden belirtilmedi."
+                    : Model.Album.AdminHiddenReason)
+            </div>
+
+            @if (Model.Album.AdminHiddenAtUtc.HasValue)
+            {
+                <div class="admin-hidden-alert-date">
+                    Gizlenme zamanı:
+                    @Model.Album.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+            }
+
+        </div>
+    }
+
+    <section class="album-details-hero @(Model.Album.IsAdminHidden ? "admin-hidden" : "")">
 
         <div class="album-details-cover">
 
@@ -477,6 +564,13 @@
                 <span class="album-details-meta-item">
                     @Model.TotalStreams.ToString("N0") dinlenme
                 </span>
+
+                @if (Model.Album.IsAdminHidden)
+                {
+                    <span class="album-details-meta-item admin-hidden">
+                        🔒 Admin gizlemesi aktif
+                    </span>
+                }
 
             </div>
 
@@ -607,6 +701,19 @@
                             <div class="album-song-type">
                                 @Model.Album.Name
                             </div>
+
+                            @if (song.IsAdminHidden)
+                            {
+                                <div class="song-admin-hidden">
+                                    🔒 Bu şarkı ayrıca admin tarafından gizlendi
+                                </div>
+                            }
+                            else if (Model.Album.IsAdminHidden)
+                            {
+                                <div class="song-admin-hidden">
+                                    🔒 Albüm gizli olduğu için kullanıcıya kapalı
+                                </div>
+                            }
 
                         </div>
 

@@ -22,10 +22,13 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .Include(album => album.Artist)
                 .Include(album => album.Songs
-                    .Where(song => song.PublicationStatus == PublicationStatus.Published))
+                    .Where(song =>
+                        !song.IsAdminHidden &&
+                        song.PublicationStatus == PublicationStatus.Published))
                     .ThenInclude(song => song.SongStat)
                 .FirstOrDefault(album =>
                     album.Id == albumId &&
+                    !album.IsAdminHidden &&
                     album.PublicationStatus == PublicationStatus.Published);
         }
 
@@ -33,7 +36,9 @@ namespace MusicProject.Repositories.Concrete
         {
             return _context.Albums
                 .AsNoTracking()
-                .Where(album => album.PublicationStatus == PublicationStatus.Published)
+                .Where(album =>
+                    !album.IsAdminHidden &&
+                    album.PublicationStatus == PublicationStatus.Published)
                 .Include(album => album.Artist)
                 .OrderBy(album => album.Name)
                 .ToList();

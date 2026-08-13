@@ -23,8 +23,11 @@ namespace MusicProject.Repositories.Concrete
             return _dbSet
                 .AsNoTracking()
                 .Where(song =>
+                    !song.IsAdminHidden &&
                     song.PublicationStatus == PublicationStatus.Published &&
-                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published))
+                    (song.AlbumId == null ||
+                     (song.Album!.PublicationStatus == PublicationStatus.Published &&
+                      !song.Album.IsAdminHidden)))
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
@@ -53,10 +56,10 @@ namespace MusicProject.Repositories.Concrete
                 .ThenBy(song => song.Title)
                 .ToList();
         }
-
         public Song? GetArtistSongForEdit(int songId, int artistId)
         {
             return _context.Songs
+                .Include(song => song.Album)
                 .Include(song => song.SongArtists)
                 .Include(song => song.SongGenres)
                     .ThenInclude(songGenre => songGenre.Genre)
@@ -121,8 +124,10 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .Where(song =>
                     song.AlbumId == albumId &&
+                    !song.IsAdminHidden &&
                     song.PublicationStatus == PublicationStatus.Published &&
-                    song.Album!.PublicationStatus == PublicationStatus.Published)
+                    song.Album!.PublicationStatus == PublicationStatus.Published &&
+                    !song.Album.IsAdminHidden)
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
                 .Include(song => song.SongArtists)
@@ -139,8 +144,11 @@ namespace MusicProject.Repositories.Concrete
             return _context.Songs
                 .AsNoTracking()
                 .Where(song =>
+                    !song.IsAdminHidden &&
                     song.PublicationStatus == PublicationStatus.Published &&
-                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published))
+                    (song.AlbumId == null ||
+                     (song.Album!.PublicationStatus == PublicationStatus.Published &&
+                      !song.Album.IsAdminHidden)))
                 .Include(song => song.SongStat)
                 .Include(song => song.Album)
                     .ThenInclude(album => album!.Artist)
@@ -165,8 +173,11 @@ namespace MusicProject.Repositories.Concrete
                 .Include(song => song.SongStat)
                 .FirstOrDefault(song =>
                     song.Id == songId &&
+                    !song.IsAdminHidden &&
                     song.PublicationStatus == PublicationStatus.Published &&
-                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published));
+                    (song.AlbumId == null ||
+                     (song.Album!.PublicationStatus == PublicationStatus.Published &&
+                      !song.Album.IsAdminHidden)));
         }
 
         public Song? GetSongForListening(int songId)
@@ -181,8 +192,11 @@ namespace MusicProject.Repositories.Concrete
                     .ThenInclude(songGenre => songGenre.Genre)
                 .FirstOrDefault(song =>
                     song.Id == songId &&
+                    !song.IsAdminHidden &&
                     song.PublicationStatus == PublicationStatus.Published &&
-                    (song.AlbumId == null || song.Album!.PublicationStatus == PublicationStatus.Published));
+                    (song.AlbumId == null ||
+                     (song.Album!.PublicationStatus == PublicationStatus.Published &&
+                      !song.Album.IsAdminHidden)));
         }
 
         public bool ExistsByTitleAndArtist(string title, int artistId)

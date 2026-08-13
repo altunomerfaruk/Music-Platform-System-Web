@@ -27,5 +27,11 @@ namespace MusicProject.ViewModels.ArtistDashboard
 
         [Display(Name = "Planlanan yayın zamanı")]
         public DateTime? ScheduledPublishAtLocal { get; set; }
+
+        public bool IsAdminHidden { get; set; }
+
+        public string? AdminHiddenReason { get; set; }
+
+        public DateTime? AdminHiddenAtUtc { get; set; }
     }
 }

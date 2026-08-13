@@ -19,7 +19,13 @@ namespace MusicProject.Repositories.Concrete
         {
             return _context.Genres
                 .AsNoTracking()
-                .Include(genre => genre.SongGenres)
+                .Include(genre => genre.SongGenres
+                    .Where(songGenre =>
+                        !songGenre.Song.IsAdminHidden &&
+                        songGenre.Song.PublicationStatus == PublicationStatus.Published &&
+                        (songGenre.Song.AlbumId == null ||
+                         (!songGenre.Song.Album!.IsAdminHidden &&
+                          songGenre.Song.Album.PublicationStatus == PublicationStatus.Published))))
                 .OrderBy(genre => genre.Name)
                 .ToList();
         }
@@ -30,25 +36,31 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .Include(genre => genre.SongGenres
                     .Where(songGenre =>
+                        !songGenre.Song.IsAdminHidden &&
                         songGenre.Song.PublicationStatus == PublicationStatus.Published &&
                         (songGenre.Song.AlbumId == null ||
-                         songGenre.Song.Album!.PublicationStatus == PublicationStatus.Published)))
+                         (!songGenre.Song.Album!.IsAdminHidden &&
+                          songGenre.Song.Album.PublicationStatus == PublicationStatus.Published))))
                     .ThenInclude(songGenre => songGenre.Song)
                         .ThenInclude(song => song.Album)
                             .ThenInclude(album => album!.Artist)
                 .Include(genre => genre.SongGenres
                     .Where(songGenre =>
+                        !songGenre.Song.IsAdminHidden &&
                         songGenre.Song.PublicationStatus == PublicationStatus.Published &&
                         (songGenre.Song.AlbumId == null ||
-                         songGenre.Song.Album!.PublicationStatus == PublicationStatus.Published)))
+                         (!songGenre.Song.Album!.IsAdminHidden &&
+                          songGenre.Song.Album.PublicationStatus == PublicationStatus.Published))))
                     .ThenInclude(songGenre => songGenre.Song)
                         .ThenInclude(song => song.SongArtists)
                             .ThenInclude(songArtist => songArtist.Artist)
                 .Include(genre => genre.SongGenres
                     .Where(songGenre =>
+                        !songGenre.Song.IsAdminHidden &&
                         songGenre.Song.PublicationStatus == PublicationStatus.Published &&
                         (songGenre.Song.AlbumId == null ||
-                         songGenre.Song.Album!.PublicationStatus == PublicationStatus.Published)))
+                         (!songGenre.Song.Album!.IsAdminHidden &&
+                          songGenre.Song.Album.PublicationStatus == PublicationStatus.Published))))
                     .ThenInclude(songGenre => songGenre.Song)
                         .ThenInclude(song => song.SongStat)
                 .FirstOrDefault(genre => genre.Id == genreId);

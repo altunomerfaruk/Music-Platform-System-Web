@@ -25,6 +25,11 @@ namespace MusicProject.Repositories.Concrete
             return _context.Artists.Count();
         }
 
+        public int GetTotalAlbumCount()
+        {
+            return _context.Albums.Count(album => !album.IsDeleted);
+        }
+
         public int GetTotalSongCount()
         {
             return _context.Songs.Count();
@@ -125,6 +130,35 @@ namespace MusicProject.Repositories.Concrete
                 .Include(artist => artist.SongArtists.Where(songArtist => !songArtist.Song.IsDeleted))
                 .Include(artist => artist.Followers.Where(follower => follower.IsActive))
                 .OrderBy(artist => artist.Name)
+                .ToList();
+        }
+
+        public IEnumerable<Album> GetAlbums(string? search, PublicationStatus? status)
+        {
+            var query = _context.Albums
+                .AsNoTracking()
+                .Where(album => !album.IsDeleted)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalizedSearch = search.Trim();
+
+                query = query.Where(album =>
+                    album.Name.Contains(normalizedSearch) ||
+                    album.Artist.Name.Contains(normalizedSearch));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(album => album.PublicationStatus == status.Value);
+            }
+
+            return query
+                .Include(album => album.Artist)
+                .Include(album => album.Songs)
+                .OrderByDescending(album => album.CreatedAt)
+                .ThenBy(album => album.Name)
                 .ToList();
         }
 

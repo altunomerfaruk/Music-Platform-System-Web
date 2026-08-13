@@ -13,6 +13,8 @@ namespace MusicProject.Services.Interface
 
         AdminArtistsViewModel GetArtists(string? search);
 
+        AdminAlbumsViewModel GetAlbums(string? search, PublicationStatus? status);
+
         AdminSongsViewModel GetSongs(string? search, PublicationStatus? status);
     }
 }

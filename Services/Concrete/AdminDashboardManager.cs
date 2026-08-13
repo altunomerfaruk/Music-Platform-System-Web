@@ -146,6 +146,42 @@ namespace MusicProject.Services.Concrete
             return model;
         }
 
+        public AdminAlbumsViewModel GetAlbums(string? search, PublicationStatus? status)
+        {
+            var albums = _adminDashboardRepository
+                .GetAlbums(search, status)
+                .Select(album => new AdminAlbumListItemViewModel
+                {
+                    Id = album.Id,
+                    Name = album.Name,
+                    ArtistName = album.Artist.Name,
+                    CoverImageUrl = album.CoverImageUrl,
+                    ReleaseDate = album.ReleaseDate,
+                    CreatedAt = album.CreatedAt,
+                    PublicationStatus = album.PublicationStatus,
+                    ScheduledPublishAtUtc = album.ScheduledPublishAtUtc,
+                    PublishedAtUtc = album.PublishedAtUtc,
+                    SongCount = album.Songs.Count
+                })
+                .ToList();
+
+            var model = new AdminAlbumsViewModel
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                StatusFilter = status,
+                DisplayedAlbums = albums.Count,
+                PublishedAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Published),
+                ScheduledAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Scheduled),
+                DraftAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Draft),
+                ArchivedAlbums = albums.Count(album => album.PublicationStatus == PublicationStatus.Archived),
+                Albums = albums
+            };
+
+            FillLayoutData(model);
+
+            return model;
+        }
+
         public AdminSongsViewModel GetSongs(string? search, PublicationStatus? status)
         {
             var songs = _adminDashboardRepository
@@ -167,7 +203,14 @@ namespace MusicProject.Services.Concrete
                     PublishedAtUtc = song.PublishedAtUtc,
                     TotalStreams = song.SongStat?.TotalStreams ?? 0,
                     TotalLikes = song.SongStat?.TotalLikes ?? 0,
-                    PopularityScore = song.SongStat?.PopularityScore ?? 0
+                    PopularityScore = song.SongStat?.PopularityScore ?? 0,
+
+                    IsAdminHidden = song.IsAdminHidden,
+                    AdminHiddenReason = song.AdminHiddenReason,
+                    AdminHiddenAtUtc = song.AdminHiddenAtUtc,
+
+                    IsHiddenByAlbum = song.Album?.IsAdminHidden ?? false,
+                    AlbumAdminHiddenReason = song.Album?.AdminHiddenReason
                 })
                 .ToList();
 
@@ -192,6 +235,7 @@ namespace MusicProject.Services.Concrete
         {
             model.TotalUsers = _adminDashboardRepository.GetTotalUserCount();
             model.TotalArtists = _adminDashboardRepository.GetTotalArtistCount();
+            model.TotalAlbums = _adminDashboardRepository.GetTotalAlbumCount();
             model.TotalSongs = _adminDashboardRepository.GetTotalSongCount();
         }
 

@@ -1,26 +1,26 @@
 ﻿@using MusicProject.Models.Enums
-@model MusicProject.ViewModels.AdminDashboard.AdminSongsViewModel
+@model MusicProject.ViewModels.AdminDashboard.AdminAlbumsViewModel
 
 @{
-    ViewData["Title"] = "Şarkı Yönetimi";
-    ViewData["PageDescription"] = "Platformdaki şarkıları, yayın durumlarını ve moderasyon işlemlerini yönet.";
+    ViewData["Title"] = "Albüm Yönetimi";
+    ViewData["PageDescription"] = "Platformdaki albümleri, yayın durumlarını ve moderasyon işlemlerini yönet.";
     Layout = "_AdminLayout";
 }
 
 @section Styles {
     <style>
-        .songs-content {
+        .albums-content {
             padding: 32px 34px 50px;
         }
 
-        .songs-hero {
+        .albums-hero {
             padding: 29px 31px;
             background: linear-gradient(125deg, rgba(30, 215, 96, 0.18), rgba(18, 23, 19, 0.97) 65%);
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
 
-        .songs-hero-label {
+        .albums-hero-label {
             color: var(--primary);
             font-size: 11px;
             font-weight: 850;
@@ -28,13 +28,13 @@
             text-transform: uppercase;
         }
 
-        .songs-hero-title {
+        .albums-hero-title {
             margin-top: 7px;
             color: #ffffff;
             font-size: clamp(27px, 4vw, 38px);
         }
 
-        .songs-hero-description {
+        .albums-hero-description {
             max-width: 720px;
             margin-top: 8px;
             color: var(--text-secondary);
@@ -62,33 +62,33 @@
             border: 1px solid rgba(255, 92, 92, 0.25);
         }
 
-        .songs-stat-grid {
+        .albums-stat-grid {
             margin-top: 22px;
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 14px;
         }
 
-        .songs-stat-card {
+        .albums-stat-card {
             padding: 19px;
             background-color: var(--card);
             border: 1px solid var(--border);
             border-radius: 16px;
         }
 
-        .songs-stat-label {
+        .albums-stat-label {
             color: var(--text-secondary);
             font-size: 10px;
         }
 
-        .songs-stat-value {
+        .albums-stat-value {
             margin-top: 9px;
             color: #ffffff;
             font-size: 25px;
             font-weight: 900;
         }
 
-        .songs-panel {
+        .albums-panel {
             margin-top: 22px;
             overflow: hidden;
             background-color: var(--card);
@@ -96,7 +96,7 @@
             border-radius: 18px;
         }
 
-        .songs-panel-header {
+        .albums-panel-header {
             padding: 20px 22px;
             display: flex;
             align-items: center;
@@ -105,13 +105,13 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .songs-filter-form {
+        .albums-filter-form {
             display: flex;
             gap: 9px;
         }
 
-        .songs-input,
-        .songs-select {
+        .albums-input,
+        .albums-select {
             min-height: 42px;
             padding: 0 13px;
             color: #ffffff;
@@ -121,33 +121,44 @@
             outline: none;
         }
 
-        .songs-input {
+        .albums-input {
             width: 230px;
         }
 
-        .songs-filter-button {
-            padding: 0 15px;
-            color: #071008;
-            background-color: var(--primary);
-            border: none;
+        .albums-button {
+            min-height: 42px;
+            padding: 0 14px;
             border-radius: 10px;
+            font-size: 10px;
             font-weight: 800;
         }
 
-        .songs-table-wrapper {
+        .filter-button {
+            color: #071008;
+            background-color: var(--primary);
+            border: none;
+        }
+
+        .clear-button {
+            color: #ffffff;
+            background: transparent;
+            border: 1px solid var(--border);
+        }
+
+        .albums-table-wrapper {
             width: 100%;
             overflow-x: auto;
         }
 
-        .songs-table {
+        .albums-table {
             width: 100%;
-            min-width: 1080px;
+            min-width: 1000px;
             border-collapse: collapse;
             table-layout: fixed;
         }
 
-            .songs-table th,
-            .songs-table td {
+            .albums-table th,
+            .albums-table td {
                 padding: 13px 10px;
                 border-bottom: 1px solid var(--border);
                 text-align: left;
@@ -155,47 +166,68 @@
                 overflow-wrap: anywhere;
             }
 
-            .songs-table th {
+            .albums-table th {
                 color: #69716c;
                 font-size: 9px;
                 text-transform: uppercase;
             }
 
-        .song-column {
-            width: 17%;
+        .album-column {
+            width: 20%;
         }
 
         .artist-column {
-            width: 10%;
+            width: 13%;
         }
 
-        .album-column {
-            width: 11%;
-        }
-
-        .label-column {
-            width: 8%;
+        .song-count-column {
+            width: 7%;
         }
 
         .status-column {
-            width: 8%;
+            width: 10%;
         }
 
         .moderation-column {
-            width: 14%;
+            width: 18%;
         }
 
-        .number-column {
-            width: 6%;
+        .publication-column {
+            width: 14%;
         }
 
         .action-column {
-            width: 14%;
+            width: 18%;
         }
 
-        .song-title {
+        .album-cell {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .album-cover {
+            width: 40px;
+            height: 40px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+            background-color: #0c110e;
+            border-radius: 9px;
+        }
+
+            .album-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .album-name {
             color: #ffffff;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
         }
 
@@ -212,7 +244,6 @@
             border-radius: 20px;
             font-size: 9px;
             font-weight: 800;
-            line-height: 1.3;
         }
 
         .status-published {
@@ -236,11 +267,6 @@
             background-color: rgba(255, 92, 92, 0.10);
         }
 
-        .moderation-album {
-            color: var(--warning);
-            background-color: rgba(255, 189, 61, 0.10);
-        }
-
         .moderation-visible {
             color: var(--primary);
             background-color: rgba(30, 215, 96, 0.10);
@@ -251,7 +277,6 @@
             color: #c9cfcb;
             font-size: 9px;
             line-height: 1.4;
-            white-space: normal;
         }
 
         .moderation-form {
@@ -273,10 +298,6 @@
             font-size: 9px;
         }
 
-            .reason-input:focus {
-                border-color: var(--danger);
-            }
-
         .hide-button,
         .unhide-button {
             width: 100%;
@@ -285,7 +306,6 @@
             border-radius: 7px;
             font-size: 9px;
             font-weight: 800;
-            line-height: 1.2;
         }
 
         .hide-button {
@@ -294,30 +314,10 @@
             border: 1px solid rgba(255, 92, 92, 0.28);
         }
 
-            .hide-button:hover {
-                background-color: rgba(255, 92, 92, 0.20);
-            }
-
         .unhide-button {
             color: #071008;
             background-color: var(--primary);
             border: none;
-        }
-
-            .unhide-button:hover {
-                background-color: var(--primary-hover);
-            }
-
-        .album-hidden-info {
-            color: var(--text-secondary);
-            font-size: 9px;
-            line-height: 1.45;
-        }
-
-        .number-value {
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
         }
 
         .empty-state {
@@ -327,54 +327,55 @@
         }
 
         @@media (max-width: 1200px) {
-            .songs-stat-grid {
+            .albums-stat-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
 
-            .songs-panel-header {
+            .albums-panel-header {
                 flex-direction: column;
                 align-items: stretch;
-            }
-
-            .songs-table {
-                min-width: 1050px;
             }
         }
 
         @@media (max-width: 750px) {
-            .songs-content {
+            .albums-content {
                 padding: 20px 16px 35px;
             }
 
-            .songs-stat-grid {
+            .albums-stat-grid {
                 grid-template-columns: 1fr;
             }
 
-            .songs-filter-form {
+            .albums-filter-form {
                 flex-direction: column;
             }
 
-            .songs-input,
-            .songs-select,
-            .songs-filter-button {
+            .albums-input,
+            .albums-select,
+            .albums-button {
                 width: 100%;
             }
         }
     </style>
 }
 
-<div class="songs-content">
+<div class="albums-content">
 
-    <section class="songs-hero">
-        <div class="songs-hero-label">Yönetim</div>
+    <section class="albums-hero">
 
-        <h2 class="songs-hero-title">
-            Şarkılar
+        <div class="albums-hero-label">
+            Yönetim
+        </div>
+
+        <h2 class="albums-hero-title">
+            Albümler
         </h2>
 
-        <p class="songs-hero-description">
-            Şarkıları takip edebilir ve gerektiğinde sanatçının değiştiremeyeceği şekilde platformdan gizleyebilirsin.
+        <p class="albums-hero-description">
+            Albümleri görüntüleyebilir, yayın durumlarını takip edebilir ve gerektiğinde
+            sanatçının değiştiremeyeceği şekilde platformdan gizleyebilirsin.
         </p>
+
     </section>
 
     @if (TempData["SuccessMessage"] != null)
@@ -391,55 +392,55 @@
         </div>
     }
 
-    <section class="songs-stat-grid">
+    <section class="albums-stat-grid">
 
-        <article class="songs-stat-card">
-            <div class="songs-stat-label">Görüntülenen</div>
-            <div class="songs-stat-value">@Model.DisplayedSongs</div>
+        <article class="albums-stat-card">
+            <div class="albums-stat-label">Görüntülenen</div>
+            <div class="albums-stat-value">@Model.DisplayedAlbums</div>
         </article>
 
-        <article class="songs-stat-card">
-            <div class="songs-stat-label">Yayında</div>
-            <div class="songs-stat-value">@Model.PublishedSongs</div>
+        <article class="albums-stat-card">
+            <div class="albums-stat-label">Yayında</div>
+            <div class="albums-stat-value">@Model.PublishedAlbums</div>
         </article>
 
-        <article class="songs-stat-card">
-            <div class="songs-stat-label">Planlandı</div>
-            <div class="songs-stat-value">@Model.ScheduledSongs</div>
+        <article class="albums-stat-card">
+            <div class="albums-stat-label">Planlandı</div>
+            <div class="albums-stat-value">@Model.ScheduledAlbums</div>
         </article>
 
-        <article class="songs-stat-card">
-            <div class="songs-stat-label">Taslak</div>
-            <div class="songs-stat-value">@Model.DraftSongs</div>
+        <article class="albums-stat-card">
+            <div class="albums-stat-label">Taslak</div>
+            <div class="albums-stat-value">@Model.DraftAlbums</div>
         </article>
 
-        <article class="songs-stat-card">
-            <div class="songs-stat-label">Arşivlendi</div>
-            <div class="songs-stat-value">@Model.ArchivedSongs</div>
+        <article class="albums-stat-card">
+            <div class="albums-stat-label">Arşivlendi</div>
+            <div class="albums-stat-value">@Model.ArchivedAlbums</div>
         </article>
 
     </section>
 
-    <section class="songs-panel">
+    <section class="albums-panel">
 
-        <div class="songs-panel-header">
+        <div class="albums-panel-header">
 
             <div>
-                <strong>Şarkı Listesi</strong>
+                <strong>Albüm Listesi</strong>
 
                 <div class="secondary">
-                    Şarkı, sanatçı, albüm veya label ara.
+                    Albüm veya sanatçı adına göre ara.
                 </div>
             </div>
 
-            <form asp-action="Songs" method="get" class="songs-filter-form">
+            <form asp-action="Albums" method="get" class="albums-filter-form">
 
                 <input name="search"
                        value="@Model.SearchTerm"
-                       class="songs-input"
-                       placeholder="Şarkı veya sanatçı ara..." />
+                       class="albums-input"
+                       placeholder="Albüm veya sanatçı ara..." />
 
-                <select name="status" class="songs-select">
+                <select name="status" class="albums-select">
                     <option value="">Tüm Durumlar</option>
                     <option value="Published" selected="@(Model.StatusFilter == PublicationStatus.Published ? "selected" : null)">Yayında</option>
                     <option value="Scheduled" selected="@(Model.StatusFilter == PublicationStatus.Scheduled ? "selected" : null)">Planlandı</option>
@@ -447,46 +448,50 @@
                     <option value="Archived" selected="@(Model.StatusFilter == PublicationStatus.Archived ? "selected" : null)">Arşivlendi</option>
                 </select>
 
-                <button type="submit" class="songs-filter-button">
+                <button class="albums-button filter-button" type="submit">
                     Filtrele
                 </button>
+
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.StatusFilter.HasValue)
+                {
+                    <a asp-action="Albums" class="albums-button clear-button">
+                        Temizle
+                    </a>
+                }
 
             </form>
 
         </div>
 
-        @if (Model.Songs.Count == 0)
+        @if (Model.Albums.Count == 0)
         {
             <div class="empty-state">
-                Şarkı bulunamadı.
+                Albüm bulunamadı.
             </div>
         }
         else
         {
-            <div class="songs-table-wrapper">
+            <div class="albums-table-wrapper">
 
-                <table class="songs-table">
+                <table class="albums-table">
 
                     <thead>
                         <tr>
-                            <th class="song-column">Şarkı</th>
-                            <th class="artist-column">Sanatçı</th>
                             <th class="album-column">Albüm</th>
-                            <th class="label-column">Label</th>
+                            <th class="artist-column">Sanatçı</th>
+                            <th class="song-count-column">Şarkı</th>
                             <th class="status-column">Durum</th>
                             <th class="moderation-column">Moderasyon</th>
-                            <th class="number-column">Dinlenme</th>
-                            <th class="number-column">Beğeni</th>
-                            <th class="number-column">Popülerlik</th>
+                            <th class="publication-column">Yayın</th>
                             <th class="action-column">İşlem</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        @foreach (var song in Model.Songs)
+                        @foreach (var album in Model.Albums)
                         {
-                            var statusText = song.PublicationStatus switch
+                            var statusText = album.PublicationStatus switch
                             {
                                 PublicationStatus.Published => "Yayında",
                                 PublicationStatus.Scheduled => "Planlandı",
@@ -495,7 +500,7 @@
                                 _ => "Bilinmiyor"
                             };
 
-                            var statusClass = song.PublicationStatus switch
+                            var statusClass = album.PublicationStatus switch
                             {
                                 PublicationStatus.Published => "status-published",
                                 PublicationStatus.Scheduled => "status-scheduled",
@@ -507,25 +512,42 @@
                             <tr>
 
                                 <td>
-                                    <div class="song-title">
-                                        @song.Title
+
+                                    <div class="album-cell">
+
+                                        <div class="album-cover">
+
+                                            @if (!string.IsNullOrWhiteSpace(album.CoverImageUrl))
+                                            {
+                                                <img src="@album.CoverImageUrl" alt="@album.Name" />
+                                            }
+                                            else
+                                            {
+                                                <span>◉</span>
+                                            }
+
+                                        </div>
+
+                                        <div>
+                                            <div class="album-name">
+                                                @album.Name
+                                            </div>
+
+                                            <div class="secondary">
+                                                ID: @album.Id
+                                            </div>
+                                        </div>
+
                                     </div>
 
-                                    <div class="secondary">
-                                        ID: @song.Id
-                                    </div>
                                 </td>
 
                                 <td>
-                                    @song.ArtistName
+                                    @album.ArtistName
                                 </td>
 
                                 <td>
-                                    @song.AlbumName
-                                </td>
-
-                                <td>
-                                    @song.LabelName
+                                    @album.SongCount
                                 </td>
 
                                 <td>
@@ -536,33 +558,20 @@
 
                                 <td>
 
-                                    @if (song.IsAdminHidden)
+                                    @if (album.IsAdminHidden)
                                     {
                                         <span class="moderation-badge moderation-hidden">
                                             🔒 Admin tarafından gizli
                                         </span>
 
                                         <div class="moderation-reason">
-                                            @song.AdminHiddenReason
+                                            @album.AdminHiddenReason
                                         </div>
 
-                                        @if (song.AdminHiddenAtUtc.HasValue)
+                                        @if (album.AdminHiddenAtUtc.HasValue)
                                         {
                                             <div class="secondary">
-                                                @song.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                                            </div>
-                                        }
-                                    }
-                                    else if (song.IsHiddenByAlbum)
-                                    {
-                                        <span class="moderation-badge moderation-album">
-                                            🔒 Albüm nedeniyle gizli
-                                        </span>
-
-                                        @if (!string.IsNullOrWhiteSpace(song.AlbumAdminHiddenReason))
-                                        {
-                                            <div class="moderation-reason">
-                                                @song.AlbumAdminHiddenReason
+                                                @album.AdminHiddenAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
                                             </div>
                                         }
                                     }
@@ -576,34 +585,47 @@
                                 </td>
 
                                 <td>
-                                    <span class="number-value">
-                                        @song.TotalStreams.ToString("N0")
-                                    </span>
-                                </td>
 
-                                <td>
-                                    <span class="number-value">
-                                        @song.TotalLikes.ToString("N0")
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="number-value">
-                                        @song.PopularityScore.ToString("N0")
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    @if (song.IsAdminHidden)
+                                    @if (album.PublicationStatus == PublicationStatus.Scheduled &&
+                                         album.ScheduledPublishAtUtc.HasValue)
                                     {
-                                        <form asp-action="SetSongAdminHiddenStatus"
+                                        <div>
+                                            @album.ScheduledPublishAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        </div>
+
+                                        <div class="secondary">
+                                            Planlanan
+                                        </div>
+                                    }
+                                    else if (album.PublicationStatus == PublicationStatus.Published &&
+                                             album.PublishedAtUtc.HasValue)
+                                    {
+                                        <div>
+                                            @album.PublishedAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        </div>
+
+                                        <div class="secondary">
+                                            Yayınlandı
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (album.IsAdminHidden)
+                                    {
+                                        <form asp-action="SetAlbumAdminHiddenStatus"
                                               method="post"
                                               class="moderation-form">
 
                                             @Html.AntiForgeryToken()
 
-                                            <input type="hidden" name="songId" value="@song.Id" />
+                                            <input type="hidden" name="albumId" value="@album.Id" />
                                             <input type="hidden" name="isHidden" value="false" />
                                             <input type="hidden" name="search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="status" value="@Model.StatusFilter" />
@@ -614,21 +636,15 @@
 
                                         </form>
                                     }
-                                    else if (song.IsHiddenByAlbum)
-                                    {
-                                        <div class="album-hidden-info">
-                                            Bağlı olduğu albüm gizli olduğu için bu şarkı kullanıcıya kapalı.
-                                        </div>
-                                    }
                                     else
                                     {
-                                        <form asp-action="SetSongAdminHiddenStatus"
+                                        <form asp-action="SetAlbumAdminHiddenStatus"
                                               method="post"
                                               class="moderation-form">
 
                                             @Html.AntiForgeryToken()
 
-                                            <input type="hidden" name="songId" value="@song.Id" />
+                                            <input type="hidden" name="albumId" value="@album.Id" />
                                             <input type="hidden" name="isHidden" value="true" />
                                             <input type="hidden" name="search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="status" value="@Model.StatusFilter" />
@@ -641,7 +657,7 @@
                                                    placeholder="Gizleme nedeni..." />
 
                                             <button type="submit" class="hide-button">
-                                                Şarkıyı Gizle
+                                                Albümü Gizle
                                             </button>
 
                                         </form>

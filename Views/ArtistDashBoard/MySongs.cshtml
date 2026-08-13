@@ -19,7 +19,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 25px;
-            background: linear-gradient( 125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.97) 65% );
+            background: linear-gradient(125deg, rgba(30, 215, 96, 0.20), rgba(18, 23, 19, 0.97) 65%);
             border: 1px solid rgba(30, 215, 96, 0.20);
             border-radius: 21px;
         }
@@ -169,6 +169,7 @@
 
         .songs-table {
             width: 100%;
+            min-width: 1180px;
             border-collapse: collapse;
         }
 
@@ -176,6 +177,7 @@
             .songs-table td {
                 padding: 15px 17px;
                 text-align: left;
+                vertical-align: middle;
                 border-bottom: 1px solid var(--border);
                 white-space: nowrap;
             }
@@ -206,6 +208,10 @@
                     border-bottom: none;
                 }
 
+                .songs-table tbody tr.admin-hidden-row {
+                    background-color: rgba(255, 92, 92, 0.025);
+                }
+
         .song-cell {
             min-width: 230px;
             display: flex;
@@ -221,9 +227,14 @@
             justify-content: center;
             flex-shrink: 0;
             color: var(--primary);
-            background: linear-gradient( 135deg, #1d3324, #0c110e );
+            background: linear-gradient(135deg, #1d3324, #0c110e);
             border-radius: 11px;
             font-size: 18px;
+        }
+
+        .admin-hidden-row .song-cover {
+            color: #ff7d7d;
+            background: linear-gradient(135deg, rgba(255, 92, 92, 0.13), #0c110e);
         }
 
         .song-info {
@@ -298,6 +309,47 @@
                 color: var(--danger);
                 background-color: rgba(255, 92, 92, 0.10);
             }
+
+        .moderation-cell {
+            min-width: 210px;
+            white-space: normal !important;
+        }
+
+        .moderation-badge {
+            padding: 5px 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 850;
+        }
+
+            .moderation-badge.direct-hidden {
+                color: #ff7777;
+                background-color: rgba(255, 92, 92, 0.10);
+                border: 1px solid rgba(255, 92, 92, 0.20);
+            }
+
+            .moderation-badge.album-hidden {
+                color: var(--warning);
+                background-color: rgba(255, 189, 61, 0.09);
+                border: 1px solid rgba(255, 189, 61, 0.18);
+            }
+
+        .moderation-reason {
+            max-width: 230px;
+            margin-top: 6px;
+            color: #c8ceca;
+            font-size: 9px;
+            line-height: 1.5;
+            white-space: normal;
+        }
+
+        .moderation-visible {
+            color: #6f7972;
+            font-size: 10px;
+        }
 
         .song-actions {
             display: flex;
@@ -384,10 +436,6 @@
             .create-song-button {
                 width: 100%;
             }
-
-            .songs-table {
-                min-width: 1000px;
-            }
         }
 
         @@media (max-width: 560px) {
@@ -424,6 +472,7 @@
             </div>
 
             <div>
+
                 <p class="songs-hero-label">
                     Sanatçı kataloğu
                 </p>
@@ -434,8 +483,9 @@
 
                 <p class="songs-hero-description">
                     Şarkılarını, albüm bağlantılarını, türlerini,
-                    yayın durumlarını ve performanslarını görüntüle.
+                    yayın durumlarını ve moderasyon durumlarını görüntüle.
                 </p>
+
             </div>
 
         </div>
@@ -451,6 +501,7 @@
     <section class="song-stat-grid">
 
         <article class="song-stat-card">
+
             <div class="song-stat-number">
                 @Model.Songs.Count()
             </div>
@@ -458,9 +509,11 @@
             <div class="song-stat-label">
                 Toplam şarkı
             </div>
+
         </article>
 
         <article class="song-stat-card">
+
             <div class="song-stat-number">
                 @Model.TotalStreams.ToString("N0")
             </div>
@@ -468,9 +521,11 @@
             <div class="song-stat-label">
                 Toplam dinlenme
             </div>
+
         </article>
 
         <article class="song-stat-card">
+
             <div class="song-stat-number">
                 @Model.TotalLikes.ToString("N0")
             </div>
@@ -478,6 +533,7 @@
             <div class="song-stat-label">
                 Toplam beğeni
             </div>
+
         </article>
 
     </section>
@@ -487,13 +543,15 @@
         <div class="songs-section-header">
 
             <div>
+
                 <h3 class="songs-section-title">
                     Şarkı kataloğu
                 </h3>
 
                 <p class="songs-section-description">
-                    En son eklenen şarkı ilk sırada gösterilir.
+                    Admin tarafından gizlenen içerikler sanatçı panelinde görünmeye devam eder ancak normal kullanıcılara kapalıdır.
                 </p>
+
             </div>
 
         </div>
@@ -515,6 +573,7 @@
                                 <th>Beğeni</th>
                                 <th>Popülerlik</th>
                                 <th>Durum</th>
+                                <th>Moderasyon</th>
                                 <th>İşlemler</th>
                             </tr>
                         </thead>
@@ -527,6 +586,7 @@
                                 var totalStreams = song.SongStat?.TotalStreams ?? 0;
                                 var totalLikes = song.SongStat?.TotalLikes ?? 0;
                                 var popularityScore = song.SongStat?.PopularityScore ?? 0;
+                                var isHiddenByAlbum = song.Album?.IsAdminHidden ?? false;
 
                                 var genreNames = song.SongGenres
                                     .Where(songGenre => songGenre.Genre != null)
@@ -553,9 +613,10 @@
                                     _ => "draft"
                                 };
 
-                                <tr>
+                                <tr class="@(song.IsAdminHidden || isHiddenByAlbum ? "admin-hidden-row" : "")">
 
                                     <td>
+
                                         <div class="song-cell">
 
                                             <div class="song-cover">
@@ -575,6 +636,7 @@
                                             </div>
 
                                         </div>
+
                                     </td>
 
                                     <td>
@@ -582,6 +644,7 @@
                                     </td>
 
                                     <td>
+
                                         @if (genreNames.Any())
                                         {
                                             <div class="genre-list">
@@ -601,6 +664,7 @@
                                                 Tür bilgisi yok
                                             </span>
                                         }
+
                                     </td>
 
                                     <td>
@@ -616,12 +680,52 @@
                                     </td>
 
                                     <td>
+
                                         <span class="song-status @statusClass">
                                             @statusText
                                         </span>
+
+                                    </td>
+
+                                    <td class="moderation-cell">
+
+                                        @if (song.IsAdminHidden)
+                                        {
+                                            <span class="moderation-badge direct-hidden">
+                                                🔒 Admin tarafından gizlendi
+                                            </span>
+
+                                            <div class="moderation-reason">
+                                                Neden:
+                                                @(string.IsNullOrWhiteSpace(song.AdminHiddenReason)
+                                                    ? "Neden belirtilmedi."
+                                                    : song.AdminHiddenReason)
+                                            </div>
+                                        }
+                                        else if (isHiddenByAlbum)
+                                        {
+                                            <span class="moderation-badge album-hidden">
+                                                🔒 Albüm nedeniyle gizli
+                                            </span>
+
+                                            <div class="moderation-reason">
+                                                Neden:
+                                                @(string.IsNullOrWhiteSpace(song.Album?.AdminHiddenReason)
+                                                    ? "Albüm admin tarafından gizlendi."
+                                                    : song.Album.AdminHiddenReason)
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="moderation-visible">
+                                                -
+                                            </span>
+                                        }
+
                                     </td>
 
                                     <td>
+
                                         <div class="song-actions">
 
                                             <a asp-controller="ArtistDashboard"
@@ -651,6 +755,7 @@
                                             </form>
 
                                         </div>
+
                                     </td>
 
                                 </tr>

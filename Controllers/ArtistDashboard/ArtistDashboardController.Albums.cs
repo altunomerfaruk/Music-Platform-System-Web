@@ -202,7 +202,10 @@ namespace MusicProject.Controllers
                 PublicationStatus = album.PublicationStatus,
                 ScheduledPublishAtLocal = album.ScheduledPublishAtUtc.HasValue
                     ? _publicationService.ConvertUtcToTurkeyTime(album.ScheduledPublishAtUtc.Value)
-                    : null
+                    : null,
+                IsAdminHidden = album.IsAdminHidden,
+                AdminHiddenReason = album.AdminHiddenReason,
+                AdminHiddenAtUtc = album.AdminHiddenAtUtc
             };
 
             FillArtistLayoutData(model, dashboard);
@@ -232,6 +235,10 @@ namespace MusicProject.Controllers
 
                 return RedirectToAction(nameof(MyAlbums));
             }
+
+            model.IsAdminHidden = existingAlbum.IsAdminHidden;
+            model.AdminHiddenReason = existingAlbum.AdminHiddenReason;
+            model.AdminHiddenAtUtc = existingAlbum.AdminHiddenAtUtc;
 
             if (model.PublicationStatus == PublicationStatus.Published &&
                 existingAlbum.PublicationStatus != PublicationStatus.Published)

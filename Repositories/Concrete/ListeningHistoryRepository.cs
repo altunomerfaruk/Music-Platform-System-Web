@@ -26,9 +26,11 @@ namespace MusicProject.Repositories.Concrete
                 .AsNoTracking()
                 .Where(history =>
                     history.UserId == userId &&
+                    !history.Song.IsAdminHidden &&
                     history.Song.PublicationStatus == PublicationStatus.Published &&
                     (history.Song.AlbumId == null ||
-                     history.Song.Album!.PublicationStatus == PublicationStatus.Published))
+                     (!history.Song.Album!.IsAdminHidden &&
+                      history.Song.Album.PublicationStatus == PublicationStatus.Published)))
                 .Include(history => history.Song)
                     .ThenInclude(song => song.Album)
                         .ThenInclude(album => album!.Artist)
