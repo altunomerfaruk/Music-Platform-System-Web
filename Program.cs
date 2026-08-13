@@ -38,75 +38,27 @@ builder.Services.AddScoped(
 // ==========================================
 // REPOSITORY KAYITLARI
 // ==========================================
-
-builder.Services.AddScoped<
-    IArtistRepository,
-    ArtistRepository
->();
-
-builder.Services.AddScoped<
-    ISongRepository,
-    SongRepository
->();
-
-builder.Services.AddScoped<
-    IUserRepository,
-    UserRepository
->();
-
-builder.Services.AddScoped<
-    ILikedSongRepository,
-    LikedSongRepository
->();
-
-
-builder.Services.AddScoped<
-    ISongStatRepository,
-    SongStatRepository
->();
-
-builder.Services.AddScoped<
-    IFollowedArtistRepository,
-    FollowedArtistRepository
->();
+builder.Services.AddScoped< IArtistRepository,ArtistRepository>();
+builder.Services.AddScoped<ISongRepository,SongRepository>();
+builder.Services.AddScoped< IUserRepository,UserRepository>();
+builder.Services.AddScoped<ILikedSongRepository,LikedSongRepository>();
+builder.Services.AddScoped<ISongStatRepository,SongStatRepository>();
+builder.Services.AddScoped<IFollowedArtistRepository,FollowedArtistRepository>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IAdminContentModerationRepository, AdminContentModerationRepository>();
-builder.Services.AddScoped<IAdminContentModerationService, AdminContentModerationManager>();
+
 // ==========================================
 // SERVICE KAYITLARI
 // ==========================================
-
-builder.Services.AddScoped<
-    ISongService,
-    SongManager
->();
-
-builder.Services.AddScoped<
-    IArtistService,
-    ArtistManager
->();
-
-builder.Services.AddScoped<
-    IUserService,
-    UserManager
->();
-
-builder.Services.AddScoped<
-    ILikedSongService,
-    LikedSongService
->();
-
-builder.Services.AddScoped<
-    ISongStatService,
-    SongStatService
->();
-
-builder.Services.AddScoped<
-    IFollowedArtistService,
-    FollowedArtistService
->();
+builder.Services.AddScoped<IAdminContentModerationService, AdminContentModerationManager>();
+builder.Services.AddScoped<ISongService, SongManager>();
+builder.Services.AddScoped<IArtistService,ArtistManager>();
+builder.Services.AddScoped<IUserService,UserManager>();
+builder.Services.AddScoped<ILikedSongService,LikedSongService>();
+builder.Services.AddScoped<ISongStatService,SongStatService>();
+builder.Services.AddScoped<IFollowedArtistService,FollowedArtistService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardManager>();
 builder.Services.AddScoped<IAlbumService, AlbumManager>();
 builder.Services.AddScoped<IPublicationService, PublicationManager>();
@@ -117,15 +69,13 @@ builder.Services.AddScoped<IGenreService, GenreManager>();
 builder.Services.AddScoped<ICountryService, CountryManager>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPublicationJobScheduler, PublicationJobScheduler>();
-
+builder.Services.AddScoped<IAudioStorageService, LocalAudioStorageManager>();
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddHangfireServer();
-
 builder.Services.AddScoped<PublicationJob>();
 
 

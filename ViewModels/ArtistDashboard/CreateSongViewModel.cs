@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicProject.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,6 +10,9 @@ namespace MusicProject.ViewModels.ArtistDashboard
         [Required(ErrorMessage = "Şarkı adı zorunludur.")]
         [MaxLength(100, ErrorMessage = "Şarkı adı en fazla 100 karakter olabilir.")]
         public string Title { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "MP3 dosyası seçmelisiniz.")]
+        public IFormFile? AudioFile { get; set; }
 
         public int? AlbumId { get; set; }
 

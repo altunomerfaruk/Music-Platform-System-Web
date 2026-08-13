@@ -133,6 +133,56 @@
                 box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.08);
             }
 
+        .audio-upload-box {
+            padding: 18px;
+            background-color: rgba(30, 215, 96, 0.035);
+            border: 1px dashed rgba(30, 215, 96, 0.30);
+            border-radius: 13px;
+        }
+
+        .audio-upload-input {
+            width: 100%;
+            color: #dce2de;
+            font-size: 12px;
+        }
+
+            .audio-upload-input::file-selector-button {
+                min-height: 37px;
+                margin-right: 12px;
+                padding: 0 14px;
+                color: #071008;
+                background-color: var(--primary);
+                border: none;
+                border-radius: 9px;
+                font-size: 11px;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+                .audio-upload-input::file-selector-button:hover {
+                    background-color: var(--primary-hover);
+                }
+
+        .audio-file-info {
+            margin-top: 11px;
+            display: none;
+            padding: 11px 13px;
+            color: #dce2de;
+            background-color: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            font-size: 11px;
+        }
+
+            .audio-file-info.visible {
+                display: block;
+            }
+
+        .audio-file-name {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
         .create-song-hint {
             display: block;
             margin-top: 7px;
@@ -353,6 +403,7 @@
         </div>
 
         <div>
+
             <p class="create-song-header-label">
                 Şarkı yönetimi
             </p>
@@ -362,8 +413,9 @@
             </h2>
 
             <p class="create-song-header-description">
-                Şarkı bilgilerini doldur, türlerini seç ve single ise yayın zamanını belirle.
+                Şarkı bilgilerini doldur, MP3 dosyanı yükle, türlerini seç ve yayın zamanını belirle.
             </p>
+
         </div>
 
     </section>
@@ -372,7 +424,8 @@
 
         <form asp-controller="ArtistDashboard"
               asp-action="CreateSong"
-              method="post">
+              method="post"
+              enctype="multipart/form-data">
 
             @Html.AntiForgeryToken()
 
@@ -394,6 +447,46 @@
                            placeholder="Şarkı adını yaz" />
 
                     <span asp-validation-for="Title"
+                          class="create-song-validation">
+                    </span>
+
+                </div>
+
+                <div class="create-song-group full-width">
+
+                    <label asp-for="AudioFile"
+                           class="create-song-label">
+                        MP3 Dosyası
+                    </label>
+
+                    <div class="audio-upload-box">
+
+                        <input asp-for="AudioFile"
+                               id="audioFileInput"
+                               type="file"
+                               accept=".mp3,audio/mpeg"
+                               class="audio-upload-input" />
+
+                        <span class="create-song-hint">
+                            Yalnızca MP3 yükleyebilirsin. Maksimum dosya boyutu 30 MB.
+                        </span>
+
+                        <div id="audioFileInfo"
+                             class="audio-file-info">
+
+                            Seçilen dosya:
+                            <span id="audioFileName"
+                                  class="audio-file-name">
+                            </span>
+
+                            <span id="audioFileSize">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <span asp-validation-for="AudioFile"
                           class="create-song-validation">
                     </span>
 
@@ -460,10 +553,19 @@
 
                             <label class="genre-item">
 
-                                <input type="checkbox"
-                                       name="SelectedGenreIds"
-                                       value="@genre.Value"
-                                       checked="@isChecked" />
+                                @if (isChecked)
+                                {
+                                    <input type="checkbox"
+                                           name="SelectedGenreIds"
+                                           value="@genre.Value"
+                                           checked />
+                                }
+                                else
+                                {
+                                    <input type="checkbox"
+                                           name="SelectedGenreIds"
+                                           value="@genre.Value" />
+                                }
 
                                 <span>
                                     @genre.Text
@@ -617,6 +719,18 @@
             const createSongButton =
                 document.getElementById("createSongButton");
 
+            const audioFileInput =
+                document.getElementById("audioFileInput");
+
+            const audioFileInfo =
+                document.getElementById("audioFileInfo");
+
+            const audioFileName =
+                document.getElementById("audioFileName");
+
+            const audioFileSize =
+                document.getElementById("audioFileSize");
+
             function updatePublicationFields() {
                 if (!publicationStatusSelect ||
                     !scheduledPublishGroup ||
@@ -626,7 +740,8 @@
                     return;
                 }
 
-                const selectedStatus = publicationStatusSelect.value;
+                const selectedStatus =
+                    publicationStatusSelect.value;
 
                 if (selectedStatus === "2") {
                     scheduledPublishGroup.classList.add("visible");
@@ -635,7 +750,9 @@
                     publicationInfo.innerHTML =
                         "<strong>Planlı yayın:</strong> Single seçilen cuma günü ve saatte otomatik olarak yayına alınacaktır.";
 
-                    createSongButton.textContent = "Single'ı Planla";
+                    createSongButton.textContent =
+                        "Single'ı Planla";
+
                     return;
                 }
 
@@ -645,16 +762,19 @@
 
                 if (selectedStatus === "3") {
                     publicationInfo.innerHTML =
-                        "<strong>Hemen yayınla:</strong> Single oluşturulduğu anda kullanıcılar tarafından görülebilir.";
+                        "<strong>Hemen yayınla:</strong> Single oluşturulduğu anda kullanıcıların kataloğunda yayınlanır.";
 
-                    createSongButton.textContent = "Şarkıyı Yayınla";
+                    createSongButton.textContent =
+                        "Şarkıyı Yayınla";
+
                     return;
                 }
 
                 publicationInfo.innerHTML =
                     "<strong>Taslak:</strong> Single yalnızca sanatçı panelinde görünür ve daha sonra düzenlenebilir.";
 
-                createSongButton.textContent = "Taslak Olarak Kaydet";
+                createSongButton.textContent =
+                    "Taslak Olarak Kaydet";
             }
 
             function updateAlbumBehavior() {
@@ -665,7 +785,8 @@
                     return;
                 }
 
-                const hasAlbum = albumSelect.value !== "";
+                const hasAlbum =
+                    albumSelect.value !== "";
 
                 if (hasAlbum) {
                     publicationSection.classList.add("hidden");
@@ -675,7 +796,9 @@
                         scheduledPublishInput.required = false;
                     }
 
-                    createSongButton.textContent = "Şarkıyı Albüme Ekle";
+                    createSongButton.textContent =
+                        "Şarkıyı Albüme Ekle";
+
                     return;
                 }
 
@@ -683,6 +806,35 @@
                 albumPublicationInfo.classList.remove("visible");
 
                 updatePublicationFields();
+            }
+
+            function updateAudioFileInfo() {
+                if (!audioFileInput ||
+                    !audioFileInfo ||
+                    !audioFileName ||
+                    !audioFileSize) {
+                    return;
+                }
+
+                const file = audioFileInput.files[0];
+
+                if (!file) {
+                    audioFileInfo.classList.remove("visible");
+                    audioFileName.textContent = "";
+                    audioFileSize.textContent = "";
+
+                    return;
+                }
+
+                audioFileName.textContent = file.name;
+
+                const megabytes =
+                    file.size / 1024 / 1024;
+
+                audioFileSize.textContent =
+                    ` — ${megabytes.toFixed(2)} MB`;
+
+                audioFileInfo.classList.add("visible");
             }
 
             if (publicationStatusSelect) {
@@ -697,8 +849,15 @@
                     updateAlbumBehavior);
             }
 
+            if (audioFileInput) {
+                audioFileInput.addEventListener(
+                    "change",
+                    updateAudioFileInfo);
+            }
+
             updatePublicationFields();
             updateAlbumBehavior();
+            updateAudioFileInfo();
         });
     </script>
 }

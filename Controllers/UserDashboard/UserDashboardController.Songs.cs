@@ -170,22 +170,74 @@ namespace MusicProject.Controllers
                 });
             }
 
-            var isAdded = _listeningHistoryService.AddListening(userId, songId);
+            if (songId <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Geçersiz şarkı bilgisi."
+                });
+            }
 
-            if (!isAdded)
+            var song = _songService.GetSongForListening(songId);
+
+            if (song == null)
             {
                 return NotFound(new
                 {
                     success = false,
-                    message = "Şarkı bulunamadı."
+                    message = "Şarkı bulunamadı veya şu anda dinlenemiyor."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(song.AudioFileName))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Bu şarkının henüz bir MP3 dosyası bulunmuyor."
+                });
+            }
+
+            var isAdded = _listeningHistoryService.AddListening(userId, songId);
+
+            if (!isAdded)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Dinleme kaydı oluşturulamadı."
                 });
             }
 
             return Json(new
             {
                 success = true,
-                message = "Dinleme kaydı oluşturuldu."
+                message = "Şarkı çalınıyor.",
+                streamUrl = Url.Action(nameof(StreamSong), "UserDashboard", new { songId })
             });
+        }
+
+        [HttpGet]
+        public IActionResult StreamSong(int songId)
+        {
+            if (songId <= 0)
+                return BadRequest();
+
+            var song = _songService.GetSongForListening(songId);
+
+            if (song == null || string.IsNullOrWhiteSpace(song.AudioFileName))
+                return NotFound();
+
+            var audioStream = _audioStorageService.OpenRead(song.AudioFileName);
+
+            if (audioStream == null)
+                return NotFound();
+
+            return File(
+                audioStream,
+                "audio/mpeg",
+                enableRangeProcessing: true);
         }
 
         private static IEnumerable<Song> ApplySongFilters(

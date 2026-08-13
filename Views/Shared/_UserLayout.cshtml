@@ -37,12 +37,10 @@
 
     </div>
 
-    @* DEĞİŞİKLİK:
-       Bütün kullanıcı sayfalarında PlaySong POST isteği gönderebilmek için
-       ortak antiforgery token forma eklendi.
+    <audio id="globalAudioPlayer"
+           preload="metadata">
+    </audio>
 
-       data-play-url sayesinde JavaScript içinde controller adresini
-       elle yazmamıza gerek kalmaz. *@
     <form id="playSongTokenForm"
           data-play-url="@Url.Action("PlaySong", "UserDashboard")"
           style="display: none;">
@@ -51,14 +49,8 @@
 
     </form>
 
-    @* jQuery, kendisine bağımlı olan bütün scriptlerden ÖNCE yüklenmeli.
-       Scripts section'ı içinde _ValidationScriptsPartial render edildiğinde
-       jQuery'nin hazır olması gerekiyor. *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
-    @* DEĞİŞİKLİK:
-       data-song-id bulunan bütün oynat butonlarını yöneten
-       ortak JavaScript dosyası eklendi. *@
     <script src="~/js/user-player.js"
             asp-append-version="true">
     </script>

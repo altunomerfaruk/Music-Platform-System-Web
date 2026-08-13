@@ -31,6 +31,9 @@ namespace MusicProject.Models.Concrete
 
         public DateTime? AdminHiddenAtUtc { get; set; }
 
+        [MaxLength(255)]
+        public string? AudioFileName { get; set; }
+
         [ForeignKey(nameof(AlbumId))]
         public virtual Album? Album { get; set; }
 

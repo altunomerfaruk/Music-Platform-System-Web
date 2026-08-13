@@ -1,26 +1,30 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    const playSongTokenForm = document.getElementById("playSongTokenForm");
+    const playSongTokenForm =
+        document.getElementById("playSongTokenForm");
 
-    if (!playSongTokenForm) {
-        console.error("PlaySong token formu bulunamadı.");
+    const audioPlayer =
+        document.getElementById("globalAudioPlayer");
+
+    if (!playSongTokenForm || !audioPlayer) {
+        console.error("Müzik oynatıcı başlatılamadı.");
         return;
     }
 
-    const playSongUrl = playSongTokenForm.dataset.playUrl;
+    const playSongUrl =
+        playSongTokenForm.dataset.playUrl;
 
-    const tokenInput = playSongTokenForm.querySelector(
-        "input[name='__RequestVerificationToken']"
-    );
+    const tokenInput =
+        playSongTokenForm.querySelector(
+            "input[name='__RequestVerificationToken']"
+        );
 
-    if (!playSongUrl) {
-        console.error("PlaySong action adresi bulunamadı.");
+    if (!playSongUrl || !tokenInput) {
+        console.error("PlaySong bilgileri bulunamadı.");
         return;
     }
 
-    if (!tokenInput) {
-        console.error("Antiforgery token bulunamadı.");
-        return;
-    }
+    let currentSongId = null;
+    let currentSongInfo = null;
 
     document.addEventListener("click", async function (event) {
         const clickedElement = event.target;
@@ -29,151 +33,325 @@
             return;
         }
 
-        const playButton = clickedElement.closest("[data-song-id]");
+        const playButton =
+            clickedElement.closest("[data-song-id]");
 
         if (!playButton) {
             return;
         }
 
-        const songId = playButton.dataset.songId;
+        const songId =
+            playButton.dataset.songId;
 
         if (!songId) {
-            console.error("Oynat butonunda data-song-id bulunamadı.");
             return;
         }
 
-        const songInfo = getSongInfoFromButton(playButton);
+        if (currentSongId === songId &&
+            audioPlayer.src &&
+            !audioPlayer.ended) {
 
-        await addListeningHistory(
+            if (audioPlayer.paused) {
+                await resumeCurrentSong(audioPlayer);
+            }
+            else {
+                audioPlayer.pause();
+            }
+
+            return;
+        }
+
+        const songInfo =
+            getSongInfoFromButton(playButton);
+
+        await startSong(
             songId,
+            songInfo,
             playButton,
             playSongUrl,
             tokenInput.value,
-            songInfo
+            audioPlayer
         );
+
+        if (audioPlayer.src) {
+            currentSongId = songId;
+            currentSongInfo = songInfo;
+        }
     });
-});
 
-async function addListeningHistory(
-    songId,
-    playButton,
-    playSongUrl,
-    antiforgeryToken,
-    songInfo
-) {
-    if (playButton.dataset.requestRunning === "true") {
-        return;
-    }
+    const mainPlayButton =
+        document.getElementById("mainPlayButton");
 
-    const oldButtonText = playButton.textContent;
-    const oldButtonTitle = playButton.title;
+    if (mainPlayButton) {
+        mainPlayButton.addEventListener("click", async function () {
+            if (!currentSongId || !audioPlayer.src) {
+                return;
+            }
 
-    playButton.dataset.requestRunning = "true";
-    playButton.disabled = true;
+            if (audioPlayer.ended) {
+                const result = await requestPlayback(
+                    currentSongId,
+                    playSongUrl,
+                    tokenInput.value
+                );
 
-    try {
-        const formData = new FormData();
+                if (!result) {
+                    return;
+                }
 
-        formData.append("songId", songId);
-        formData.append(
-            "__RequestVerificationToken",
-            antiforgeryToken
-        );
+                audioPlayer.src = result.streamUrl;
+                audioPlayer.load();
 
-        const response = await fetch(playSongUrl, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
+                await resumeCurrentSong(audioPlayer);
+
+                increaseListeningCounter();
+
+                return;
+            }
+
+            if (audioPlayer.paused) {
+                await resumeCurrentSong(audioPlayer);
+            }
+            else {
+                audioPlayer.pause();
             }
         });
+    }
 
-        const result = await readJsonResponse(response);
-
-        if (!response.ok) {
-            throw new Error(
-                result?.message ??
-                "Dinleme kaydı oluşturulamadı."
-            );
+    audioPlayer.addEventListener("play", function () {
+        if (!currentSongId) {
+            return;
         }
 
-        if (!result?.success) {
-            throw new Error(
-                result?.message ??
-                "Dinleme işlemi başarısız oldu."
-            );
+        setSongButtonsPlaying(currentSongId);
+        setMainPlayerPlaying(true);
+    });
+
+    audioPlayer.addEventListener("pause", function () {
+        if (!currentSongId || audioPlayer.ended) {
+            return;
         }
 
-        // DEĞİŞİKLİK:
-        // Önce bütün şarkı butonları tekrar oynat simgesine çevrilir.
-        resetAllSongPlayButtons();
+        setSongButtonsPaused(currentSongId);
+        setMainPlayerPlaying(false);
+    });
 
-        // Yalnızca basılan şarkının butonu duraklat simgesi olur.
-        setCurrentSongButton(playButton);
+    audioPlayer.addEventListener("ended", function () {
+        if (!currentSongId) {
+            return;
+        }
 
-        // Alt müzik oynatıcısı güncellenir.
-        updateMusicPlayer(songInfo);
+        setSongButtonsPaused(currentSongId);
+        setMainPlayerPlaying(false);
+    });
 
-        // Ana sayfadaki toplam dinleme sayısı anlık artırılır.
-        increaseListeningCounter();
+    audioPlayer.addEventListener("error", function () {
+        if (!audioPlayer.src) {
+            return;
+        }
 
-        console.log(result.message);
+        if (currentSongId) {
+            setSongButtonsPaused(currentSongId);
+        }
+
+        setMainPlayerPlaying(false);
+
+        showPlayerError(
+            "Şarkının ses dosyası yüklenemedi."
+        );
+    });
+
+    async function startSong(
+        songId,
+        songInfo,
+        playButton,
+        url,
+        antiforgeryToken,
+        player
+    ) {
+        if (playButton.dataset.requestRunning === "true") {
+            return;
+        }
+
+        playButton.dataset.requestRunning = "true";
+        playButton.disabled = true;
+
+        try {
+            const result = await requestPlayback(
+                songId,
+                url,
+                antiforgeryToken
+            );
+
+            if (!result) {
+                return;
+            }
+
+            if (currentSongId) {
+                resetSongButtons(currentSongId);
+            }
+
+            currentSongId = songId;
+            currentSongInfo = songInfo;
+
+            player.pause();
+            player.src = result.streamUrl;
+            player.load();
+
+            updateMusicPlayer(songInfo);
+
+            await player.play();
+
+            increaseListeningCounter();
+        }
+        catch (error) {
+            console.error(error);
+
+            showPlayerError(
+                error instanceof Error
+                    ? error.message
+                    : "Şarkı çalınırken bir hata oluştu."
+            );
+        }
+        finally {
+            playButton.disabled = false;
+            playButton.dataset.requestRunning = "false";
+        }
+    }
+});
+
+async function requestPlayback(
+    songId,
+    playSongUrl,
+    antiforgeryToken
+) {
+    const formData = new FormData();
+
+    formData.append("songId", songId);
+
+    formData.append(
+        "__RequestVerificationToken",
+        antiforgeryToken
+    );
+
+    const response = await fetch(playSongUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    });
+
+    const result =
+        await readJsonResponse(response);
+
+    if (!response.ok) {
+        throw new Error(
+            result?.message ??
+            "Şarkı oynatılamadı."
+        );
+    }
+
+    if (!result?.success ||
+        !result?.streamUrl) {
+        throw new Error(
+            result?.message ??
+            "Şarkının ses adresi alınamadı."
+        );
+    }
+
+    return result;
+}
+
+async function resumeCurrentSong(audioPlayer) {
+    try {
+        await audioPlayer.play();
     }
     catch (error) {
         console.error(error);
 
-        playButton.textContent = oldButtonText;
-        playButton.title = oldButtonTitle;
-
         showPlayerError(
-            error instanceof Error
-                ? error.message
-                : "Dinleme sırasında bir hata oluştu."
+            "Şarkı oynatılamadı."
         );
-    }
-    finally {
-        playButton.disabled = false;
-        playButton.dataset.requestRunning = "false";
     }
 }
 
-// DEĞİŞİKLİK:
-// Sayfadaki bütün şarkı oynat butonlarını başlangıç hâline getirir.
-function resetAllSongPlayButtons() {
-    const songPlayButtons = document.querySelectorAll("[data-song-id]");
+function resetSongButtons(songId) {
+    const buttons =
+        document.querySelectorAll(
+            `[data-song-id="${CSS.escape(songId)}"]`
+        );
 
-    songPlayButtons.forEach(function (button) {
+    buttons.forEach(function (button) {
         button.textContent = "▶";
         button.disabled = false;
         button.classList.remove("currently-playing");
 
-        const songName = getSongInfoFromButton(button).name;
+        const songName =
+            getSongInfoFromButton(button).name;
 
-        button.title = `${songName} şarkısını oynat`;
+        button.title =
+            `${songName} şarkısını oynat`;
     });
 }
 
-// DEĞİŞİKLİK:
-// Yalnızca o anda seçilen şarkının butonunu aktif hâle getirir.
-function setCurrentSongButton(playButton) {
-    playButton.textContent = "Ⅱ";
-    playButton.title = "Dinleniyor";
-    playButton.classList.add("currently-playing");
+function setSongButtonsPlaying(songId) {
+    const buttons =
+        document.querySelectorAll(
+            `[data-song-id="${CSS.escape(songId)}"]`
+        );
+
+    buttons.forEach(function (button) {
+        button.textContent = "Ⅱ";
+        button.title = "Duraklat";
+        button.classList.add("currently-playing");
+    });
+}
+
+function setSongButtonsPaused(songId) {
+    const buttons =
+        document.querySelectorAll(
+            `[data-song-id="${CSS.escape(songId)}"]`
+        );
+
+    buttons.forEach(function (button) {
+        button.textContent = "▶";
+        button.title = "Devam et";
+        button.classList.remove("currently-playing");
+    });
+}
+
+function setMainPlayerPlaying(isPlaying) {
+    const mainPlayButton =
+        document.getElementById("mainPlayButton");
+
+    if (!mainPlayButton) {
+        return;
+    }
+
+    mainPlayButton.textContent =
+        isPlaying ? "Ⅱ" : "▶";
+
+    mainPlayButton.title =
+        isPlaying ? "Duraklat" : "Oynat";
 }
 
 function getSongInfoFromButton(playButton) {
-    const songCard = playButton.closest(".song-card");
+    const songCard =
+        playButton.closest(".song-card");
 
     if (songCard) {
-        const songName = songCard
-            .querySelector(".song-name")
-            ?.textContent
-            ?.trim();
+        const songName =
+            songCard
+                .querySelector(".song-name")
+                ?.textContent
+                ?.trim();
 
-        const songSubtitle = songCard
-            .querySelector(".song-artist")
-            ?.textContent
-            ?.trim();
+        const songSubtitle =
+            songCard
+                .querySelector(".song-artist")
+                ?.textContent
+                ?.trim();
 
         return {
             name: songName || "Şarkı",
@@ -181,18 +359,21 @@ function getSongInfoFromButton(playButton) {
         };
     }
 
-    const searchSongRow = playButton.closest(".search-song-row");
+    const searchSongRow =
+        playButton.closest(".search-song-row");
 
     if (searchSongRow) {
-        const songName = searchSongRow
-            .querySelector(".search-song-name")
-            ?.textContent
-            ?.trim();
+        const songName =
+            searchSongRow
+                .querySelector(".search-song-name")
+                ?.textContent
+                ?.trim();
 
-        const songSubtitle = searchSongRow
-            .querySelector(".search-song-album")
-            ?.textContent
-            ?.trim();
+        const songSubtitle =
+            searchSongRow
+                .querySelector(".search-song-album")
+                ?.textContent
+                ?.trim();
 
         return {
             name: songName || "Şarkı",
@@ -200,22 +381,25 @@ function getSongInfoFromButton(playButton) {
         };
     }
 
-    const tableRow = playButton.closest("tr");
+    const tableRow =
+        playButton.closest("tr");
 
     if (tableRow) {
-        const songName = tableRow
-            .querySelector(
-                ".song-title, .cell-title, .history-song-title"
-            )
-            ?.textContent
-            ?.trim();
+        const songName =
+            tableRow
+                .querySelector(
+                    ".song-title, .cell-title, .history-song-title"
+                )
+                ?.textContent
+                ?.trim();
 
-        const songSubtitle = tableRow
-            .querySelector(
-                ".song-album, .cell-subtitle, .history-subtitle"
-            )
-            ?.textContent
-            ?.trim();
+        const songSubtitle =
+            tableRow
+                .querySelector(
+                    ".song-album, .cell-subtitle, .history-subtitle"
+                )
+                ?.textContent
+                ?.trim();
 
         return {
             name: songName || "Şarkı",
@@ -223,19 +407,21 @@ function getSongInfoFromButton(playButton) {
         };
     }
 
-    const pageSongName = document
-        .querySelector(
-            ".song-details-title, .song-title, .detail-title"
-        )
-        ?.textContent
-        ?.trim();
+    const pageSongName =
+        document
+            .querySelector(
+                ".song-details-title, .song-title, .detail-title"
+            )
+            ?.textContent
+            ?.trim();
 
-    const pageSongArtist = document
-        .querySelector(
-            ".song-details-artist, .song-artist, .detail-subtitle"
-        )
-        ?.textContent
-        ?.trim();
+    const pageSongArtist =
+        document
+            .querySelector(
+                ".song-details-artist, .song-artist, .detail-subtitle"
+            )
+            ?.textContent
+            ?.trim();
 
     return {
         name: pageSongName || "Seçilen şarkı",
@@ -250,20 +436,14 @@ function updateMusicPlayer(songInfo) {
     const playingSongArtist =
         document.getElementById("playingSongArtist");
 
-    const mainPlayButton =
-        document.getElementById("mainPlayButton");
-
     if (playingSongName) {
-        playingSongName.textContent = songInfo.name;
+        playingSongName.textContent =
+            songInfo.name;
     }
 
     if (playingSongArtist) {
-        playingSongArtist.textContent = songInfo.artist;
-    }
-
-    if (mainPlayButton) {
-        mainPlayButton.textContent = "Ⅱ";
-        mainPlayButton.title = "Duraklat";
+        playingSongArtist.textContent =
+            songInfo.artist;
     }
 }
 
@@ -275,10 +455,11 @@ function increaseListeningCounter() {
         return;
     }
 
-    const currentCount = Number.parseInt(
-        totalListeningCount.textContent.trim(),
-        10
-    );
+    const currentCount =
+        Number.parseInt(
+            totalListeningCount.textContent.trim(),
+            10
+        );
 
     if (Number.isNaN(currentCount)) {
         totalListeningCount.textContent = "1";
@@ -290,7 +471,8 @@ function increaseListeningCounter() {
 }
 
 async function readJsonResponse(response) {
-    const contentType = response.headers.get("content-type");
+    const contentType =
+        response.headers.get("content-type");
 
     if (!contentType?.includes("application/json")) {
         return null;
@@ -300,7 +482,8 @@ async function readJsonResponse(response) {
 }
 
 function showPlayerError(message) {
-    let errorBox = document.getElementById("playerErrorBox");
+    let errorBox =
+        document.getElementById("playerErrorBox");
 
     if (!errorBox) {
         errorBox = document.createElement("div");
@@ -330,7 +513,8 @@ function showPlayerError(message) {
 
     window.clearTimeout(errorBox.hideTimer);
 
-    errorBox.hideTimer = window.setTimeout(function () {
-        errorBox.style.display = "none";
-    }, 3500);
+    errorBox.hideTimer =
+        window.setTimeout(function () {
+            errorBox.style.display = "none";
+        }, 3500);
 }

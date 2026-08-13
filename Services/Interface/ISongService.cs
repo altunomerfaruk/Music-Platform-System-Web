@@ -34,5 +34,7 @@ namespace MusicProject.Services.Interface
         void DeleteArtistSong(int songId, int artistId);
 
         bool UpdatePublication(Song song);
+
+        Song? GetSongForListening(int songId);
     }
 }

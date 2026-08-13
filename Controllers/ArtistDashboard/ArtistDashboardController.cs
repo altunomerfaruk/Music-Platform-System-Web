@@ -18,9 +18,11 @@ namespace MusicProject.Controllers
         private readonly ICountryService _countryService;
         private readonly IPublicationService _publicationService;
         private readonly IPublicationJobScheduler _publicationJobScheduler;
-        public ArtistDashboardController(IArtistService artistService, IAlbumService albumService, ISongService songService, 
-            IPublicationJobScheduler publicationJobScheduler, IGenreService genreService, ICountryService countryService, 
-            IPublicationService publicationService)
+        private readonly IAudioStorageService _audioStorageService;
+
+        public ArtistDashboardController(IArtistService artistService, IAlbumService albumService, ISongService songService,
+            IPublicationJobScheduler publicationJobScheduler, IGenreService genreService, ICountryService countryService,
+            IPublicationService publicationService, IAudioStorageService audioStorageService)
         {
             _artistService = artistService;
             _albumService = albumService;
@@ -29,6 +31,7 @@ namespace MusicProject.Controllers
             _countryService = countryService;
             _publicationService = publicationService;
             _publicationJobScheduler = publicationJobScheduler;
+            _audioStorageService = audioStorageService;
         }
 
         [HttpGet]

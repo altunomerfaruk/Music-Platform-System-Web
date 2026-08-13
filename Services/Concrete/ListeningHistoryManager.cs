@@ -20,7 +20,7 @@ namespace MusicProject.Services.Concrete
         {
             var song = _songRepository.GetSongForListening(songId);
 
-            if (song == null)
+            if (song == null || string.IsNullOrWhiteSpace(song.AudioFileName))
             {
                 return false;
             }

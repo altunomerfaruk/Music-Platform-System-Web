@@ -70,7 +70,7 @@ namespace MusicProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateSong(CreateSongViewModel model)
+        public async Task<IActionResult> CreateSong(CreateSongViewModel model)
         {
             if (!TryGetDashboard(out var dashboard, out _, out var error))
             {
@@ -158,9 +158,26 @@ namespace MusicProject.Controllers
                 }
             }
 
+            string storedAudioFileName;
+
+            try
+            {
+                storedAudioFileName =
+                    await _audioStorageService.SaveMp3Async(model.AudioFile!);
+            }
+            catch (InvalidOperationException exception)
+            {
+                ModelState.AddModelError(
+                    nameof(model.AudioFile),
+                    exception.Message);
+
+                return View(model);
+            }
+
             var song = new Song
             {
                 Title = model.Title.Trim(),
+                AudioFileName = storedAudioFileName,
                 AlbumId = model.AlbumId,
                 LabelId = model.LabelId,
                 PublicationStatus = publicationStatus,
@@ -168,12 +185,16 @@ namespace MusicProject.Controllers
                 PublishedAtUtc = publishedAtUtc
             };
 
+            var songCreated = false;
+
             try
             {
                 _songService.AddSongWithRelations(
                     song,
                     dashboard.Artist.Id,
                     model.SelectedGenreIds);
+
+                songCreated = true;
 
                 if (song.AlbumId == null &&
                     song.PublicationStatus == PublicationStatus.Scheduled &&
@@ -189,11 +210,25 @@ namespace MusicProject.Controllers
             }
             catch (InvalidOperationException exception)
             {
+                if (!songCreated)
+                {
+                    _audioStorageService.Delete(storedAudioFileName);
+                }
+
                 ModelState.AddModelError(
                     nameof(model.Title),
                     exception.Message);
 
                 return View(model);
+            }
+            catch
+            {
+                if (!songCreated)
+                {
+                    _audioStorageService.Delete(storedAudioFileName);
+                }
+
+                throw;
             }
 
             TempData["SuccessMessage"] = GetSongCreationMessage(song);
@@ -207,6 +242,7 @@ namespace MusicProject.Controllers
 
             return RedirectToAction(nameof(MySongs));
         }
+
 
         [HttpGet]
         public IActionResult EditSong(int songId)
@@ -241,7 +277,7 @@ namespace MusicProject.Controllers
                 ScheduledPublishAtLocal = song.ScheduledPublishAtUtc.HasValue
                 ? _publicationService.ConvertUtcToTurkeyTime(song.ScheduledPublishAtUtc.Value)
                 : null,
-
+                HasAudioFile = !string.IsNullOrWhiteSpace(song.AudioFileName),
                 IsAdminHidden = song.IsAdminHidden,
                 AdminHiddenReason = song.AdminHiddenReason,
                 AdminHiddenAtUtc = song.AdminHiddenAtUtc,
@@ -258,7 +294,7 @@ namespace MusicProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditSong(EditSongViewModel model)
+        public async Task<IActionResult> EditSong(EditSongViewModel model)
         {
             if (!TryGetDashboard(out var dashboard, out _, out var error))
             {
@@ -274,7 +310,6 @@ namespace MusicProject.Controllers
                 model.SongId,
                 dashboard.Artist.Id);
 
-
             if (existingSong == null)
             {
                 TempData["ErrorMessage"] =
@@ -283,14 +318,21 @@ namespace MusicProject.Controllers
                 return RedirectToAction(nameof(MySongs));
             }
 
+            model.HasAudioFile =
+                !string.IsNullOrWhiteSpace(existingSong.AudioFileName);
 
             model.IsAdminHidden = existingSong.IsAdminHidden;
             model.AdminHiddenReason = existingSong.AdminHiddenReason;
             model.AdminHiddenAtUtc = existingSong.AdminHiddenAtUtc;
-            model.IsHiddenByAlbum = existingSong.Album?.IsAdminHidden ?? false;
-            model.AlbumAdminHiddenReason = existingSong.Album?.AdminHiddenReason;
 
-            var oldPublicationJobId = existingSong.PublicationJobId;
+            model.IsHiddenByAlbum =
+                existingSong.Album?.IsAdminHidden ?? false;
+
+            model.AlbumAdminHiddenReason =
+                existingSong.Album?.AdminHiddenReason;
+
+            var oldPublicationJobId =
+                existingSong.PublicationJobId;
 
             ValidateSongSelection(
                 model.SelectedGenreIds,
@@ -316,15 +358,18 @@ namespace MusicProject.Controllers
 
             DateTime? scheduledPublishAtUtc = null;
             DateTime? publishedAtUtc = existingSong.PublishedAtUtc;
+
             var publicationStatus = PublicationStatus.Draft;
-            string? newPublicationJobId = null;
 
             if (selectedAlbum != null)
             {
                 publicationStatus = selectedAlbum.PublicationStatus switch
                 {
-                    PublicationStatus.Published => PublicationStatus.Published,
-                    _ => PublicationStatus.Draft
+                    PublicationStatus.Published =>
+                        PublicationStatus.Published,
+
+                    _ =>
+                        PublicationStatus.Draft
                 };
 
                 if (publicationStatus == PublicationStatus.Published &&
@@ -358,8 +403,39 @@ namespace MusicProject.Controllers
                 {
                     publishedAtUtc = DateTime.UtcNow;
                 }
+            }
 
-                if (publicationStatus == PublicationStatus.Scheduled &&
+            var oldAudioFileName =
+                existingSong.AudioFileName;
+
+            var newAudioFileName =
+                oldAudioFileName;
+
+            if (model.AudioFile != null &&
+                model.AudioFile.Length > 0)
+            {
+                try
+                {
+                    newAudioFileName =
+                        await _audioStorageService.SaveMp3Async(
+                            model.AudioFile);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.AudioFile),
+                        exception.Message);
+
+                    return View(model);
+                }
+            }
+
+            string? newPublicationJobId = null;
+
+            try
+            {
+                if (selectedAlbum == null &&
+                    publicationStatus == PublicationStatus.Scheduled &&
                     scheduledPublishAtUtc.HasValue)
                 {
                     newPublicationJobId =
@@ -367,22 +443,20 @@ namespace MusicProject.Controllers
                             model.SongId,
                             scheduledPublishAtUtc.Value);
                 }
-            }
 
-            var song = new Song
-            {
-                Id = model.SongId,
-                Title = model.Title,
-                AlbumId = model.AlbumId,
-                LabelId = model.LabelId,
-                PublicationStatus = publicationStatus,
-                ScheduledPublishAtUtc = scheduledPublishAtUtc,
-                PublishedAtUtc = publishedAtUtc,
-                PublicationJobId = newPublicationJobId
-            };
+                var song = new Song
+                {
+                    Id = model.SongId,
+                    Title = model.Title,
+                    AudioFileName = newAudioFileName,
+                    AlbumId = model.AlbumId,
+                    LabelId = model.LabelId,
+                    PublicationStatus = publicationStatus,
+                    ScheduledPublishAtUtc = scheduledPublishAtUtc,
+                    PublishedAtUtc = publishedAtUtc,
+                    PublicationJobId = newPublicationJobId
+                };
 
-            try
-            {
                 _songService.UpdateArtistSong(
                     song,
                     dashboard.Artist.Id,
@@ -391,14 +465,34 @@ namespace MusicProject.Controllers
                 if (!string.IsNullOrWhiteSpace(oldPublicationJobId) &&
                     oldPublicationJobId != newPublicationJobId)
                 {
-                    _publicationJobScheduler.Cancel(oldPublicationJobId);
+                    _publicationJobScheduler.Cancel(
+                        oldPublicationJobId);
+                }
+
+                if (!string.Equals(
+                    oldAudioFileName,
+                    newAudioFileName,
+                    StringComparison.Ordinal))
+                {
+                    _audioStorageService.Delete(
+                        oldAudioFileName);
                 }
             }
             catch (InvalidOperationException exception)
             {
                 if (!string.IsNullOrWhiteSpace(newPublicationJobId))
                 {
-                    _publicationJobScheduler.Cancel(newPublicationJobId);
+                    _publicationJobScheduler.Cancel(
+                        newPublicationJobId);
+                }
+
+                if (!string.Equals(
+                    oldAudioFileName,
+                    newAudioFileName,
+                    StringComparison.Ordinal))
+                {
+                    _audioStorageService.Delete(
+                        newAudioFileName);
                 }
 
                 ModelState.AddModelError(
@@ -406,6 +500,25 @@ namespace MusicProject.Controllers
                     exception.Message);
 
                 return View(model);
+            }
+            catch
+            {
+                if (!string.IsNullOrWhiteSpace(newPublicationJobId))
+                {
+                    _publicationJobScheduler.Cancel(
+                        newPublicationJobId);
+                }
+
+                if (!string.Equals(
+                    oldAudioFileName,
+                    newAudioFileName,
+                    StringComparison.Ordinal))
+                {
+                    _audioStorageService.Delete(
+                        newAudioFileName);
+                }
+
+                throw;
             }
 
             TempData["SuccessMessage"] = GetSongUpdateMessage(
@@ -438,7 +551,7 @@ namespace MusicProject.Controllers
             }
 
             var publicationJobId = song.PublicationJobId;
-
+            var audioFileName = song.AudioFileName;
             try
             {
                 _songService.DeleteArtistSong(
@@ -446,6 +559,7 @@ namespace MusicProject.Controllers
                     dashboard.Artist.Id);
 
                 _publicationJobScheduler.Cancel(publicationJobId);
+                _audioStorageService.Delete(audioFileName);
 
                 TempData["SuccessMessage"] =
                     "Şarkı başarıyla silindi.";

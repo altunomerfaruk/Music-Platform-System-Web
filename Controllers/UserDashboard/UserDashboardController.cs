@@ -18,6 +18,7 @@ namespace MusicProject.Controllers
         private readonly IListeningHistoryService _listeningHistoryService;
         private readonly IUserService _userService;
         private readonly IGenreService _genreService;
+        private readonly IAudioStorageService _audioStorageService;
 
         public UserDashboardController(
             ISongService songService,
@@ -27,7 +28,8 @@ namespace MusicProject.Controllers
             IFollowedArtistService followedArtistService,
             IListeningHistoryService listeningHistoryService,
             IUserService userService,
-            IGenreService genreService)
+            IGenreService genreService,
+            IAudioStorageService audioStorageService)
         {
             _songService = songService;
             _artistService = artistService;
@@ -37,6 +39,7 @@ namespace MusicProject.Controllers
             _listeningHistoryService = listeningHistoryService;
             _userService = userService;
             _genreService = genreService;
+            _audioStorageService = audioStorageService;
         }
 
         [HttpGet]

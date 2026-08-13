@@ -34,6 +34,14 @@ namespace MusicProject.Services.Concrete
             return _songRepository.GetArtistSongForEdit(songId, artistId);
         }
 
+        public Song? GetSongForListening(int songId)
+        {
+            if (songId <= 0)
+                return null;
+
+            return _songRepository.GetSongForListening(songId);
+        }
+
         public void UpdateArtistSong(Song song, int artistId, IEnumerable<int> genreIds)
         {
             if (song.Id <= 0)
@@ -92,7 +100,7 @@ namespace MusicProject.Services.Concrete
             artistSong.Title = normalizedTitle;
             artistSong.AlbumId = song.AlbumId;
             artistSong.LabelId = song.LabelId;
-
+            artistSong.AudioFileName = song.AudioFileName;
             artistSong.PublicationStatus = song.PublicationStatus;
             artistSong.ScheduledPublishAtUtc = song.ScheduledPublishAtUtc;
             artistSong.PublishedAtUtc = song.PublishedAtUtc;
