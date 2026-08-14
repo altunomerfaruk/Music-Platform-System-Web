@@ -98,46 +98,6 @@ namespace MusicProject.Services.Concrete
             return AdminUserStatusUpdateResult.Success;
         }
 
-        public AdminUserArtistPromotionResult PromoteUserToArtist(
-            int userId,
-            int currentAdminUserId)
-        {
-            if (userId == currentAdminUserId)
-            {
-                return AdminUserArtistPromotionResult.InvalidRole;
-            }
-
-            var user = _adminDashboardRepository.GetUserById(userId);
-
-            if (user == null)
-            {
-                return AdminUserArtistPromotionResult.UserNotFound;
-            }
-
-            if (user.Role == UserRole.Admin)
-            {
-                return AdminUserArtistPromotionResult.InvalidRole;
-            }
-
-            if (user.Role == UserRole.Artist ||
-                _adminDashboardRepository.ArtistProfileExistsForUser(userId))
-            {
-                return AdminUserArtistPromotionResult.AlreadyArtist;
-            }
-
-            user.Role = UserRole.Artist;
-
-            _adminDashboardRepository.UpdateUser(user);
-
-            _adminDashboardRepository.CreateArtistProfile(new Artist
-            {
-                Name = user.Username,
-                UserId = user.Id
-            });
-
-            return AdminUserArtistPromotionResult.Success;
-        }
-
         public IReadOnlyList<AdminArtistListItemDto> GetArtists(string? search)
         {
             return _adminDashboardRepository

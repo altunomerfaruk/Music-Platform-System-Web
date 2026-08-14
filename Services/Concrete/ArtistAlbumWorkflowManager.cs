@@ -14,15 +14,18 @@ namespace MusicProject.Services.Concrete
         private readonly IAlbumService _albumService;
         private readonly IPublicationService _publicationService;
         private readonly IPublicationJobScheduler _publicationJobScheduler;
+        private readonly ILogger<ArtistAlbumWorkflowManager> _logger;
 
         public ArtistAlbumWorkflowManager(
             IAlbumService albumService,
             IPublicationService publicationService,
-            IPublicationJobScheduler publicationJobScheduler)
+            IPublicationJobScheduler publicationJobScheduler,
+            ILogger<ArtistAlbumWorkflowManager> logger)
         {
             _albumService = albumService;
             _publicationService = publicationService;
             _publicationJobScheduler = publicationJobScheduler;
+            _logger = logger;
         }
 
         public ArtistAlbumWorkflowResult CreateAlbum(CreateArtistAlbumRequest request)
@@ -122,28 +125,15 @@ namespace MusicProject.Services.Concrete
                 PublicationJobId = newPublicationJobId
             };
 
+            bool updated;
+
             try
             {
-                var updated = _albumService.UpdateArtistAlbum(updateRequest);
-
-                if (!updated)
-                {
-                    _publicationJobScheduler.Cancel(newPublicationJobId);
-
-                    return ArtistAlbumWorkflowResult.Failure(
-                        ArtistAlbumWorkflowField.None,
-                        AlbumNotFoundMessage);
-                }
-
-                if (!string.IsNullOrWhiteSpace(oldPublicationJobId) &&
-                    oldPublicationJobId != newPublicationJobId)
-                {
-                    _publicationJobScheduler.Cancel(oldPublicationJobId);
-                }
+                updated = _albumService.UpdateArtistAlbum(updateRequest);
             }
             catch (InvalidOperationException exception)
             {
-                _publicationJobScheduler.Cancel(newPublicationJobId);
+                DiscardProvisionalPublicationJob(request.AlbumId, newPublicationJobId);
 
                 return ArtistAlbumWorkflowResult.Failure(
                     ArtistAlbumWorkflowField.Name,
@@ -151,10 +141,24 @@ namespace MusicProject.Services.Concrete
             }
             catch
             {
-                _publicationJobScheduler.Cancel(newPublicationJobId);
+                DiscardProvisionalPublicationJob(request.AlbumId, newPublicationJobId);
 
                 throw;
             }
+
+            if (!updated)
+            {
+                DiscardProvisionalPublicationJob(request.AlbumId, newPublicationJobId);
+
+                return ArtistAlbumWorkflowResult.Failure(
+                    ArtistAlbumWorkflowField.None,
+                    AlbumNotFoundMessage);
+            }
+
+            CleanUpReplacedPublicationJob(
+                request.AlbumId,
+                oldPublicationJobId,
+                newPublicationJobId);
 
             return ArtistAlbumWorkflowResult.Success(BuildUpdateMessage(updateRequest));
         }
@@ -193,6 +197,68 @@ namespace MusicProject.Services.Concrete
             }
 
             return ArtistAlbumWorkflowResult.Success("Albüm başarıyla silindi.");
+        }
+
+        /// <summary>
+        /// Album DB yazmasi BASARISIZ oldugunda calisir.
+        /// Yalnizca bu istekte planlanan yeni job geri alinir; eski job korunur.
+        /// </summary>
+        private void DiscardProvisionalPublicationJob(
+            int albumId,
+            string? newPublicationJobId)
+        {
+            TryCancelPublicationJob(
+                newPublicationJobId,
+                albumId,
+                "guncelleme geri alinirken yeni yayin job'i iptal edilemedi");
+        }
+
+        /// <summary>
+        /// Album DB yazmasi BASARIYLA tamamlandiktan sonra calisir.
+        /// Yerini yeni job'in aldigi eski job iptal edilir.
+        /// Buradaki hata guncellemeyi gecersiz kilmaz: yeni job korunur,
+        /// kullaniciya basarili sonuc doner, hata loglanir.
+        /// </summary>
+        private void CleanUpReplacedPublicationJob(
+            int albumId,
+            string? oldPublicationJobId,
+            string? newPublicationJobId)
+        {
+            if (string.IsNullOrWhiteSpace(oldPublicationJobId) ||
+                oldPublicationJobId == newPublicationJobId)
+            {
+                return;
+            }
+
+            TryCancelPublicationJob(
+                oldPublicationJobId,
+                albumId,
+                "guncelleme sonrasi eski yayin job'i iptal edilemedi");
+        }
+
+        private void TryCancelPublicationJob(
+            string? jobId,
+            int albumId,
+            string failureDescription)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+            {
+                return;
+            }
+
+            try
+            {
+                _publicationJobScheduler.Cancel(jobId);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Albüm {AlbumId}: {FailureDescription} (job {JobId}).",
+                    albumId,
+                    failureDescription,
+                    jobId);
+            }
         }
 
         private bool TryConvertSchedule(

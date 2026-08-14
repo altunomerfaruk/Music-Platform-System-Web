@@ -20,12 +20,10 @@ var connectionString =
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString)
 );
-
 builder.Services.AddScoped(
     typeof(IGenericRepository<>),
     typeof(GenericRepository<>)
 );
-
 builder.Services.AddScoped< IArtistRepository,ArtistRepository>();
 builder.Services.AddScoped<ISongRepository,SongRepository>();
 builder.Services.AddScoped< IUserRepository,UserRepository>();
@@ -36,7 +34,6 @@ builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IAdminContentModerationRepository, AdminContentModerationRepository>();
-
 builder.Services.AddScoped<IAdminContentModerationService, AdminContentModerationManager>();
 builder.Services.AddScoped<ISongService, SongManager>();
 builder.Services.AddScoped<IArtistService,ArtistManager>();

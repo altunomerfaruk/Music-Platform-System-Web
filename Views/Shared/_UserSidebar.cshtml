@@ -8,8 +8,6 @@
     var isAllSongs = controller == "UserDashboard" && action == "AllSongs";
     var isAllArtists = controller == "UserDashboard" && action == "AllArtists";
 
-    // DEĞİŞİKLİK:
-    // Türler sayfası ve tür detay sayfası için aktif menü kontrolü eklendi.
     var isAllGenres = controller == "UserDashboard" && action == "AllGenres";
     var isGenreDetails = controller == "UserDashboard" && action == "GenreDetails";
     var isGenres = isAllGenres || isGenreDetails;
@@ -106,10 +104,6 @@
 
             <li class="navigation-item">
 
-                @* DEĞİŞİKLİK:
-                   Geçici href="#" kaldırıldı.
-                   Artık bütün türlerin listelendiği AllGenres action'ına gider.
-                   GenreDetails sayfasında da aktif görünür. *@
                 <a asp-controller="UserDashboard"
                    asp-action="AllGenres"
                    class="navigation-link @(isGenres ? "active" : string.Empty)">

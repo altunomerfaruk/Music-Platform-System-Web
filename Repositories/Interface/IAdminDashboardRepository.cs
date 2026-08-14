@@ -27,10 +27,6 @@ namespace MusicProject.Repositories.Interface
 
         void UpdateUser(User user);
 
-        bool ArtistProfileExistsForUser(int userId);
-
-        void CreateArtistProfile(Artist artist);
-
         IEnumerable<Artist> GetArtists(string? search);
 
         IEnumerable<Album> GetAlbums(string? search, PublicationStatus? status);

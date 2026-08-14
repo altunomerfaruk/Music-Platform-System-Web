@@ -23,7 +23,5 @@ namespace MusicProject.Contracts.Responses.AdminDashboard
         public string Initial { get; set; } = string.Empty;
 
         public bool CanChangeStatus { get; set; }
-
-        public bool CanPromoteToArtist { get; set; }
     }
 }

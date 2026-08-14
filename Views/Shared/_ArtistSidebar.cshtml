@@ -32,7 +32,6 @@
         ? "Sanatçı"
         : Model.Artist.Name;
 
-    // Değiştirildi: Alt hesap alanında User.Username yerine sanatçı adı gösteriliyor.
     var accountName = artistName;
 
     var artistInitial = string.IsNullOrWhiteSpace(Model.ArtistInitial)
@@ -89,7 +88,6 @@
 
             <li class="artist-navigation-item">
 
-                @* MySongs action'ını oluşturduğumuzda bu bağlantı çalışacak. *@
                 <a asp-controller="ArtistDashboard"
                    asp-action="MySongs"
                    class="artist-navigation-link @(isMySongs ? "active" : string.Empty)">
@@ -110,7 +108,6 @@
 
             <li class="artist-navigation-item">
 
-                @* MyAlbums action'ını bir sonraki aşamada oluşturacağız. *@
                 <a asp-controller="ArtistDashboard"
                    asp-action="MyAlbums"
                    class="artist-navigation-link @(isMyAlbums ? "active" : string.Empty)">

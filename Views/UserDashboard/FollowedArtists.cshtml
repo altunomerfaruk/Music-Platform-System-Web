@@ -83,9 +83,6 @@
                 transform: translateY(-4px);
             }
 
-        /* DEĞİŞİKLİK:
-                   Sanatçı bilgileri ArtistDetails sayfasına yönlendiren
-                   bağlantının içine alındı. Link görünümü kart tasarımını bozmaz. */
         .followed-details-link {
             display: block;
             color: inherit;
@@ -281,9 +278,6 @@
                 {
                     <article class="followed-card">
 
-                        @* DEĞİŞİKLİK:
-                           Görsel, isim, ülke ve sanatçı bilgileri artık
-                           ArtistDetails action'ına yönlendiriliyor. *@
                         <a asp-controller="UserDashboard"
                            asp-action="ArtistDetails"
                            asp-route-artistId="@artist.ArtistId"
@@ -321,9 +315,6 @@
 
                         </a>
 
-                        @* DEĞİŞİKLİK:
-                           Takipten çıkma formu bağlantının dışında bırakıldı.
-                           Böylece butona basınca detay sayfasına yönlendirme yapılmaz. *@
                         <form asp-controller="UserDashboard"
                               asp-action="ToggleFollow"
                               method="post"

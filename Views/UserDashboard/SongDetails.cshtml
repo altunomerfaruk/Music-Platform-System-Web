@@ -102,7 +102,7 @@
             gap: 12px;
         }
 
-        .main-play-button {
+        .song-play-action {
             padding: 12px 22px;
             color: #071008;
             background-color: var(--primary);
@@ -114,7 +114,7 @@
             transition: 0.2s;
         }
 
-            .main-play-button:hover {
+            .song-play-action:hover {
                 transform: translateY(-2px);
             }
 
@@ -369,7 +369,7 @@
                 <div class="song-actions">
 
                     <button type="button"
-                            class="main-play-button"
+                            class="song-play-action"
                             data-song-id="@Model.Song.SongId"
                             title="@Model.Song.Title şarkısını oynat">
                         ▶ Şarkıyı Oynat
@@ -386,8 +386,6 @@
                                name="songId"
                                value="@Model.Song.SongId" />
 
-                        @* DEĞİŞİKLİK:
-                           Beğeni işleminden sonra aynı şarkı detay sayfasına dönülür. *@
                         <input type="hidden"
                                name="returnUrl"
                                value="@currentUrl" />

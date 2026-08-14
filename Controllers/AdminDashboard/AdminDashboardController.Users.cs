@@ -22,10 +22,6 @@ namespace MusicProject.Controllers
                 user.Initial = GetInitial(user.Username);
 
                 user.CanChangeStatus = user.Id != currentAdminUserId;
-
-                user.CanPromoteToArtist =
-                    user.Role == UserRole.User &&
-                    user.Id != currentAdminUserId;
             }
 
             var model = new AdminUsersViewModel
@@ -69,40 +65,6 @@ namespace MusicProject.Controllers
                 TempData["SuccessMessage"] = isActive
                     ? "Kullanıcı hesabı aktif hale getirildi."
                     : "Kullanıcı hesabı pasif hale getirildi.";
-            }
-
-            return RedirectToAction(nameof(Users), new { search });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult PromoteUserToArtist(int userId, string? search)
-        {
-            if (!TryGetCurrentUserId(out var currentAdminUserId))
-            {
-                return Forbid();
-            }
-
-            var result = _adminDashboardService.PromoteUserToArtist(userId, currentAdminUserId);
-
-            switch (result)
-            {
-                case AdminUserArtistPromotionResult.UserNotFound:
-                    TempData["ErrorMessage"] = "Kullanıcı bulunamadı.";
-                    break;
-
-                case AdminUserArtistPromotionResult.AlreadyArtist:
-                    TempData["ErrorMessage"] = "Bu kullanıcı zaten bir sanatçı hesabına sahip.";
-                    break;
-
-                case AdminUserArtistPromotionResult.InvalidRole:
-                    TempData["ErrorMessage"] = "Bu kullanıcı sanatçı hesabına yükseltilemez.";
-                    break;
-
-                default:
-                    TempData["SuccessMessage"] =
-                        "Kullanıcı sanatçı hesabına yükseltildi. Profil bilgilerini kendisi tamamlayabilir.";
-                    break;
             }
 
             return RedirectToAction(nameof(Users), new { search });

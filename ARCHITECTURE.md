@@ -54,8 +54,38 @@ MusicProject/
 │   └── Shared/                 _UserLayout, _ArtistLayout, _AdminLayout + sidebar'lar
 │
 ├── Migrations/                 EF Core migration geçmişi
-└── wwwroot/                    Statik dosyalar, yüklenen mp3'ler
+│
+├── Storage/                    Kullanıcı yüklemeleri — wwwroot DIŞINDA
+│   └── Audio/                  Yüklenen mp3'ler (guid'li dosya adları)
+│
+└── wwwroot/                    Yalnızca statik site varlıkları (css, js, lib)
 ```
+
+### Yüklenen mp3'ler neden wwwroot dışında?
+
+```
+Storage/
+└── Audio/
+    └── 3f2a91c4e5b64d0f8a17c2be9d40517e.mp3
+```
+
+Yüklenen ses dosyaları **static file olarak sunulmuyor**. `wwwroot` altında
+olsalardı dosya URL'si bilen herkes doğrudan indirebilirdi.
+
+Kullanıcı mp3'e yalnızca `UserDashboardController.StreamSong` endpoint'i
+üzerinden erişir. Endpoint stream'i açmadan önce şu kontrolleri yapar
+(`ISongService.GetSongForListening` → `SongRepository`, SQL tarafında):
+
+- şarkı `PublicationStatus == Published` mi
+- şarkı `IsAdminHidden` değil mi
+- şarkı bir albüme bağlıysa, albüm de `Published` ve `IsAdminHidden` değil mi
+
+Üçünden biri sağlanmazsa `NotFound` döner. Böylece admin moderasyonu
+doğrudan dosya URL'siyle **bypass edilemez**; gizlenen içeriğin sesi de anında
+erişilemez hale gelir.
+
+Dosya okuma `IAudioStorageService.OpenRead` üzerinden yapılır ve yanıt
+`enableRangeProcessing: true` ile döner (tarayıcıda ileri/geri sarma için şart).
 
 ### Namespace kuralı
 
@@ -196,7 +226,6 @@ Rol: `Admin`.
 | GET | `Index` | `Index.cshtml` |
 | GET | `Users` | `Users.cshtml` |
 | POST | `SetUserActiveStatus` | — |
-| POST | `PromoteUserToArtist` | — |
 | GET | `Artists` | `Artists.cshtml` |
 | GET | `Albums` | `Albums.cshtml` |
 | POST | `SetAlbumAdminHiddenStatus` | — |
@@ -206,10 +235,9 @@ Rol: `Admin`.
 Dosya dağılımı: `.cs` (ctor, `Index`, ortak yardımcılar), `.Users.cs`,
 `.Artists.cs`, `.Albums.cs`, `.Songs.cs`.
 
-`PromoteUserToArtist` normal bir kullanıcının rolünü `Artist` yapar ve adına boş bir
-sanatçı profili açar (panelin çalışması için profil kaydı şart). Admin kendini veya
-zaten sanatçı olan bir kullanıcıyı yükseltemez; sonuç `AdminUserArtistPromotionResult`
-ile döner.
+Kullanıcılar sayfasında admin yalnızca hesap **aktif/pasif** durumunu yönetir;
+kendi hesabının durumunu değiştiremez (`CanChangeStatus`). Admin panelinden
+kullanıcıyı sanatçı hesabına yükseltme diye bir akış **yoktur**.
 
 ---
 
@@ -246,14 +274,32 @@ Bir işlem birden fazla servisi sırayla kullanıyor ve arada hata olursa geri a
 gerekiyorsa, bu orkestrasyon controller'da değil ayrı bir *workflow* servisinde durur.
 
 `ArtistSongWorkflowManager` örneği — şarkı eklerken sırayla:
-yayın durumunu hesapla (albüme bağlıysa albümden devral) → zamanlamayı doğrula →
-mp3'ü diske yaz → kaydı oluştur → Hangfire job'ı planla. Herhangi bir adım
-patlarsa yazılan mp3 ve planlanan job geri alınır.
+albüm sahipliğini doğrula → yayın durumunu hesapla (albüme bağlıysa albümden
+devral) → zamanlamayı doğrula → mp3'ü diske yaz → kaydı oluştur → Hangfire
+job'ı planla. Herhangi bir adım patlarsa oluşturulan kayıt geri alınır
+(soft-delete), planlanan job iptal edilir, yazılan mp3 silinir — yarım kalmış
+şarkı bırakılmaz.
 
 Sonuç `ArtistSongWorkflowResult` ile döner: `Succeeded`, `SuccessMessage`,
-`ErrorMessage` ve hatanın hangi alana ait olduğunu söyleyen `ArtistSongWorkflowField`.
+`ErrorMessage` ve hatanın hangi alana ait olduğunu söyleyen `ArtistSongWorkflowField`
+(`None`, `Title`, `AudioFile`, `ScheduledPublishAt`, `AlbumId`).
 Servis ViewModel property adlarını bilmez; controller enum'u `nameof(model.X)` ile
 eşleştirip `ModelState`'e yazar.
+
+### DB yazması sınırı: rollback mi, cleanup mi?
+
+Güncelleme akışında mp3 ve Hangfire job'ı DB yazmasından **önce** ayrılır.
+Ayrım noktası DB yazmasının başarısıdır:
+
+| Aşama | Hata olursa |
+|---|---|
+| DB yazmasından **önce** | Yeni job iptal, yeni mp3 sil. Eski mp3/job'a dokunma. Kullanıcıya hata dön. |
+| DB yazmasından **sonra** | Eski job iptali ve eski mp3 temizliği *post-success cleanup*'tır. Patlarsa yalnızca loglanır (`ILogger<ArtistSongWorkflowManager>`); yeni kaynaklar **geri alınmaz** ve kullanıcıya **başarılı** sonuç döner. |
+
+Sebep: DB yazması bittikten sonra kayıt zaten yeni mp3/job değerlerini gösterir.
+Temizlik hatası yüzünden bunları silmek, veritabanının işaret ettiği dosyayı yok
+eder. Bu durumda tutarsızlık, "artık kullanılmayan bir dosya/job diskte kaldı"
+seviyesinde kalır — ki bu güvenli taraftır.
 
 Controller'da kalanlar: form doğrulama (`ModelState`), dropdown doldurma, ViewModel
 kurma ve yönlendirme.
@@ -266,6 +312,12 @@ okunabilirlikten kaybettirirdi.
 **Planlanmış yayının yeniden zamanlanması:** yeni Hangfire job planlandıktan
 sonra kayıt güncellenir, ancak *ondan sonra* eski job iptal edilir. Sıra
 önemlidir — kayıt güncellenmezse yeni job iptal edilir ve eskisi geçerli kalır.
+
+**Admin gizlemesi ve albüm bağlantısı:** admin tarafından gizlenmiş bir albümdeki
+şarkının albüm bağlantısı değiştirilemez; aksi halde sanatçı şarkıyı albümden
+çıkararak moderasyonu aşabilirdi. Kontrol iki yerde durur: workflow bunu
+`UpdateArtistSong` çağrısından önce yakalar ve hatayı `AlbumId` alanına düşürür,
+`SongManager` içindeki aynı kontrol defense-in-depth olarak kalır.
 
 ---
 

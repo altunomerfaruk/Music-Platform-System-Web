@@ -13,8 +13,6 @@ namespace MusicProject.Services.Interface
 
         AdminUserStatusUpdateResult SetUserActiveStatus(int userId, int currentAdminUserId, bool isActive);
 
-        AdminUserArtistPromotionResult PromoteUserToArtist(int userId, int currentAdminUserId);
-
         IReadOnlyList<AdminArtistListItemDto> GetArtists(string? search);
 
         IReadOnlyList<AdminAlbumListItemDto> GetAlbums(string? search, PublicationStatus? status);

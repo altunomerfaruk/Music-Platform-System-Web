@@ -125,7 +125,8 @@ namespace MusicProject.Controllers
                     model,
                     nameof(model.Title),
                     nameof(model.AudioFile),
-                    nameof(model.ScheduledPublishAtLocal));
+                    nameof(model.ScheduledPublishAtLocal),
+                    nameof(model.AlbumId));
             }
 
             TempData["SuccessMessage"] = result.SuccessMessage;
@@ -261,7 +262,8 @@ namespace MusicProject.Controllers
                     model,
                     nameof(model.Title),
                     nameof(model.AudioFile),
-                    nameof(model.ScheduledPublishAtLocal));
+                    nameof(model.ScheduledPublishAtLocal),
+                    nameof(model.AlbumId));
             }
 
             TempData["SuccessMessage"] = result.SuccessMessage;
@@ -325,13 +327,15 @@ namespace MusicProject.Controllers
             object model,
             string titleFieldName,
             string audioFileFieldName,
-            string scheduledPublishFieldName)
+            string scheduledPublishFieldName,
+            string albumFieldName)
         {
             var fieldName = result.ErrorField switch
             {
                 ArtistSongWorkflowField.Title => titleFieldName,
                 ArtistSongWorkflowField.AudioFile => audioFileFieldName,
                 ArtistSongWorkflowField.ScheduledPublishAt => scheduledPublishFieldName,
+                ArtistSongWorkflowField.AlbumId => albumFieldName,
                 _ => null
             };
 

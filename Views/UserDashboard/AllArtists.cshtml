@@ -534,10 +534,6 @@
                                 name="sort"
                                 class="filter-select">
 
-                            @* DEĞİŞİKLİK:
-                               selected="False" oluşmaması için
-                               seçenekler koşullu olarak yazıldı. *@
-
                             @if (Model.Sort == "name-asc")
                             {
                                 <option value="name-asc" selected>
@@ -617,10 +613,6 @@
                 <div class="filter-followed-wrapper">
 
                     <label class="filter-checkbox-label">
-
-                        @* DEĞİŞİKLİK:
-                           checked="False" oluşmasını engellemek için
-                           checkbox koşullu yazıldı. *@
 
                         @if (Model.FollowedOnly)
                         {

@@ -8,6 +8,8 @@
 
         AudioFile = 2,
 
-        ScheduledPublishAt = 3
+        ScheduledPublishAt = 3,
+
+        AlbumId = 4
     }
 }
