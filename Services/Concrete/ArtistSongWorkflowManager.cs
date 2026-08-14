@@ -2,6 +2,7 @@ using MusicProject.Contracts.Requests;
 using MusicProject.Contracts.Responses.ArtistDashboard;
 using MusicProject.Models.Concrete;
 using MusicProject.Models.Enums;
+using MusicProject.Repositories.Interface;
 using MusicProject.Services.Interface;
 
 namespace MusicProject.Services.Concrete
@@ -23,6 +24,7 @@ namespace MusicProject.Services.Concrete
         private readonly IPublicationService _publicationService;
         private readonly IPublicationJobScheduler _publicationJobScheduler;
         private readonly IAudioStorageService _audioStorageService;
+        private readonly IGenericRepository<RecordLabel> _recordLabelRepository;
         private readonly ILogger<ArtistSongWorkflowManager> _logger;
 
         public ArtistSongWorkflowManager(
@@ -31,6 +33,7 @@ namespace MusicProject.Services.Concrete
             IPublicationService publicationService,
             IPublicationJobScheduler publicationJobScheduler,
             IAudioStorageService audioStorageService,
+            IGenericRepository<RecordLabel> recordLabelRepository,
             ILogger<ArtistSongWorkflowManager> logger)
         {
             _songService = songService;
@@ -38,6 +41,7 @@ namespace MusicProject.Services.Concrete
             _publicationService = publicationService;
             _publicationJobScheduler = publicationJobScheduler;
             _audioStorageService = audioStorageService;
+            _recordLabelRepository = recordLabelRepository;
             _logger = logger;
         }
 
@@ -62,6 +66,23 @@ namespace MusicProject.Services.Concrete
                     out var publicationError))
             {
                 return publicationError!;
+            }
+
+            // Ucuz/server-side dogrulamalar MP3 diske yazilmadan ONCE yapilir; boylece
+            // gecersiz plak sirketi veya cift sarki adi gibi durumlar bosuna provisional
+            // bir mp3 uretmez.
+            var labelError = ValidateLabel(request.LabelId);
+
+            if (labelError != null)
+            {
+                return labelError;
+            }
+
+            if (_songService.TitleExistsForArtist(request.Title, request.ArtistId))
+            {
+                return ArtistSongWorkflowResult.Failure(
+                    ArtistSongWorkflowField.Title,
+                    $"'{request.Title.Trim()}' adında bir şarkı bu sanatçı hesabında zaten kayıtlı.");
             }
 
             string storedAudioFileName;
@@ -185,6 +206,14 @@ namespace MusicProject.Services.Concrete
                     out var publicationError))
             {
                 return publicationError!;
+            }
+
+            // Plak sirketi FK'si gecersizse guncelleme yeni bir mp3 yazmadan once reddedilir.
+            var labelError = ValidateLabel(request.LabelId);
+
+            if (labelError != null)
+            {
+                return labelError;
             }
 
             var oldPublicationJobId = existingSong.PublicationJobId;
@@ -335,6 +364,31 @@ namespace MusicProject.Services.Concrete
                 return ArtistSongWorkflowResult.Failure(
                     ArtistSongWorkflowField.AlbumId,
                     "Seçilen albüm bu sanatçı hesabına ait değil.");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Istekte bir plak sirketi (LabelId) belirtilmisse ilgili kaydin var oldugunu
+        /// dogrular. Artist formunda plak sirketi secimi bulunmadigindan normal akista
+        /// LabelId her zaman null gelir; bu kontrol, gecersiz bir LabelId'nin veritabani
+        /// FK ihlaline (HTTP 500) donusmesini engelleyen sunucu tarafi savunmadir.
+        /// </summary>
+        private ArtistSongWorkflowResult? ValidateLabel(int? labelId)
+        {
+            if (!labelId.HasValue)
+            {
+                return null;
+            }
+
+            var label = _recordLabelRepository.GetByID(labelId.Value);
+
+            if (label == null)
+            {
+                return ArtistSongWorkflowResult.Failure(
+                    ArtistSongWorkflowField.None,
+                    "Seçilen plak şirketi bulunamadı.");
             }
 
             return null;

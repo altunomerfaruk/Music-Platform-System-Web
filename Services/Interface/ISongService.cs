@@ -14,6 +14,8 @@ namespace MusicProject.Services.Interface
 
         void AddSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds);
 
+        bool TitleExistsForArtist(string title, int artistId);
+
         void UpdateSong(Song song);
 
         void DeleteSong(int id);

@@ -54,26 +54,83 @@ namespace MusicProject.Services.Concrete
             try
             {
                 _albumService.AddAlbum(album);
-
-                if (album.PublicationStatus == PublicationStatus.Scheduled &&
-                    album.ScheduledPublishAtUtc.HasValue)
-                {
-                    album.PublicationJobId =
-                        _publicationJobScheduler.ScheduleAlbumPublication(
-                            album.Id,
-                            album.ScheduledPublishAtUtc.Value);
-
-                    _albumService.UpdatePublication(album);
-                }
             }
             catch (InvalidOperationException exception)
             {
+                // Henuz provisional kaynak (Hangfire job) uretilmedi; yalnizca isim/
+                // dogrulama hatasi. Geri alinacak bir sey yok.
                 return ArtistAlbumWorkflowResult.Failure(
                     ArtistAlbumWorkflowField.Name,
                     exception.Message);
             }
 
+            // Album DB'ye yazildi. Scheduled ise Hangfire job'i "provisional" bir kaynaktir:
+            // job olusturulduktan sonra publication DB update'i patlarsa, Song create
+            // akisindaki gibi yeni job iptal edilir ve yarim kalan album kaydi geri alinir;
+            // asil hata korunur, cleanup hatalari loglanir.
+            if (album.PublicationStatus == PublicationStatus.Scheduled &&
+                album.ScheduledPublishAtUtc.HasValue)
+            {
+                string? provisionalJobId = null;
+
+                try
+                {
+                    provisionalJobId =
+                        _publicationJobScheduler.ScheduleAlbumPublication(
+                            album.Id,
+                            album.ScheduledPublishAtUtc.Value);
+
+                    album.PublicationJobId = provisionalJobId;
+
+                    _albumService.UpdatePublication(album);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    DiscardCreatedAlbum(album.Id, request.ArtistId, provisionalJobId);
+
+                    return ArtistAlbumWorkflowResult.Failure(
+                        ArtistAlbumWorkflowField.Name,
+                        exception.Message);
+                }
+                catch
+                {
+                    DiscardCreatedAlbum(album.Id, request.ArtistId, provisionalJobId);
+
+                    throw;
+                }
+            }
+
             return ArtistAlbumWorkflowResult.Success(BuildCreationMessage(album));
+        }
+
+        /// <summary>
+        /// Olusturma, album DB'ye yazildiktan SONRAKI bir adimda (job planlama /
+        /// publication update) basarisiz oldugunda geride yarim kayit birakmamak icin
+        /// bu istekte uretilen provisional job'i iptal eder ve album kaydini geri alir.
+        /// Buradaki ikincil hatalar yalnizca loglanir; cagiran asil hatayi dondurmeye
+        /// devam eder.
+        /// </summary>
+        private void DiscardCreatedAlbum(
+            int albumId,
+            int artistId,
+            string? provisionalJobId)
+        {
+            TryCancelPublicationJob(
+                provisionalJobId,
+                albumId,
+                "album olusturma geri alinirken yeni yayin job'i iptal edilemedi");
+
+            try
+            {
+                _albumService.DeleteArtistAlbum(albumId, artistId);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Albüm {AlbumId}: olusturma geri alinirken kayit silinemedi.",
+                    albumId);
+            }
         }
 
         public ArtistAlbumWorkflowResult UpdateAlbum(UpdateArtistAlbumRequest request)

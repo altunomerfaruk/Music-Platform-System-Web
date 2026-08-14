@@ -165,6 +165,16 @@ namespace MusicProject.Services.Concrete
             _songRepository.Create(song);
         }
 
+        public bool TitleExistsForArtist(string title, int artistId)
+        {
+            if (string.IsNullOrWhiteSpace(title) || artistId <= 0)
+            {
+                return false;
+            }
+
+            return _songRepository.ExistsByTitleAndArtist(title.Trim(), artistId);
+        }
+
         public void AddSongWithRelations(Song song, int artistId, IEnumerable<int> genreIds)
         {
             if (artistId <= 0)

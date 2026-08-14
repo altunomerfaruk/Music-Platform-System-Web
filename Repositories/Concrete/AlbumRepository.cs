@@ -148,7 +148,6 @@ namespace MusicProject.Repositories.Concrete
         public bool DeleteArtistAlbum(int albumId, int artistId)
         {
             var album = _context.Albums
-                .Include(album => album.Songs)
                 .FirstOrDefault(album => album.Id == albumId && album.ArtistId == artistId);
 
             if (album == null)
@@ -156,10 +155,18 @@ namespace MusicProject.Repositories.Concrete
                 return false;
             }
 
-            if (album.Songs.Count > 0)
+            // Song uzerindeki global "IsDeleted == false" query filter'i soft-delete edilmis
+            // sarkilari gizler; ancak bu sarkilar hala AlbumId ile bu albumu referanslar.
+            // Filtreyi yok sayarak (IgnoreQueryFilters) SQL tarafinda Any() ile kontrol
+            // edilmezse, hard-delete FK ihlaline (DbUpdateException / HTTP 500) yol acardi.
+            var hasReferencingSongs = _context.Songs
+                .IgnoreQueryFilters()
+                .Any(song => song.AlbumId == albumId);
+
+            if (hasReferencingSongs)
             {
                 throw new InvalidOperationException(
-                    "Bu albümde şarkılar bulunduğu için albüm silinemez. Önce albümdeki şarkıları başka bir albüme taşımalı veya albüm bağlantılarını kaldırmalısınız.");
+                    "Bu albüme bağlı şarkı kayıtları bulunduğu için albüm silinemez. Önce bu şarkıları başka bir albüme taşımalı veya albümden kaldırmalısınız.");
             }
 
             _context.Albums.Remove(album);
