@@ -491,3 +491,5 @@ $RECYCLE.BIN/
 *.swp
 # Uploaded audio files
 Storage/Audio/
+# Local MP3 files
+*.mp3
