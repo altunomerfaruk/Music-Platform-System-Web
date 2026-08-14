@@ -31,6 +31,18 @@
   </ItemGroup>
 
   <!--
+    KORUMA: Yuklenen MP3'ler ContentRoot altindaki Storage/Audio klasorune yazilir.
+    Visual Studio Hot Reload / "dotnet watch" proje agacini izler; yukleme sirasinda
+    bu klasore yeni dosya dusunce uygulamayi yeniden baslatir ve devam eden yukleme
+    istegi (buyuk MP3) yarida kesilir. Asagidaki satir Storage klasorunu izlemeden
+    haric tutar; boylece yukleme uygulamayi yeniden baslatmaz. Derleme/calisma/uretim
+    davranisini etkilemez.
+  -->
+  <ItemGroup>
+    <Watch Remove="Storage\**\*" />
+  </ItemGroup>
+
+  <!--
     KORUMA: Visual Studio bazen yeni eklenen .cshtml dosyalarini yanlislikla
     <Compile Include="..."/> olarak projeye ekliyor. Bu durumda Razor/HTML/CSS
     icerigi C# kaynak kodu gibi derlenmeye calisilir ve yuzlerce hata olusur.

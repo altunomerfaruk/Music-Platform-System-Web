@@ -430,6 +430,15 @@ test-results/
 .AppleDouble
 .LSOverride
 
+# Uploaded audio files
+Storage/Audio/
+
+# Claude files
+.claude/
+CLAUDE.md
+AGENTS.md
+
+
 # Icon must end with two \r
 Icon
 
