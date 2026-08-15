@@ -10,6 +10,138 @@
         return;
     }
 
+    const progressRange =
+        document.getElementById("playerProgress");
+
+    const currentTimeLabel =
+        document.getElementById("playerCurrentTime");
+
+    const totalTimeLabel =
+        document.getElementById("playerTotalTime");
+
+    let isSeeking = false;
+
+    function getPlayerDuration() {
+        const duration = audioPlayer.duration;
+
+        return Number.isFinite(duration) && duration > 0
+            ? duration
+            : 0;
+    }
+
+    function paintProgressFill(percent) {
+        if (!progressRange) {
+            return;
+        }
+
+        const safePercent =
+            Math.min(100, Math.max(0, percent));
+
+        progressRange.style.backgroundImage =
+            `linear-gradient(to right, var(--primary) ${safePercent}%, transparent ${safePercent}%)`;
+    }
+
+    function resetProgressUi() {
+        if (progressRange) {
+            progressRange.max = "0";
+            progressRange.value = "0";
+            progressRange.setAttribute("aria-valuetext", "0:00");
+        }
+
+        if (currentTimeLabel) {
+            currentTimeLabel.textContent = "0:00";
+        }
+
+        if (totalTimeLabel) {
+            totalTimeLabel.textContent = "0:00";
+        }
+
+        paintProgressFill(0);
+    }
+
+    function syncDuration() {
+        const duration = getPlayerDuration();
+
+        if (progressRange) {
+            progressRange.max = duration > 0 ? String(duration) : "0";
+        }
+
+        if (totalTimeLabel) {
+            totalTimeLabel.textContent = formatPlayerTime(duration);
+        }
+    }
+
+    function syncProgressFromAudio() {
+        if (isSeeking) {
+            return;
+        }
+
+        const duration = getPlayerDuration();
+        const currentTime = audioPlayer.currentTime || 0;
+
+        if (progressRange && duration > 0) {
+            progressRange.value =
+                String(Math.min(currentTime, duration));
+        }
+
+        if (currentTimeLabel) {
+            currentTimeLabel.textContent =
+                formatPlayerTime(currentTime);
+        }
+
+        const percent =
+            duration > 0 ? (currentTime / duration) * 100 : 0;
+
+        paintProgressFill(percent);
+
+        if (progressRange) {
+            progressRange.setAttribute(
+                "aria-valuetext",
+                `${formatPlayerTime(currentTime)} / ${formatPlayerTime(duration)}`
+            );
+        }
+    }
+
+    if (progressRange) {
+        audioPlayer.addEventListener("loadedmetadata", syncDuration);
+        audioPlayer.addEventListener("durationchange", syncDuration);
+        audioPlayer.addEventListener("timeupdate", syncProgressFromAudio);
+
+        progressRange.addEventListener("input", function () {
+            isSeeking = true;
+
+            const duration = getPlayerDuration();
+            const target = Number(progressRange.value) || 0;
+
+            if (currentTimeLabel) {
+                currentTimeLabel.textContent = formatPlayerTime(target);
+            }
+
+            const percent =
+                duration > 0 ? (target / duration) * 100 : 0;
+
+            paintProgressFill(percent);
+        });
+
+        progressRange.addEventListener("change", function () {
+            const duration = getPlayerDuration();
+
+            if (duration > 0) {
+                const target =
+                    Math.min(Number(progressRange.value) || 0, duration);
+
+                // Seek yalnizca currentTime'i gunceller; yeni byte araligi mevcut
+                // StreamSong (range) endpoint'inden gelir. PlaySong cagrilmaz, bu
+                // yuzden ListeningHistory / dinlenme sayaci tekrar artmaz.
+                audioPlayer.currentTime = target;
+            }
+
+            isSeeking = false;
+
+            syncProgressFromAudio();
+        });
+    }
+
     const playSongUrl =
         playSongTokenForm.dataset.playUrl;
 
@@ -101,6 +233,8 @@
 
                 audioPlayer.src = result.streamUrl;
                 audioPlayer.load();
+
+                resetProgressUi();
 
                 await resumeCurrentSong(audioPlayer);
 
@@ -197,6 +331,8 @@
             player.pause();
             player.src = result.streamUrl;
             player.load();
+
+            resetProgressUi();
 
             updateMusicPlayer(songInfo);
 
@@ -517,4 +653,16 @@ function showPlayerError(message) {
         window.setTimeout(function () {
             errorBox.style.display = "none";
         }, 3500);
+}
+
+function formatPlayerTime(totalSeconds) {
+    if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+        return "0:00";
+    }
+
+    const wholeSeconds = Math.floor(totalSeconds);
+    const minutes = Math.floor(wholeSeconds / 60);
+    const seconds = wholeSeconds % 60;
+
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }

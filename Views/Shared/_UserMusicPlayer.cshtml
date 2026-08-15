@@ -67,15 +67,23 @@
 
         <div class="progress-area">
 
-            <span class="progress-time">
+            <span class="progress-time"
+                  id="playerCurrentTime">
                 0:00
             </span>
 
-            <div class="progress-line">
-                <div class="progress-value"></div>
-            </div>
+            <input type="range"
+                   class="progress-range"
+                   id="playerProgress"
+                   min="0"
+                   max="0"
+                   value="0"
+                   step="any"
+                   aria-label="Şarkı ilerlemesi"
+                   aria-valuetext="0:00" />
 
-            <span class="progress-time">
+            <span class="progress-time"
+                  id="playerTotalTime">
                 0:00
             </span>
 

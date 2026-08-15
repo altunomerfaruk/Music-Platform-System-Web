@@ -1020,21 +1020,71 @@
                 font-size: 9px;
             }
 
-            .progress-line {
-                position: relative;
-                height: 4px;
-                overflow: hidden;
+            .progress-range {
+                -webkit-appearance: none;
+                appearance: none;
                 flex: 1;
+                height: 4px;
+                margin: 0;
                 background-color: #303731;
+                background-image: linear-gradient(to right, var(--primary) 0%, transparent 0%);
+                background-repeat: no-repeat;
                 border-radius: 10px;
+                cursor: pointer;
+                outline: none;
             }
 
-            .progress-value {
-                width: 38%;
-                height: 100%;
-                background-color: var(--primary);
-                border-radius: 10px;
-            }
+                .progress-range::-webkit-slider-runnable-track {
+                    height: 4px;
+                    background: transparent;
+                    border-radius: 10px;
+                }
+
+                .progress-range::-moz-range-track {
+                    height: 4px;
+                    background: transparent;
+                    border-radius: 10px;
+                }
+
+                .progress-range::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 12px;
+                    height: 12px;
+                    margin-top: -4px;
+                    background-color: #ffffff;
+                    border: none;
+                    border-radius: 50%;
+                    opacity: 0;
+                    transition: opacity 0.15s;
+                }
+
+                .progress-range::-moz-range-thumb {
+                    width: 12px;
+                    height: 12px;
+                    background-color: #ffffff;
+                    border: none;
+                    border-radius: 50%;
+                    opacity: 0;
+                    transition: opacity 0.15s;
+                }
+
+                .progress-range:hover::-webkit-slider-thumb,
+                .progress-range:active::-webkit-slider-thumb,
+                .progress-range:focus-visible::-webkit-slider-thumb {
+                    opacity: 1;
+                }
+
+                .progress-range:hover::-moz-range-thumb,
+                .progress-range:active::-moz-range-thumb,
+                .progress-range:focus-visible::-moz-range-thumb {
+                    opacity: 1;
+                }
+
+                .progress-range:focus-visible {
+                    outline: 2px solid var(--primary);
+                    outline-offset: 4px;
+                }
 
             .player-right {
                 display: flex;
