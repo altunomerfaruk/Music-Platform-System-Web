@@ -64,13 +64,7 @@ namespace MusicProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult AllSongs(
-            string? search,
-            int? artistId,
-            int? albumId,
-            int? genreId,
-            string? sort,
-            bool likedOnly = false)
+        public IActionResult AllSongs(string? search, int? artistId, int? albumId, int? genreId, string? sort, bool likedOnly = false)
         {
             if (!TryGetCurrentUserId(out var userId))
             {
@@ -126,7 +120,8 @@ namespace MusicProject.Controllers
                     .Select(album => new FilterOptionDto
                     {
                         Id = album.Id,
-                        Name = album.Name
+                        Name = album.Name,
+                        ArtistId = album.ArtistId
                     })
                     .ToList(),
 
@@ -249,10 +244,7 @@ namespace MusicProject.Controllers
             if (audioStream == null)
                 return NotFound();
 
-            return File(
-                audioStream,
-                "audio/mpeg",
-                enableRangeProcessing: true);
+            return File(audioStream, "audio/mpeg", enableRangeProcessing: true);
         }
 
         private static SongListItemDto ToSongListItem(Song song)

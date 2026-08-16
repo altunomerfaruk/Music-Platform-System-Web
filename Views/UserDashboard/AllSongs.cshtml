@@ -761,13 +761,16 @@
                             {
                                 if (Model.AlbumId == album.Id)
                                 {
-                                    <option value="@album.Id" selected>
+                                    <option value="@album.Id"
+                                            data-artist-id="@album.ArtistId"
+                                            selected>
                                         @album.Name
                                     </option>
                                 }
                                 else
                                 {
-                                    <option value="@album.Id">
+                                    <option value="@album.Id"
+                                            data-artist-id="@album.ArtistId">
                                         @album.Name
                                     </option>
                                 }
@@ -1185,10 +1188,15 @@
             const artistIdInput = document.getElementById("artistId");
             const selectedArtistText = document.getElementById("selectedArtistText");
             const artistEmptyMessage = document.getElementById("artistEmptyMessage");
+            const albumSelect = document.getElementById("albumId");
 
             const artistOptions = Array.from(
                 document.querySelectorAll(".artist-select-option")
             );
+
+            const albumOptions = albumSelect
+                ? Array.from(albumSelect.querySelectorAll("option[data-artist-id]"))
+                : [];
 
             if (
                 !artistWrapper ||
@@ -1197,7 +1205,8 @@
                 !artistSearchInput ||
                 !artistIdInput ||
                 !selectedArtistText ||
-                !artistEmptyMessage
+                !artistEmptyMessage ||
+                !albumSelect
             ) {
                 return;
             }
@@ -1206,6 +1215,29 @@
                 return value
                     .toLocaleLowerCase("tr-TR")
                     .trim();
+            }
+
+            function filterAlbumsByArtist(artistId) {
+                let selectedAlbumStillVisible = albumSelect.value === "";
+
+                albumOptions.forEach(function (option) {
+                    const belongsToSelectedArtist =
+                        artistId === "" ||
+                        option.dataset.artistId === artistId;
+
+                    option.hidden = !belongsToSelectedArtist;
+
+                    if (
+                        belongsToSelectedArtist &&
+                        option.value === albumSelect.value
+                    ) {
+                        selectedAlbumStillVisible = true;
+                    }
+                });
+
+                if (!selectedAlbumStillVisible) {
+                    albumSelect.value = "";
+                }
             }
 
             function closeArtistDropdown() {
@@ -1285,6 +1317,8 @@
 
                     option.classList.add("selected");
 
+                    filterAlbumsByArtist(selectedArtistId);
+
                     closeArtistDropdown();
                 });
             });
@@ -1316,6 +1350,8 @@
                     firstVisibleOption.click();
                 }
             });
+
+            filterAlbumsByArtist(artistIdInput.value);
         });
     </script>
 }
