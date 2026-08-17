@@ -7,16 +7,6 @@ using MusicProject.Services.Interface;
 
 namespace MusicProject.Services.Concrete
 {
-    /// <summary>
-    /// Sarki ekleme / guncelleme / silme is akisi.
-    ///
-    /// Akis iki asamali dusunulur:
-    /// 1) DB yazmasindan ONCE ayrilan mp3 ve Hangfire job'i "provisional" kaynaktir;
-    ///    DB yazmasi patlarsa bunlar geri alinir, eski kaynaklara dokunulmaz.
-    /// 2) DB yazmasi BASARILI olduktan sonra yerini yeni kaynaklarin aldigi eski
-    ///    mp3/job temizlenir. Bu temizlik post-success cleanup'tir: patlarsa
-    ///    loglanir, islem basarisiz sayilmaz ve yeni kaynaklar geri alinmaz.
-    /// </summary>
     public class ArtistSongWorkflowManager : IArtistSongWorkflowService
     {
         private readonly ISongService _songService;
@@ -350,11 +340,6 @@ namespace MusicProject.Services.Concrete
             return _albumService.GetArtistAlbumDetails(albumId.Value, artistId);
         }
 
-        /// <summary>
-        /// Istekte album secilmis ama album bu sanatciya ait degilse hata dondurur.
-        /// Controller da ayni kontrolu yapiyor; bu workflow seviyesindeki savunmadir.
-        /// Kontrol olmasaydi sarki, sahibi olmadigi bir albumun id'siyle kaydedilebilirdi.
-        /// </summary>
         private static ArtistSongWorkflowResult? ValidateAlbumOwnership(
             int? requestedAlbumId,
             Album? selectedAlbum)
@@ -368,13 +353,6 @@ namespace MusicProject.Services.Concrete
 
             return null;
         }
-
-        /// <summary>
-        /// Istekte bir plak sirketi (LabelId) belirtilmisse ilgili kaydin var oldugunu
-        /// dogrular. Artist formunda plak sirketi secimi bulunmadigindan normal akista
-        /// LabelId her zaman null gelir; bu kontrol, gecersiz bir LabelId'nin veritabani
-        /// FK ihlaline (HTTP 500) donusmesini engelleyen sunucu tarafi savunmadir.
-        /// </summary>
         private ArtistSongWorkflowResult? ValidateLabel(int? labelId)
         {
             if (!labelId.HasValue)
@@ -454,11 +432,6 @@ namespace MusicProject.Services.Concrete
             return true;
         }
 
-        /// <summary>
-        /// Olusturma basarisiz sonuclandiginda geride yarim kayit birakmamak icin
-        /// bu istekte uretilen her seyi geri alir. Buradaki ikincil hatalar
-        /// yalnizca loglanir; cagiran asil hatayi dondurmeye devam eder.
-        /// </summary>
         private void DiscardCreatedSong(
             Song song,
             bool songCreated,
@@ -492,11 +465,6 @@ namespace MusicProject.Services.Concrete
                 "olusturma geri alinirken mp3 silinemedi");
         }
 
-        /// <summary>
-        /// DB guncellemesi BASARISIZ oldugunda calisir.
-        /// Yalnizca bu istekte ayrilan yeni kaynaklari geri alir;
-        /// eski mp3 ve eski job oldugu gibi korunur.
-        /// </summary>
         private void DiscardProvisionalUpdateResources(
             int songId,
             string? newPublicationJobId,
@@ -517,12 +485,7 @@ namespace MusicProject.Services.Concrete
             }
         }
 
-        /// <summary>
-        /// DB guncellemesi BASARIYLA tamamlandiktan sonra calisir.
-        /// Yerini yeni kaynaklarin aldigi eski job ve eski mp3 temizlenir.
-        /// Buradaki hata guncellemeyi gecersiz kilmaz: yeni kaynaklar korunur,
-        /// kullaniciya basarili sonuc doner, hata loglanir.
-        /// </summary>
+
         private void CleanUpReplacedUpdateResources(
             int songId,
             string? oldPublicationJobId,

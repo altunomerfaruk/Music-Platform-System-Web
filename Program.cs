@@ -16,7 +16,6 @@ var connectionString =
     builder.Configuration.GetConnectionString(
         "DefaultConnection"
     );
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString)
 );
@@ -88,7 +87,6 @@ using (var scope = app.Services.CreateScope())
 
     SeedData.Initialize(context);
 }
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
